@@ -7,8 +7,8 @@
     <a class="detail-back" href="{% url 'catalog:event_list' %}">← К результатам</a>
 
     <div class="detail-hero">
-        {% if event.cover_url %}
-            <img src="{{ event.cover_url }}" alt="" referrerpolicy="no-referrer">
+        {% if event.display_cover_url %}
+            <img src="{{ event.display_cover_url }}" alt="" referrerpolicy="no-referrer">
         {% else %}
             <span class="detail-hero__empty" aria-hidden="true"></span>
         {% endif %}

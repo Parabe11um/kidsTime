@@ -1,0 +1,45 @@
+.venue-map-module__content {
+    padding: 16px;
+}
+
+.venue-map {
+    width: 100%;
+    min-height: 420px;
+    overflow: hidden;
+    border: 1px solid var(--border-color, #d8d8d8);
+    border-radius: 8px;
+    background: #f4f6f5;
+}
+
+.venue-map-module__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.venue-map-status {
+    color: var(--body-quiet-color, #666);
+}
+
+.venue-map-marker {
+    width: 28px;
+    height: 28px;
+    border: 4px solid #fff;
+    border-radius: 50% 50% 50% 0;
+    background: #ff766e;
+    box-shadow: 0 3px 12px rgb(0 0 0 / 25%);
+    transform: translate(-50%, -100%) rotate(-45deg);
+}
+
+@media (max-width: 767px) {
+    .venue-map {
+        min-height: 320px;
+    }
+
+    .venue-map-module__footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

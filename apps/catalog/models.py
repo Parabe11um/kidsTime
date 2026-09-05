@@ -26,6 +26,22 @@ class AvailabilityStatus(models.TextChoices):
     UNKNOWN = "unknown", "Нужно уточнить"
 
 
+class ImportRunStatus(models.TextChoices):
+    RUNNING = "running", "Выполняется"
+    COMPLETED = "completed", "Завершён"
+    PARTIAL = "partial", "Завершён с ошибками"
+    FAILED = "failed", "Ошибка"
+
+
+class ImportedEventStatus(models.TextChoices):
+    NEW = "new", "Новая запись"
+    REVIEW = "review", "На проверке"
+    READY = "ready", "Готово к переносу"
+    IMPORTED = "imported", "Перенесено"
+    SKIPPED = "skipped", "Пропущено"
+    ERROR = "error", "Ошибка"
+
+
 class Category(models.Model):
     name = models.CharField("Название", max_length=120)
     slug = models.SlugField("Адрес", max_length=140, unique=True)
@@ -61,11 +77,32 @@ class Organizer(models.Model):
 class Source(models.Model):
     name = models.CharField("Название", max_length=180)
     url = models.URLField("Ссылка", blank=True)
+    feed_url = models.URLField("Адрес ленты или раздела", blank=True)
+    parser_code = models.SlugField(
+        "Код парсера",
+        max_length=80,
+        blank=True,
+        help_text="Технический идентификатор адаптера источника.",
+    )
+    is_active = models.BooleanField("Активен", default=True)
+    automated_collection_allowed = models.BooleanField(
+        "Автоматический сбор разрешён",
+        default=False,
+        help_text="Включайте только после проверки правил сайта и получения необходимых разрешений.",
+    )
     usage_notes = models.TextField("Условия использования", blank=True)
     last_checked_at = models.DateTimeField("Последняя проверка", null=True, blank=True)
+    last_import_at = models.DateTimeField("Последний импорт", null=True, blank=True)
 
     class Meta:
         ordering = ("name",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("parser_code",),
+                condition=~models.Q(parser_code=""),
+                name="unique_nonempty_parser_code",
+            )
+        ]
         verbose_name = "Источник"
         verbose_name_plural = "Источники"
 
@@ -220,6 +257,45 @@ class Event(models.Model):
             return f"{self.price_from:g}–{self.price_to:g} ₽"
         return f"от {self.price_from:g} ₽"
 
+    @property
+    def display_cover_url(self):
+        prefetched_images = getattr(self, "prefetched_images", None)
+        if prefetched_images is not None:
+            primary = next((image for image in prefetched_images if image.is_cover), None)
+            image = primary or (prefetched_images[0] if prefetched_images else None)
+        else:
+            image = self.images.order_by("-is_cover", "sort_order", "pk").first()
+        return image.image.url if image else self.cover_url
+
+
+class EventImage(models.Model):
+    event = models.ForeignKey(
+        Event,
+        verbose_name="Мероприятие",
+        on_delete=models.CASCADE,
+        related_name="images",
+    )
+    image = models.ImageField("Изображение", upload_to="events/%Y/%m/")
+    alt_text = models.CharField("Описание изображения", max_length=255, blank=True)
+    source_url = models.URLField("Источник изображения", blank=True)
+    rights_note = models.CharField(
+        "Права на использование",
+        max_length=255,
+        blank=True,
+        help_text="Например: предоставлено организатором или собственная фотография.",
+    )
+    sort_order = models.PositiveSmallIntegerField("Порядок", default=100)
+    is_cover = models.BooleanField("Обложка", default=False)
+    created_at = models.DateTimeField("Загружено", auto_now_add=True)
+
+    class Meta:
+        ordering = ("-is_cover", "sort_order", "pk")
+        verbose_name = "Изображение мероприятия"
+        verbose_name_plural = "Изображения мероприятия"
+
+    def __str__(self):
+        return self.alt_text or f"Изображение для {self.event}"
+
 
 class EventSession(models.Model):
     event = models.ForeignKey(
@@ -247,3 +323,86 @@ class EventSession(models.Model):
 
     def __str__(self):
         return f"{self.event}: {timezone.localtime(self.starts_at):%d.%m.%Y %H:%M}"
+
+
+class ImportRun(models.Model):
+    source = models.ForeignKey(
+        Source,
+        verbose_name="Источник",
+        on_delete=models.PROTECT,
+        related_name="import_runs",
+    )
+    status = models.CharField(
+        "Статус",
+        max_length=12,
+        choices=ImportRunStatus.choices,
+        default=ImportRunStatus.RUNNING,
+    )
+    dry_run = models.BooleanField("Проверочный запуск", default=False)
+    started_at = models.DateTimeField("Начало", auto_now_add=True)
+    finished_at = models.DateTimeField("Окончание", null=True, blank=True)
+    found_count = models.PositiveIntegerField("Найдено", default=0)
+    staged_count = models.PositiveIntegerField("Добавлено в очередь", default=0)
+    updated_count = models.PositiveIntegerField("Обновлено", default=0)
+    failed_count = models.PositiveIntegerField("Ошибок", default=0)
+    message = models.TextField("Сообщение", blank=True)
+
+    class Meta:
+        ordering = ("-started_at",)
+        verbose_name = "Запуск импорта"
+        verbose_name_plural = "Запуски импорта"
+
+    def __str__(self):
+        return f"{self.source} — {self.started_at:%d.%m.%Y %H:%M}"
+
+
+class ImportedEvent(models.Model):
+    source = models.ForeignKey(
+        Source,
+        verbose_name="Источник",
+        on_delete=models.PROTECT,
+        related_name="imported_events",
+    )
+    import_run = models.ForeignKey(
+        ImportRun,
+        verbose_name="Запуск импорта",
+        on_delete=models.SET_NULL,
+        related_name="items",
+        null=True,
+        blank=True,
+    )
+    external_id = models.CharField("ID в источнике", max_length=255)
+    title = models.CharField("Название", max_length=220, blank=True)
+    source_url = models.URLField("Страница первоисточника", blank=True)
+    fingerprint = models.CharField("Отпечаток данных", max_length=64, blank=True)
+    status = models.CharField(
+        "Статус",
+        max_length=12,
+        choices=ImportedEventStatus.choices,
+        default=ImportedEventStatus.NEW,
+    )
+    raw_payload = models.JSONField("Исходные данные", default=dict)
+    normalized_payload = models.JSONField("Нормализованные данные", default=dict)
+    validation_errors = models.JSONField("Ошибки проверки", default=list, blank=True)
+    event = models.ForeignKey(
+        Event,
+        verbose_name="Созданное мероприятие",
+        on_delete=models.SET_NULL,
+        related_name="import_records",
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField("Получено", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлено", auto_now=True)
+
+    class Meta:
+        ordering = ("-updated_at",)
+        constraints = [
+            models.UniqueConstraint(fields=("source", "external_id"), name="unique_source_external_event"),
+        ]
+        indexes = [models.Index(fields=("status", "updated_at"), name="import_review_idx")]
+        verbose_name = "Импортированное мероприятие"
+        verbose_name_plural = "Очередь импорта"
+
+    def __str__(self):
+        return self.title or self.external_id

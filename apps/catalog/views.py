@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
-from .models import ActivityFormat, Category, Event, EventSession
+from .models import ActivityFormat, Category, Event, EventImage, EventSession
 
 
 def _base_events():
@@ -16,11 +16,16 @@ def _base_events():
         queryset=EventSession.objects.filter(starts_at__gte=timezone.now()).order_by("starts_at"),
         to_attr="upcoming_sessions",
     )
+    images = Prefetch(
+        "images",
+        queryset=EventImage.objects.order_by("-is_cover", "sort_order", "pk"),
+        to_attr="prefetched_images",
+    )
     return (
         Event.objects.visible()
         .filter(venue__is_published=True)
         .select_related("category", "venue", "organizer", "source")
-        .prefetch_related(upcoming)
+        .prefetch_related(upcoming, images)
     )
 
 
@@ -118,7 +123,7 @@ def map_events_api(request):
                 "lat": point.y,
                 "lng": point.x,
                 "url": event.get_absolute_url(),
-                "cover": event.cover_url,
+                "cover": event.display_cover_url,
             }
         )
     return JsonResponse({"count": len(payload), "results": payload})

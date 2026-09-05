@@ -1,7 +1,7 @@
 <article class="event-card" data-event-id="{{ event.pk }}">
     <a class="event-card__image-wrap" href="{{ event.get_absolute_url }}">
-        {% if event.cover_url %}
-            <img class="event-card__image" src="{{ event.cover_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+        {% if event.display_cover_url %}
+            <img class="event-card__image" src="{{ event.display_cover_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">
         {% else %}
             <span class="event-card__image event-card__image--empty" aria-hidden="true"></span>
         {% endif %}

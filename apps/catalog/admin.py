@@ -1,8 +1,20 @@
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.gis.geos import Point
 
-from .models import Category, Event, EventSession, Organizer, Source, Venue
+from .models import (
+    Category,
+    Event,
+    EventImage,
+    EventSession,
+    ImportedEvent,
+    ImportedEventStatus,
+    ImportRun,
+    Organizer,
+    Source,
+    Venue,
+)
+from .services.imports import ImportPromotionError, promote_imported_event
 
 
 class VenueAdminForm(forms.ModelForm):
@@ -58,17 +70,40 @@ class OrganizerAdmin(admin.ModelAdmin):
 
 @admin.register(Source)
 class SourceAdmin(admin.ModelAdmin):
-    list_display = ("name", "url", "last_checked_at")
-    search_fields = ("name", "url")
+    list_display = (
+        "name",
+        "parser_code",
+        "is_active",
+        "automated_collection_allowed",
+        "last_import_at",
+    )
+    list_filter = ("is_active", "automated_collection_allowed")
+    search_fields = ("name", "url", "feed_url", "parser_code")
 
 
 @admin.register(Venue)
 class VenueAdmin(admin.ModelAdmin):
     form = VenueAdminForm
+    change_form_template = "admin/catalog/venue/change_form.html"
     list_display = ("name", "district", "metro", "has_coordinates", "is_published", "last_verified_at")
     list_filter = ("district", "stroller_access", "accessible", "is_published")
     search_fields = ("name", "address", "metro")
     prepopulated_fields = {"slug": ("name",)}
+    fieldsets = (
+        ("Основное", {"fields": ("name", "slug", "address", "district", "metro")}),
+        ("Координаты", {"fields": (("latitude", "longitude"),)}),
+        (
+            "Доступность",
+            {
+                "fields": (
+                    "entrance_notes",
+                    "parking_notes",
+                    ("stroller_access", "accessible"),
+                )
+            },
+        ),
+        ("Публикация", {"fields": ("is_published", "last_verified_at")}),
+    )
 
     @admin.display(boolean=True, description="Координаты")
     def has_coordinates(self, obj):
@@ -79,6 +114,19 @@ class EventSessionInline(admin.TabularInline):
     model = EventSession
     extra = 1
     fields = ("starts_at", "ends_at", "price", "availability", "booking_url")
+
+
+class EventImageInline(admin.TabularInline):
+    model = EventImage
+    extra = 1
+    fields = (
+        "image",
+        "alt_text",
+        "is_cover",
+        "sort_order",
+        "source_url",
+        "rights_note",
+    )
 
 
 @admin.register(Event)
@@ -97,7 +145,44 @@ class EventAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
     autocomplete_fields = ("venue", "organizer", "source")
     readonly_fields = ("created_at", "updated_at")
-    inlines = (EventSessionInline,)
+    inlines = (EventImageInline, EventSessionInline)
+    save_on_top = True
+    fieldsets = (
+        ("Основное", {"fields": ("title", "slug", "short_description", "description")}),
+        ("Место и тип", {"fields": ("category", "venue", "organizer", "activity_format")}),
+        (
+            "Возраст и стоимость",
+            {
+                "fields": (
+                    ("age_from", "age_to"),
+                    ("price_from", "price_to", "is_free"),
+                    "duration_minutes",
+                )
+            },
+        ),
+        (
+            "Публикация",
+            {
+                "fields": (
+                    "status",
+                    ("is_featured", "is_recommended"),
+                    "published_until",
+                    "last_verified_at",
+                )
+            },
+        ),
+        (
+            "Первоисточник",
+            {
+                "fields": ("source", "source_url", "cover_url"),
+                "description": "Внешняя обложка используется только если загруженного изображения нет.",
+            },
+        ),
+        (
+            "Служебные данные",
+            {"classes": ("collapse",), "fields": ("created_at", "updated_at")},
+        ),
+    )
 
     @admin.display(description="Возраст")
     def age_range(self, obj):
@@ -109,6 +194,128 @@ class EventSessionAdmin(admin.ModelAdmin):
     list_display = ("event", "starts_at", "ends_at", "price", "availability")
     list_filter = ("availability", "starts_at")
     search_fields = ("event__title", "event__venue__name")
+
+
+@admin.register(EventImage)
+class EventImageAdmin(admin.ModelAdmin):
+    list_display = ("event", "is_cover", "sort_order", "rights_note", "created_at")
+    list_filter = ("is_cover", "created_at")
+    search_fields = ("event__title", "alt_text", "rights_note", "source_url")
+    autocomplete_fields = ("event",)
+
+
+@admin.register(ImportRun)
+class ImportRunAdmin(admin.ModelAdmin):
+    list_display = (
+        "source",
+        "status",
+        "dry_run",
+        "started_at",
+        "found_count",
+        "staged_count",
+        "updated_count",
+        "failed_count",
+    )
+    list_filter = ("status", "dry_run", "source")
+    readonly_fields = (
+        "source",
+        "status",
+        "dry_run",
+        "started_at",
+        "finished_at",
+        "found_count",
+        "staged_count",
+        "updated_count",
+        "failed_count",
+        "message",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.action(description="Передать выбранные записи на проверку")
+def mark_imports_for_review(modeladmin, request, queryset):
+    queryset.exclude(status=ImportedEventStatus.IMPORTED).update(status=ImportedEventStatus.REVIEW)
+
+
+@admin.action(description="Пропустить выбранные записи")
+def skip_imports(modeladmin, request, queryset):
+    queryset.exclude(status=ImportedEventStatus.IMPORTED).update(status=ImportedEventStatus.SKIPPED)
+
+
+@admin.action(description="Создать или обновить черновики из выбранных записей")
+def promote_imports_to_drafts(modeladmin, request, queryset):
+    created_count = 0
+    failed_count = 0
+    for item in queryset.exclude(
+        status__in=(ImportedEventStatus.SKIPPED, ImportedEventStatus.IMPORTED)
+    ):
+        try:
+            promote_imported_event(item)
+            created_count += 1
+        except ImportPromotionError as exc:
+            item.status = ImportedEventStatus.ERROR
+            item.validation_errors = [str(exc)]
+            item.save(update_fields=("status", "validation_errors", "updated_at"))
+            failed_count += 1
+
+    if created_count:
+        modeladmin.message_user(
+            request,
+            f"Подготовлено черновиков: {created_count}. Проверьте их перед публикацией.",
+            level=messages.SUCCESS,
+        )
+    if failed_count:
+        modeladmin.message_user(
+            request,
+            f"Не удалось подготовить записей: {failed_count}. Ошибки сохранены в очереди импорта.",
+            level=messages.WARNING,
+        )
+
+
+@admin.register(ImportedEvent)
+class ImportedEventAdmin(admin.ModelAdmin):
+    list_display = ("title", "source", "status", "source_url", "event", "updated_at")
+    list_filter = ("status", "source", "updated_at")
+    search_fields = ("title", "external_id", "source_url")
+    autocomplete_fields = ("event",)
+    readonly_fields = (
+        "source",
+        "import_run",
+        "external_id",
+        "fingerprint",
+        "raw_payload",
+        "created_at",
+        "updated_at",
+    )
+    actions = (mark_imports_for_review, promote_imports_to_drafts, skip_imports)
+    fieldsets = (
+        ("Проверка", {"fields": ("status", "title", "source_url", "event")}),
+        (
+            "Нормализованные данные",
+            {"fields": ("normalized_payload", "validation_errors")},
+        ),
+        (
+            "Технические данные",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "source",
+                    "import_run",
+                    "external_id",
+                    "fingerprint",
+                    "raw_payload",
+                    "created_at",
+                    "updated_at",
+                ),
+            },
+        ),
+    )
+
+    def has_add_permission(self, request):
+        return False
+
 
 admin.site.site_header = "KidsTime — управление каталогом"
 admin.site.site_title = "KidsTime"
