@@ -48,6 +48,14 @@ class PublicPagesTests(TestCase):
         self.assertGreater(payload["count"], 0)
         self.assertIn("lat", payload["results"][0])
 
+    def test_map_page_allows_origin_referrer_for_yandex_maps(self):
+        response = self.client.get(reverse("catalog:event_map"))
+
+        self.assertEqual(
+            response.headers["Referrer-Policy"],
+            "strict-origin-when-cross-origin",
+        )
+
     def test_uploaded_cover_has_priority_over_legacy_url(self):
         event = Event.objects.first()
         EventImage.objects.create(event=event, image="events/test-cover.jpg", is_cover=True)
