@@ -1,7 +1,8 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.db.models import Prefetch
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -66,3 +67,11 @@ def home(request):
 
 def health(request):
     return JsonResponse({"status": "ok", "service": "kidstime"})
+
+
+def robots_txt(request):
+    rule = "Disallow: /" if settings.ROBOTS_NOINDEX else "Allow: /"
+    return HttpResponse(
+        f"User-agent: *\n{rule}\n",
+        content_type="text/plain; charset=utf-8",
+    )

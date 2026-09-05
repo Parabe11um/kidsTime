@@ -50,6 +50,12 @@ jobs:
         run: |
           python manage.py check
           python manage.py makemigrations --check --dry-run
+      - name: Validate production Compose configuration
+        run: >-
+          docker compose
+          --env-file .env.production.example
+          -f compose.production.yaml
+          config --quiet
       - name: Run migrations and tests
         run: |
           python manage.py migrate --noinput

@@ -48,6 +48,12 @@ make seed-dry
 
 Данные парсеров сначала попадают в отдельную очередь и **никогда не публикуются автоматически**. Формат JSON и безопасный порядок запуска описаны в [docs/import-format.md](docs/import-format.md).
 
+## Тестовый сервер
+
+Production Compose использует Gunicorn, внутренние PostgreSQL/PostGIS и Redis, Caddy с автоматическим HTTPS и постоянные Docker volumes для базы и загруженных изображений.
+
+Пример переменных находится в `.env.production.example`. Пошаговое развёртывание описано в [docs/deployment.md](docs/deployment.md). Тестовый контур закрывается от индексации переменной `ROBOTS_NOINDEX=true`.
+
 ## Что намеренно не входит в первый срез
 
 - встроенное построение маршрута;
