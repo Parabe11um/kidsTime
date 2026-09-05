@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_DB: kidstime
+          POSTGRES_USER: kidstime
+          POSTGRES_PASSWORD: kidstime
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kidstime -d kidstime"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DJANGO_DEBUG: "false"
+      DJANGO_SECRET_KEY: ci-only-secret-key
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DATABASE_URL: postgis://kidstime:kidstime@127.0.0.1:5432/kidstime
+      REDIS_URL: redis://127.0.0.1:6379/0
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install GeoDjango system libraries
+        run: sudo apt-get update && sudo apt-get install -y gdal-bin libgdal-dev libgeos-dev
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Validate Django project
+        run: |
+          python manage.py check
+          python manage.py makemigrations --check --dry-run
+      - name: Run migrations and tests
+        run: |
+          python manage.py migrate --noinput
+          python manage.py test
+      - name: Verify compiled styles
+        run: |
+          npm run css:build
+          git diff --exit-code -- static/css/app.css

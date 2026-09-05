@@ -1,0 +1,21 @@
+<nav class="bottom-nav" aria-label="Мобильная навигация">
+    <a href="{% url 'core:home' %}" class="bottom-nav__item{% if request.resolver_match.url_name == 'home' %} is-active{% endif %}">
+        <span aria-hidden="true">⌂</span>
+        <small>Главная</small>
+    </a>
+    <a href="{% url 'catalog:event_list' %}" class="bottom-nav__item{% if request.resolver_match.url_name == 'event_list' %} is-active{% endif %}">
+        <span aria-hidden="true">▦</span>
+        <small>События</small>
+    </a>
+    <a href="{% url 'catalog:event_map' %}" class="bottom-nav__map{% if request.resolver_match.url_name == 'event_map' %} is-active{% endif %}" aria-label="Открыть карту">
+        <span aria-hidden="true">●</span>
+    </a>
+    <a href="{% url 'favorites:list' %}" class="bottom-nav__item{% if request.resolver_match.namespace == 'favorites' %} is-active{% endif %}">
+        <span aria-hidden="true">♡</span>
+        <small>Избранное</small>
+    </a>
+    <a href="/admin/" class="bottom-nav__item">
+        <span aria-hidden="true">○</span>
+        <small>Профиль</small>
+    </a>
+</nav>

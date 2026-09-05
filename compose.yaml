@@ -1,0 +1,70 @@
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_DB: kidstime
+      POSTGRES_USER: kidstime
+      POSTGRES_PASSWORD: kidstime
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kidstime -d kidstime"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:8.2-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - redis_data:/data
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  assets:
+    image: node:24-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run css:watch"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+
+  worker:
+    build: .
+    command: celery -A config worker --loglevel=INFO
+    env_file:
+      - .env
+    environment:
+      RUN_MIGRATIONS: "false"
+      LOAD_DEMO_DATA: "false"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - background
+
+volumes:
+  postgres_data:
+  redis_data:
+  node_modules:

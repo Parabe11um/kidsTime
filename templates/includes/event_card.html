@@ -1,0 +1,26 @@
+<article class="event-card" data-event-id="{{ event.pk }}">
+    <a class="event-card__image-wrap" href="{{ event.get_absolute_url }}">
+        {% if event.cover_url %}
+            <img class="event-card__image" src="{{ event.cover_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+        {% else %}
+            <span class="event-card__image event-card__image--empty" aria-hidden="true"></span>
+        {% endif %}
+        <span class="event-card__category">{{ event.category.name }}</span>
+    </a>
+    <button class="favorite-button" type="button" data-favorite-button="{{ event.pk }}" aria-label="Добавить «{{ event.title }}» в избранное" aria-pressed="false">♡</button>
+    <div class="event-card__body">
+        <a class="event-card__title" href="{{ event.get_absolute_url }}">{{ event.title }}</a>
+        <p class="event-card__meta">
+            {% if event.next_session %}
+                {{ event.next_session.starts_at|date:"D, j E · H:i" }}
+            {% else %}
+                Расписание уточняется
+            {% endif %}
+        </p>
+        <p class="event-card__place">{{ event.venue.name }}{% if event.venue.metro %} · м. {{ event.venue.metro }}{% endif %}</p>
+        <div class="event-card__footer">
+            <span>{{ event.age_from }}–{{ event.age_to }} лет</span>
+            <strong>{{ event.display_price }}</strong>
+        </div>
+    </div>
+</article>

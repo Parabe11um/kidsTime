@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Места и мероприятия — КидсТайм{% endblock %}
+
+{% block content %}
+<div class="page-shell catalog-layout">
+    <aside class="filters-panel" id="filters-panel">
+        <div class="filters-panel__heading">
+            <div>
+                <span class="section-kicker">Подберите вариант</span>
+                <h1>Фильтры</h1>
+            </div>
+            <button type="button" class="filters-close" data-filters-close aria-label="Закрыть фильтры">×</button>
+        </div>
+        <form method="get" class="filters-form">
+            <label>
+                <span>Поиск</span>
+                <input type="search" name="q" value="{{ filters.q }}" placeholder="Название или место">
+            </label>
+            <label>
+                <span>Дата</span>
+                <input type="date" name="date" value="{{ filters.date }}">
+            </label>
+            <label>
+                <span>Возраст ребёнка</span>
+                <input type="number" name="age" value="{{ filters.age }}" min="0" max="18" placeholder="Например, 7">
+            </label>
+            <label>
+                <span>Категория</span>
+                <select name="category">
+                    <option value="">Любая</option>
+                    {% for category in categories %}
+                        <option value="{{ category.slug }}"{% if filters.category == category.slug %} selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                <span>Где проходит</span>
+                <select name="format">
+                    <option value="">Неважно</option>
+                    {% for value, label in formats %}
+                        <option value="{{ value }}"{% if filters.format == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                <span>Бюджет до, ₽</span>
+                <input type="number" name="max_price" value="{{ filters.max_price }}" min="0" step="100" placeholder="Например, 1500">
+            </label>
+            <button class="primary-button" type="submit">Показать варианты</button>
+            <a class="secondary-button" href="{% url 'catalog:event_list' %}">Сбросить</a>
+        </form>
+    </aside>
+
+    <section class="catalog-results" aria-labelledby="catalog-title">
+        <div class="catalog-toolbar">
+            <div>
+                <span class="section-kicker">Москва</span>
+                <h1 id="catalog-title">Места и события</h1>
+            </div>
+            <div class="catalog-toolbar__actions">
+                <button type="button" class="filter-button" data-filters-open>Фильтры</button>
+                <a class="map-button" href="{% url 'catalog:event_map' %}?{{ request.GET.urlencode }}">На карте</a>
+            </div>
+        </div>
+
+        {% if events %}
+            <div class="event-grid">
+                {% for event in events %}
+                    {% include "includes/event_card.html" with event=event %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state empty-state--large">
+                <h2>Подходящих вариантов пока нет</h2>
+                <p>Попробуйте изменить дату, возраст или бюджет.</p>
+                <a class="primary-button" href="{% url 'catalog:event_list' %}">Сбросить фильтры</a>
+            </div>
+        {% endif %}
+    </section>
+</div>
+<div class="filters-backdrop" data-filters-close></div>
+{% endblock %}

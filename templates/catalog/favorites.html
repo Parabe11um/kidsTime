@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Избранное — КидсТайм{% endblock %}
+
+{% block content %}
+<div class="page-shell simple-page">
+    <span class="section-kicker">Личная подборка</span>
+    <h1>Избранное</h1>
+    <div data-device-favorites data-endpoint="{% url 'favorites:cards' %}">
+        <div class="empty-state">Загружаем сохранённые варианты…</div>
+    </div>
+    <template data-favorites-empty>
+        <div class="empty-state empty-state--large">
+            <h2>Здесь появятся сохранённые варианты</h2>
+            <p>Добавляйте интересные мероприятия, чтобы не искать их заново.</p>
+            <a class="primary-button" href="{% url 'catalog:event_list' %}">Найти мероприятие</a>
+        </div>
+    </template>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} — КидсТайм{% endblock %}
+
+{% block content %}
+<article class="detail-shell">
+    <a class="detail-back" href="{% url 'catalog:event_list' %}">← К результатам</a>
+
+    <div class="detail-hero">
+        {% if event.cover_url %}
+            <img src="{{ event.cover_url }}" alt="" referrerpolicy="no-referrer">
+        {% else %}
+            <span class="detail-hero__empty" aria-hidden="true"></span>
+        {% endif %}
+        <button class="favorite-button favorite-button--detail" type="button" data-favorite-button="{{ event.pk }}" aria-label="Добавить «{{ event.title }}» в избранное" aria-pressed="false">♡</button>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-main">
+            <div class="detail-tags">
+                <span>{{ event.category.name }}</span>
+                <span>{{ event.get_activity_format_display }}</span>
+                <span>{{ event.age_from }}–{{ event.age_to }} лет</span>
+            </div>
+            <h1>{{ event.title }}</h1>
+            <p class="detail-lead">{{ event.short_description }}</p>
+
+            <section class="detail-section">
+                <h2>О событии</h2>
+                <p>{{ event.description|linebreaksbr }}</p>
+            </section>
+
+            <section class="detail-section">
+                <h2>Расписание</h2>
+                <div class="session-list">
+                    {% for session in event.upcoming_sessions %}
+                        <div class="session-row">
+                            <div>
+                                <strong>{{ session.starts_at|date:"l, j E" }}</strong>
+                                <span>{{ session.starts_at|date:"H:i" }}{% if session.ends_at %}–{{ session.ends_at|date:"H:i" }}{% endif %}</span>
+                            </div>
+                            <span>{{ session.get_availability_display }}</span>
+                        </div>
+                    {% empty %}
+                        <p>Актуальное расписание уточняется у организатора.</p>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
+        <aside class="detail-aside">
+            <div class="booking-card">
+                <span class="booking-card__label">Стоимость</span>
+                <strong>{{ event.display_price }}</strong>
+                {% if event.duration_minutes %}<span>Продолжительность — {{ event.duration_minutes }} мин.</span>{% endif %}
+                {% if event.venue.location %}
+                    <a class="primary-button" href="https://yandex.ru/maps/?rtext=~{{ event.venue.location.y }},{{ event.venue.location.x }}" target="_blank" rel="noopener">Построить маршрут</a>
+                {% else %}
+                    <a class="primary-button" href="https://yandex.ru/maps/?text={{ event.venue.address|urlencode }}" target="_blank" rel="noopener">Открыть адрес на карте</a>
+                {% endif %}
+            </div>
+
+            <div class="place-card">
+                <span class="section-kicker">Где проходит</span>
+                <h2>{{ event.venue.name }}</h2>
+                <p>{{ event.venue.address }}</p>
+                {% if event.venue.metro %}<p>Метро «{{ event.venue.metro }}»</p>{% endif %}
+                {% if event.venue.stroller_access %}<span class="place-card__note">Можно с коляской</span>{% endif %}
+            </div>
+
+            <div class="trust-card">
+                <span>Проверено {{ event.last_verified_at|date:"j E Y" }}</span>
+                {% if event.source_url %}<a href="{{ event.source_url }}" target="_blank" rel="noopener">Первоисточник</a>{% endif %}
+            </div>
+        </aside>
+    </div>
+</article>
+{% endblock %}

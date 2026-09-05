@@ -1,0 +1,7 @@
+{% if events %}
+    <div class="event-grid">
+        {% for event in events %}
+            {% include "includes/event_card.html" with event=event %}
+        {% endfor %}
+    </div>
+{% endif %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Карта событий — КидсТайм{% endblock %}
+
+{% block head %}
+    {% if YANDEX_MAPS_API_KEY %}
+        <script src="https://api-maps.yandex.ru/v3/?apikey={{ YANDEX_MAPS_API_KEY|urlencode }}&lang=ru_RU"></script>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="map-shell" data-map-root data-endpoint="{% url 'catalog:map_events_api' %}?{{ active_filters }}" data-map-enabled="{% if YANDEX_MAPS_API_KEY %}true{% else %}false{% endif %}">
+    <div class="map-toolbar">
+        <a href="{% url 'catalog:event_list' %}?{{ active_filters }}" class="map-toolbar__back" aria-label="Вернуться к списку">←</a>
+        <form action="{% url 'catalog:event_map' %}" class="map-search" role="search">
+            <label class="sr-only" for="map-search">Поиск на карте</label>
+            <input id="map-search" type="search" name="q" placeholder="Название, место или район">
+            <button type="submit" aria-label="Найти">⌕</button>
+        </form>
+        <a class="map-toolbar__filter" href="{% url 'catalog:event_list' %}?{{ active_filters }}">Фильтры</a>
+    </div>
+
+    <div id="events-map" class="events-map" aria-label="Карта мероприятий"></div>
+
+    <div class="map-unavailable" data-map-unavailable hidden>
+        <strong>Карта готова к подключению</strong>
+        <p>Добавьте ключ Yandex Maps JavaScript API в локальный файл <code>.env</code>.</p>
+        <a href="{% url 'catalog:event_list' %}">Открыть список мероприятий</a>
+    </div>
+
+    <aside class="map-sheet" data-map-sheet hidden aria-live="polite">
+        <button type="button" class="map-sheet__close" data-map-sheet-close aria-label="Закрыть карточку">×</button>
+        <img data-map-sheet-image alt="" referrerpolicy="no-referrer">
+        <div>
+            <span data-map-sheet-category></span>
+            <h2 data-map-sheet-title></h2>
+            <p data-map-sheet-address></p>
+            <div class="map-sheet__meta"><span data-map-sheet-age></span><strong data-map-sheet-price></strong></div>
+            <a class="primary-button" data-map-sheet-link>Подробнее</a>
+        </div>
+    </aside>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="module" src="{% static 'js/map.js' %}"></script>
+{% endblock %}
