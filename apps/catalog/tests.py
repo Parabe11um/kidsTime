@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
+from django.contrib.gis.geos import Point
 from django.core.management import call_command
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -55,6 +56,20 @@ class PublicPagesTests(TestCase):
             response.headers["Referrer-Policy"],
             "strict-origin-when-cross-origin",
         )
+
+    def test_route_link_uses_unlocalized_coordinates(self):
+        event = Event.objects.first()
+        event.venue.location = Point(37.6176, 55.7558, srid=4326)
+        event.venue.save(update_fields=("location",))
+
+        response = self.client.get(event.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "https://yandex.ru/maps/?rtext=~55.7558%2C37.6176&amp;rtt=auto",
+        )
+        self.assertNotContains(response, "rtext=~55,7558,37,6176")
 
     def test_uploaded_cover_has_priority_over_legacy_url(self):
         event = Event.objects.first()
