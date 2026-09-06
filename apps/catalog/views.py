@@ -9,6 +9,8 @@ from django.utils import timezone
 
 from .models import ActivityFormat, Category, Event, EventImage, EventSession
 
+WALK_POINT_LIMIT = 9
+
 
 def _base_events():
     upcoming = Prefetch(
@@ -104,6 +106,71 @@ def event_map(request):
         request,
         "catalog/event_map.html",
         {"active_filters": request.GET.urlencode()},
+    )
+
+
+def walk_builder(request):
+    return render(
+        request,
+        "catalog/walk_builder.html",
+        {"walk_point_limit": WALK_POINT_LIMIT},
+    )
+
+
+def _event_ids_from_query(raw_ids, *, limit):
+    event_ids = []
+    for raw_value in raw_ids.split(","):
+        value = raw_value.strip()
+        if not value.isascii() or not value.isdigit() or len(value) > 19:
+            continue
+        event_id = int(value)
+        if not 0 < event_id <= 2**63 - 1:
+            continue
+        if event_id not in event_ids:
+            event_ids.append(event_id)
+        if len(event_ids) == limit:
+            break
+    return event_ids
+
+
+def walk_events_api(request):
+    event_ids = _event_ids_from_query(
+        request.GET.get("ids", ""),
+        limit=WALK_POINT_LIMIT,
+    )
+    events_by_id = {
+        event.pk: event
+        for event in _base_events().filter(
+            pk__in=event_ids,
+            venue__location__isnull=False,
+        )
+    }
+    events = [
+        events_by_id[event_id]
+        for event_id in event_ids
+        if event_id in events_by_id
+    ]
+    payload = []
+    for event in events:
+        point = event.venue.location
+        payload.append(
+            {
+                "id": event.pk,
+                "title": event.title,
+                "venue": event.venue.name,
+                "address": event.venue.address,
+                "lat": point.y,
+                "lng": point.x,
+                "url": event.get_absolute_url(),
+                "cover": event.display_cover_url,
+            }
+        )
+    return JsonResponse(
+        {
+            "count": len(payload),
+            "limit": WALK_POINT_LIMIT,
+            "results": payload,
+        }
     )
 
 

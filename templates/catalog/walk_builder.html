@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Создать прогулку — КидсТайм{% endblock %}
+
+{% block content %}
+<div
+    class="page-shell walk-page"
+    data-walk-root
+    data-endpoint="{% url 'catalog:walk_events_api' %}"
+    data-limit="{{ walk_point_limit }}"
+>
+    <header class="walk-page__header">
+        <div>
+            <span class="section-kicker">Маршрут на день</span>
+            <h1>Создать прогулку</h1>
+            <p>Соберите места в нужном порядке, а затем откройте готовый маршрут в Яндекс Картах.</p>
+        </div>
+        <div class="walk-page__counter">
+            <strong data-walk-count data-walk-count-always>0</strong>
+            <span>из {{ walk_point_limit }} точек</span>
+        </div>
+    </header>
+
+    <div class="walk-layout">
+        <section class="walk-list-card" aria-labelledby="walk-list-title">
+            <div class="walk-list-card__heading">
+                <div>
+                    <span class="section-kicker">Порядок посещения</span>
+                    <h2 id="walk-list-title">Точки прогулки</h2>
+                </div>
+                <button class="walk-clear" type="button" data-walk-clear hidden>Очистить</button>
+            </div>
+
+            <div class="walk-list" data-walk-list aria-live="polite">
+                <div class="empty-state">Загружаем выбранные места…</div>
+            </div>
+
+            <template data-walk-empty>
+                <div class="empty-state empty-state--large">
+                    <h2>Добавьте первую точку</h2>
+                    <p>Выберите мероприятие в каталоге или на карте и нажмите «Добавить в прогулку».</p>
+                    <a class="primary-button" href="{% url 'catalog:event_list' %}">Выбрать места</a>
+                </div>
+            </template>
+        </section>
+
+        <aside class="walk-summary">
+            <span class="section-kicker">Готовый маршрут</span>
+            <h2>От текущего местоположения</h2>
+            <p>Яндекс Карты построят путь через выбранные точки в указанном порядке.</p>
+            <a
+                class="primary-button is-disabled"
+                data-walk-route
+                target="_blank"
+                rel="noopener"
+                aria-disabled="true"
+            >Открыть в Яндекс Картах</a>
+            <a class="secondary-button" href="{% url 'catalog:event_list' %}">Добавить ещё место</a>
+            <small>Порядок можно изменить стрелками. Начальная точка — ваше текущее местоположение.</small>
+        </aside>
+    </div>
+</div>
+{% endblock %}

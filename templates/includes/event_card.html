@@ -1,3 +1,4 @@
+{% load l10n %}
 <article class="event-card" data-event-id="{{ event.pk }}">
     <a class="event-card__image-wrap" href="{{ event.get_absolute_url }}">
         {% if event.display_cover_url %}
@@ -22,5 +23,17 @@
             <span>{{ event.age_from }}–{{ event.age_to }} лет</span>
             <strong>{{ event.display_price }}</strong>
         </div>
+        {% if event.venue.location %}
+            <div class="event-card__actions">
+                <a href="https://yandex.ru/maps/?rtext=~{{ event.venue.location.y|unlocalize }}%2C{{ event.venue.location.x|unlocalize }}&amp;rtt=auto" target="_blank" rel="noopener">Маршрут</a>
+                <button
+                    type="button"
+                    data-walk-button="{{ event.pk }}"
+                    data-walk-default-label="+ В прогулку"
+                    data-walk-active-label="✓ В прогулке"
+                    aria-pressed="false"
+                >+ В прогулку</button>
+            </div>
+        {% endif %}
     </div>
 </article>

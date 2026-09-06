@@ -29,6 +29,10 @@ if (!root || root.dataset.mapEnabled !== "true" || !window.ymaps3) {
       sheet.querySelector("[data-map-sheet-age]").textContent = event.age;
       sheet.querySelector("[data-map-sheet-price]").textContent = event.price;
       sheet.querySelector("[data-map-sheet-link]").href = event.url;
+      sheet.querySelector("[data-map-sheet-route]").href = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(`${event.lat},${event.lng}`)}&rtt=auto`;
+      const walkButton = sheet.querySelector("[data-map-sheet-walk]");
+      walkButton.dataset.walkButton = String(event.id);
+      window.KidsTimeWalk?.refreshButton(walkButton);
       sheet.hidden = false;
     };
 

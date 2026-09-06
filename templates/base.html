@@ -26,6 +26,7 @@
                 <a href="{% url 'catalog:event_list' %}">События</a>
                 <a href="{% url 'catalog:event_map' %}">Карта</a>
                 <a href="{% url 'favorites:list' %}">Избранное</a>
+                <a href="{% url 'catalog:walk_builder' %}">Прогулка <span class="nav-count" data-walk-count hidden>0</span></a>
             </nav>
             <form class="desktop-search" action="{% url 'catalog:event_list' %}" role="search">
                 <label class="sr-only" for="desktop-search">Поиск мероприятий</label>

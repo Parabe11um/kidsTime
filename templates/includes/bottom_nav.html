@@ -14,8 +14,9 @@
         <span aria-hidden="true">♡</span>
         <small>Избранное</small>
     </a>
-    <a href="/admin/" class="bottom-nav__item">
-        <span aria-hidden="true">○</span>
-        <small>Профиль</small>
+    <a href="{% url 'catalog:walk_builder' %}" class="bottom-nav__item{% if request.resolver_match.url_name == 'walk_builder' %} is-active{% endif %}">
+        <span aria-hidden="true">⌁</span>
+        <small>Прогулка</small>
+        <b class="bottom-nav__count" data-walk-count hidden>0</b>
     </a>
 </nav>

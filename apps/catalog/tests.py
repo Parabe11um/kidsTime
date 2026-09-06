@@ -57,6 +57,46 @@ class PublicPagesTests(TestCase):
             "strict-origin-when-cross-origin",
         )
 
+    def test_map_page_contains_route_and_walk_actions(self):
+        response = self.client.get(reverse("catalog:event_map"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "data-map-sheet-route")
+        self.assertContains(response, "data-map-sheet-walk")
+
+    def test_walk_builder_page_is_available(self):
+        response = self.client.get(reverse("catalog:walk_builder"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Создать прогулку")
+        self.assertContains(response, 'data-walk-root')
+        self.assertContains(response, 'data-limit="9"')
+
+    def test_walk_api_preserves_selected_order_and_removes_duplicates(self):
+        events = list(Event.objects.visible().order_by("pk")[:3])
+        requested_ids = [
+            events[2].pk,
+            events[0].pk,
+            events[2].pk,
+            999999,
+            "9" * 100,
+        ]
+
+        response = self.client.get(
+            reverse("catalog:walk_events_api"),
+            {"ids": ",".join(map(str, requested_ids))},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["limit"], 9)
+        self.assertEqual(
+            [event["id"] for event in payload["results"]],
+            [events[2].pk, events[0].pk],
+        )
+        self.assertIn("lat", payload["results"][0])
+        self.assertIn("lng", payload["results"][0])
+
     def test_route_link_uses_unlocalized_coordinates(self):
         event = Event.objects.first()
         event.venue.location = Point(37.6176, 55.7558, srid=4326)
@@ -70,6 +110,7 @@ class PublicPagesTests(TestCase):
             "https://yandex.ru/maps/?rtext=~55.7558%2C37.6176&amp;rtt=auto",
         )
         self.assertNotContains(response, "rtext=~55,7558,37,6176")
+        self.assertContains(response, f'data-walk-button="{event.pk}"')
 
     def test_uploaded_cover_has_priority_over_legacy_url(self):
         event = Event.objects.first()

@@ -55,7 +55,17 @@
                 <strong>{{ event.display_price }}</strong>
                 {% if event.duration_minutes %}<span>Продолжительность — {{ event.duration_minutes }} мин.</span>{% endif %}
                 {% if event.venue.location %}
-                    <a class="primary-button" href="https://yandex.ru/maps/?rtext=~{{ event.venue.location.y|unlocalize }}%2C{{ event.venue.location.x|unlocalize }}&amp;rtt=auto" target="_blank" rel="noopener">Построить маршрут</a>
+                    <div class="booking-card__actions">
+                        <a class="primary-button" href="https://yandex.ru/maps/?rtext=~{{ event.venue.location.y|unlocalize }}%2C{{ event.venue.location.x|unlocalize }}&amp;rtt=auto" target="_blank" rel="noopener">Построить маршрут</a>
+                        <button
+                            class="secondary-button"
+                            type="button"
+                            data-walk-button="{{ event.pk }}"
+                            data-walk-default-label="+ Добавить в прогулку"
+                            data-walk-active-label="✓ Уже в прогулке"
+                            aria-pressed="false"
+                        >+ Добавить в прогулку</button>
+                    </div>
                 {% else %}
                     <a class="primary-button" href="https://yandex.ru/maps/?text={{ event.venue.address|urlencode }}" target="_blank" rel="noopener">Открыть адрес на карте</a>
                 {% endif %}

@@ -37,7 +37,19 @@
             <h2 data-map-sheet-title></h2>
             <p data-map-sheet-address></p>
             <div class="map-sheet__meta"><span data-map-sheet-age></span><strong data-map-sheet-price></strong></div>
-            <a class="primary-button" data-map-sheet-link>Подробнее</a>
+            <div class="map-sheet__actions">
+                <a class="primary-button" data-map-sheet-route target="_blank" rel="noopener">Маршрут</a>
+                <button
+                    class="secondary-button"
+                    type="button"
+                    data-map-sheet-walk
+                    data-walk-button=""
+                    data-walk-default-label="+ В прогулку"
+                    data-walk-active-label="✓ В прогулке"
+                    aria-pressed="false"
+                >+ В прогулку</button>
+            </div>
+            <a class="map-sheet__details" data-map-sheet-link>Подробнее о мероприятии →</a>
         </div>
     </aside>
 </div>
