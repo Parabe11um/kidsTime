@@ -36,8 +36,11 @@ class PublicPagesTests(TestCase):
         response = self.client.get(reverse("core:home"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Куда пойти с детьми в Москве")
+        self.assertContains(response, 'class="mobile-hero"')
+        self.assertContains(response, 'class="home-overview"')
         self.assertContains(response, 'class="hero-calendar"')
-        self.assertContains(response, 'class="route-preview"')
+        self.assertContains(response, 'class="hero-search__icon"')
+        self.assertNotContains(response, 'class="route-preview"')
         self.assertContains(response, "event-card--compact")
         self.assertContains(response, Event.objects.first().title)
 

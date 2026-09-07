@@ -6,23 +6,19 @@
 <div class="home-shell">
     <section class="mobile-hero" aria-labelledby="home-title">
         <h1 id="home-title" class="sr-only">Куда пойти с детьми в Москве</h1>
-        <div class="mobile-hero__topline">
-            <button class="location-pill" type="button" aria-label="Выбранный город: Москва">
-                <span aria-hidden="true">⌖</span> Москва
-            </button>
-            <a class="profile-button" href="/admin/" aria-label="Открыть профиль">○</a>
-        </div>
-
         <form class="hero-search" action="{% url 'catalog:event_list' %}" role="search">
             <label class="sr-only" for="hero-search">Найти мероприятие или место</label>
             <input id="hero-search" type="search" name="q" placeholder="Поиск в Москве">
-            <button type="submit" aria-label="Найти">⌕</button>
+            <button type="submit" aria-label="Найти">
+                <span class="hero-search__icon" aria-hidden="true"></span>
+            </button>
         </form>
+    </section>
 
+    <section class="home-overview" aria-label="Подбор событий">
         <section class="hero-calendar" aria-labelledby="date-title">
             <div class="hero-calendar__heading">
                 <h2 id="date-title">{{ days.0.month }}</h2>
-                <a href="{% url 'catalog:event_list' %}">Все даты</a>
             </div>
             <div class="date-strip" aria-label="Ближайшие даты">
                 {% for day in days %}
@@ -56,38 +52,14 @@
             {% for category in categories %}
                 <a href="{% url 'catalog:event_list' %}?category={{ category.slug }}">{{ category.name }}</a>
             {% endfor %}
-            <a href="{% url 'catalog:event_list' %}?max_price=0">Бесплатно</a>
         </nav>
-
-        <section class="route-preview" aria-labelledby="route-preview-title">
-            <div class="route-preview__heading">
-                <div>
-                    <span>Прогулка</span>
-                    <h2 id="route-preview-title">Маршрут на день</h2>
-                </div>
-                <a href="{% url 'catalog:walk_builder' %}">Открыть</a>
-            </div>
-            <a class="route-preview__point" href="{% url 'catalog:walk_builder' %}">
-                <span aria-hidden="true">⌖</span>
-                <strong>Моё местоположение</strong>
-                <small>Начальная точка</small>
-            </a>
-            <a class="route-preview__point" href="{% url 'catalog:event_list' %}">
-                <span aria-hidden="true">＋</span>
-                <strong>Добавить место</strong>
-                <small><b data-walk-count data-walk-count-always>0</b> выбрано</small>
-            </a>
-        </section>
     </section>
 
     <div class="home-content">
         <section class="event-section" aria-labelledby="nearby-title">
             <div class="section-heading">
-                <div>
-                    <span class="section-kicker">Недалеко от вас</span>
-                    <h2 id="nearby-title">Рядом с вами</h2>
-                </div>
-                <a href="{% url 'catalog:event_list' %}">Смотреть все</a>
+                <h2 id="nearby-title">Рядом с вами</h2>
+                <a href="{% url 'catalog:event_list' %}" aria-label="Смотреть все места рядом">↗</a>
             </div>
             <div class="event-row">
                 {% for event in nearby_events %}
@@ -100,11 +72,8 @@
 
         <section class="event-section" aria-labelledby="recommended-title">
             <div class="section-heading">
-                <div>
-                    <span class="section-kicker">Выбор редакции</span>
-                    <h2 id="recommended-title">Рекомендуем</h2>
-                </div>
-                <a href="{% url 'catalog:event_list' %}">Смотреть все</a>
+                <h2 id="recommended-title">Рекомендации</h2>
+                <a href="{% url 'catalog:event_list' %}" aria-label="Смотреть все рекомендации">↗</a>
             </div>
             <div class="event-row">
                 {% for event in recommended_events %}
@@ -117,11 +86,8 @@
 
         <section class="event-section" aria-labelledby="popular-title">
             <div class="section-heading">
-                <div>
-                    <span class="section-kicker">Сейчас выбирают</span>
-                    <h2 id="popular-title">Популярное</h2>
-                </div>
-                <a href="{% url 'catalog:event_list' %}">Смотреть все</a>
+                <h2 id="popular-title">Популярное</h2>
+                <a href="{% url 'catalog:event_list' %}" aria-label="Смотреть всё популярное">↗</a>
             </div>
             <div class="event-row">
                 {% for event in popular_events %}
