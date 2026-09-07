@@ -10,7 +10,11 @@
             <label class="sr-only" for="hero-search">Найти мероприятие или место</label>
             <input id="hero-search" type="search" name="q" placeholder="Поиск в Москве">
             <button type="submit" aria-label="Найти">
-                <span class="hero-search__icon" aria-hidden="true"></span>
+                <span class="hero-search__icon" aria-hidden="true">
+                    <i></i>
+                    <i></i>
+                    <i></i>
+                </span>
             </button>
         </form>
     </section>
@@ -31,20 +35,16 @@
         </section>
 
         <div class="home-dashboard">
-            <article class="weather-card" aria-label="Подборка по погоде">
-                <span class="weather-card__icon" aria-hidden="true">☀</span>
-                <div>
-                    <strong>По погоде</strong>
-                    <span>Для прогулки</span>
-                </div>
+            <article class="weather-card" aria-label="Погода: 25 градусов">
+                <span class="weather-card__icon" aria-hidden="true"></span>
+                <strong class="weather-card__temperature">25°</strong>
             </article>
-            <a class="today-plan-card" href="{% url 'catalog:event_list' %}?date={{ days.0.date }}">
-                <span aria-hidden="true">▣</span>
-                <div>
-                    <strong>План на сегодня</strong>
-                    <small>Подобрать события</small>
+            <a class="today-plan-card" href="{% url 'catalog:event_list' %}?date={{ days.0.date }}" aria-label="Подобрать план на сегодня">
+                <div class="today-plan-card__copy">
+                    <strong>План</strong>
+                    <small>на сегодня</small>
                 </div>
-                <b aria-hidden="true">→</b>
+                <span class="today-plan-card__folder" aria-hidden="true"></span>
             </a>
         </div>
 
