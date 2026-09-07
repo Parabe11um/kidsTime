@@ -53,8 +53,11 @@ class PublicPagesTests(TestCase):
 
         self.assertContains(response, "icons/navigation/point")
 
+        html = response.content.decode()
+        bottom_nav = html[html.index('<nav class="bottom-nav"') :]
+        bottom_nav = bottom_nav[: bottom_nav.index("</nav>")]
         for legacy_glyph in ("⌂", "▦", "●", "♡", "⌁"):
-            self.assertNotContains(response, f'<span aria-hidden="true">{legacy_glyph}</span>')
+            self.assertNotIn(legacy_glyph, bottom_nav)
 
     def test_catalog_cards_keep_route_and_walk_actions(self):
         event = Event.objects.first()
