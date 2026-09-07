@@ -5,24 +5,23 @@
 {% block content %}
 <div class="home-shell">
     <section class="mobile-hero" aria-labelledby="home-title">
+        <h1 id="home-title" class="sr-only">Куда пойти с детьми в Москве</h1>
         <div class="mobile-hero__topline">
             <button class="location-pill" type="button" aria-label="Выбранный город: Москва">
                 <span aria-hidden="true">⌖</span> Москва
             </button>
-            <a class="profile-button" href="/admin/" aria-label="Профиль">○</a>
+            <a class="profile-button" href="/admin/" aria-label="Открыть профиль">○</a>
         </div>
-        <h1 id="home-title">Куда пойдём<br>с детьми?</h1>
+
         <form class="hero-search" action="{% url 'catalog:event_list' %}" role="search">
             <label class="sr-only" for="hero-search">Найти мероприятие или место</label>
-            <input id="hero-search" type="search" name="q" placeholder="Название, место или район">
+            <input id="hero-search" type="search" name="q" placeholder="Поиск в Москве">
             <button type="submit" aria-label="Найти">⌕</button>
         </form>
-    </section>
 
-    <div class="home-content">
-        <section aria-labelledby="date-title">
-            <div class="section-heading section-heading--compact">
-                <h2 id="date-title">Когда</h2>
+        <section class="hero-calendar" aria-labelledby="date-title">
+            <div class="hero-calendar__heading">
+                <h2 id="date-title">{{ days.0.month }}</h2>
                 <a href="{% url 'catalog:event_list' %}">Все даты</a>
             </div>
             <div class="date-strip" aria-label="Ближайшие даты">
@@ -30,35 +29,58 @@
                     <a class="date-pill{% if day.is_today %} is-active{% endif %}" href="{% url 'catalog:event_list' %}?date={{ day.date }}">
                         <span>{{ day.weekday }}</span>
                         <strong>{{ day.day }}</strong>
-                        <small>{{ day.month }}</small>
                     </a>
                 {% endfor %}
             </div>
         </section>
 
-        <section class="weather-card" aria-label="Подборка по погоде">
-            <div class="weather-card__temperature" aria-hidden="true">☀</div>
-            <div>
-                <strong>Планы на сегодня</strong>
-                <span>Подберём занятия в помещении и на улице</span>
-            </div>
-            <a href="{% url 'catalog:event_list' %}?date={{ days.0.date }}" aria-label="Открыть подборку на сегодня">→</a>
-        </section>
+        <div class="home-dashboard">
+            <article class="weather-card" aria-label="Подборка по погоде">
+                <span class="weather-card__icon" aria-hidden="true">☀</span>
+                <div>
+                    <strong>По погоде</strong>
+                    <span>Для прогулки</span>
+                </div>
+            </article>
+            <a class="today-plan-card" href="{% url 'catalog:event_list' %}?date={{ days.0.date }}">
+                <span aria-hidden="true">▣</span>
+                <div>
+                    <strong>План на сегодня</strong>
+                    <small>Подобрать события</small>
+                </div>
+                <b aria-hidden="true">→</b>
+            </a>
+        </div>
 
-        <section aria-labelledby="filters-title">
-            <div class="section-heading section-heading--compact">
-                <h2 id="filters-title">Что интересно</h2>
-                <a href="{% url 'catalog:event_list' %}">Все фильтры</a>
-            </div>
-            <div class="filter-chips">
-                {% for category in categories %}
-                    <a href="{% url 'catalog:event_list' %}?category={{ category.slug }}">{{ category.name }}</a>
-                {% endfor %}
-                <a href="{% url 'catalog:event_list' %}?max_price=0">Бесплатно</a>
-                <a href="{% url 'catalog:event_list' %}?format=indoor">В помещении</a>
-            </div>
-        </section>
+        <nav class="hero-categories" aria-label="Популярные категории">
+            {% for category in categories %}
+                <a href="{% url 'catalog:event_list' %}?category={{ category.slug }}">{{ category.name }}</a>
+            {% endfor %}
+            <a href="{% url 'catalog:event_list' %}?max_price=0">Бесплатно</a>
+        </nav>
 
+        <section class="route-preview" aria-labelledby="route-preview-title">
+            <div class="route-preview__heading">
+                <div>
+                    <span>Прогулка</span>
+                    <h2 id="route-preview-title">Маршрут на день</h2>
+                </div>
+                <a href="{% url 'catalog:walk_builder' %}">Открыть</a>
+            </div>
+            <a class="route-preview__point" href="{% url 'catalog:walk_builder' %}">
+                <span aria-hidden="true">⌖</span>
+                <strong>Моё местоположение</strong>
+                <small>Начальная точка</small>
+            </a>
+            <a class="route-preview__point" href="{% url 'catalog:event_list' %}">
+                <span aria-hidden="true">＋</span>
+                <strong>Добавить место</strong>
+                <small><b data-walk-count data-walk-count-always>0</b> выбрано</small>
+            </a>
+        </section>
+    </section>
+
+    <div class="home-content">
         <section class="event-section" aria-labelledby="nearby-title">
             <div class="section-heading">
                 <div>
@@ -69,7 +91,7 @@
             </div>
             <div class="event-row">
                 {% for event in nearby_events %}
-                    {% include "includes/event_card.html" with event=event %}
+                    {% include "includes/event_card.html" with event=event compact=True %}
                 {% empty %}
                     <div class="empty-state">После загрузки данных здесь появятся ближайшие мероприятия.</div>
                 {% endfor %}
@@ -86,7 +108,7 @@
             </div>
             <div class="event-row">
                 {% for event in recommended_events %}
-                    {% include "includes/event_card.html" with event=event %}
+                    {% include "includes/event_card.html" with event=event compact=True %}
                 {% empty %}
                     <div class="empty-state">Рекомендации появятся после модерации каталога.</div>
                 {% endfor %}
@@ -103,7 +125,7 @@
             </div>
             <div class="event-row">
                 {% for event in popular_events %}
-                    {% include "includes/event_card.html" with event=event %}
+                    {% include "includes/event_card.html" with event=event compact=True %}
                 {% empty %}
                     <div class="empty-state">Популярные варианты появятся после первых просмотров.</div>
                 {% endfor %}

@@ -34,8 +34,22 @@ class PublicPagesTests(TestCase):
     def test_home_page_uses_catalog_data(self):
         response = self.client.get(reverse("core:home"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Куда пойдём")
+        self.assertContains(response, "Куда пойти с детьми в Москве")
+        self.assertContains(response, 'class="hero-calendar"')
+        self.assertContains(response, 'class="route-preview"')
+        self.assertContains(response, "event-card--compact")
         self.assertContains(response, Event.objects.first().title)
+
+    def test_catalog_cards_keep_route_and_walk_actions(self):
+        event = Event.objects.first()
+        event.venue.location = Point(37.6176, 55.7558, srid=4326)
+        event.venue.save(update_fields=("location",))
+
+        response = self.client.get(reverse("catalog:event_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'data-walk-button="{event.pk}"')
+        self.assertContains(response, "rtext=~55.7558%2C37.6176")
 
     def test_catalog_filters_by_age(self):
         response = self.client.get(reverse("catalog:event_list"), {"age": 4})

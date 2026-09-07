@@ -1,11 +1,12 @@
 {% load l10n %}
-<article class="event-card" data-event-id="{{ event.pk }}">
-    <a class="event-card__image-wrap" href="{{ event.get_absolute_url }}">
+<article class="event-card{% if compact %} event-card--compact{% endif %}" data-event-id="{{ event.pk }}">
+    <a class="event-card__image-wrap" href="{{ event.get_absolute_url }}" aria-label="Открыть {{ event.title }}">
         {% if event.display_cover_url %}
             <img class="event-card__image" src="{{ event.display_cover_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">
         {% else %}
             <span class="event-card__image event-card__image--empty" aria-hidden="true"></span>
         {% endif %}
+        <span class="event-card__age">{{ event.age_from }}+</span>
         <span class="event-card__category">{{ event.category.name }}</span>
     </a>
     <button class="favorite-button" type="button" data-favorite-button="{{ event.pk }}" aria-label="Добавить «{{ event.title }}» в избранное" aria-pressed="false">♡</button>
@@ -18,12 +19,12 @@
                 Расписание уточняется
             {% endif %}
         </p>
-        <p class="event-card__place">{{ event.venue.name }}{% if event.venue.metro %} · м. {{ event.venue.metro }}{% endif %}</p>
+        <p class="event-card__place"><span aria-hidden="true">●</span> {{ event.venue.name }}{% if event.venue.metro %} · м. {{ event.venue.metro }}{% endif %}</p>
         <div class="event-card__footer">
-            <span>{{ event.age_from }}–{{ event.age_to }} лет</span>
+            <span>{{ event.get_activity_format_display }}</span>
             <strong>{{ event.display_price }}</strong>
         </div>
-        {% if event.venue.location %}
+        {% if event.venue.location and not compact %}
             <div class="event-card__actions">
                 <a href="https://yandex.ru/maps/?rtext=~{{ event.venue.location.y|unlocalize }}%2C{{ event.venue.location.x|unlocalize }}&amp;rtt=auto" target="_blank" rel="noopener">Маршрут</a>
                 <button
