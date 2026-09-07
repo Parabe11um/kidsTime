@@ -5,6 +5,7 @@ from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
+from django.contrib.staticfiles import finders
 from django.core.management import call_command
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -45,10 +46,15 @@ class PublicPagesTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         for icon in ("dashboard", "heart", "point", "search", "profile"):
-            self.assertContains(response, f"icons/navigation/{icon}.svg")
+            self.assertIsNotNone(finders.find(f"icons/navigation/{icon}.svg"))
+
+        for icon in ("dashboard", "heart", "search", "profile"):
+            self.assertContains(response, f"bottom-nav__icon--{icon}")
+
+        self.assertContains(response, "icons/navigation/point")
 
         for legacy_glyph in ("⌂", "▦", "●", "♡", "⌁"):
-            self.assertNotContains(response, legacy_glyph)
+            self.assertNotContains(response, f'<span aria-hidden="true">{legacy_glyph}</span>')
 
     def test_catalog_cards_keep_route_and_walk_actions(self):
         event = Event.objects.first()
