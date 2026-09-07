@@ -1,21 +1,22 @@
+{% load static %}
 <nav class="bottom-nav" aria-label="Мобильная навигация">
-    <a href="{% url 'core:home' %}" class="bottom-nav__item{% if request.resolver_match.url_name == 'home' %} is-active{% endif %}">
-        <span aria-hidden="true">⌂</span>
+    <a href="{% url 'core:home' %}" class="bottom-nav__item{% if request.resolver_match.url_name == 'home' %} is-active{% endif %}" aria-label="Главная">
+        <span class="bottom-nav__icon bottom-nav__icon--dashboard" aria-hidden="true"></span>
         <small>Главная</small>
     </a>
-    <a href="{% url 'catalog:event_list' %}" class="bottom-nav__item{% if request.resolver_match.url_name == 'event_list' %} is-active{% endif %}">
-        <span aria-hidden="true">▦</span>
-        <small>События</small>
-    </a>
-    <a href="{% url 'catalog:event_map' %}" class="bottom-nav__map{% if request.resolver_match.url_name == 'event_map' %} is-active{% endif %}" aria-label="Открыть карту">
-        <span aria-hidden="true">●</span>
-    </a>
-    <a href="{% url 'favorites:list' %}" class="bottom-nav__item{% if request.resolver_match.namespace == 'favorites' %} is-active{% endif %}">
-        <span aria-hidden="true">♡</span>
+    <a href="{% url 'favorites:list' %}" class="bottom-nav__item{% if request.resolver_match.namespace == 'favorites' %} is-active{% endif %}" aria-label="Избранное">
+        <span class="bottom-nav__icon bottom-nav__icon--heart" aria-hidden="true"></span>
         <small>Избранное</small>
     </a>
-    <a href="{% url 'catalog:walk_builder' %}" class="bottom-nav__item{% if request.resolver_match.url_name == 'walk_builder' %} is-active{% endif %}">
-        <span aria-hidden="true">⌁</span>
+    <a href="{% url 'catalog:event_map' %}" class="bottom-nav__map{% if request.resolver_match.url_name == 'event_map' %} is-active{% endif %}" aria-label="Открыть карту">
+        <img src="{% static 'icons/navigation/point.svg' %}" width="32" height="32" alt="">
+    </a>
+    <a href="{% url 'catalog:event_list' %}" class="bottom-nav__item{% if request.resolver_match.url_name == 'event_list' %} is-active{% endif %}" aria-label="События">
+        <span class="bottom-nav__icon bottom-nav__icon--search" aria-hidden="true"></span>
+        <small>События</small>
+    </a>
+    <a href="{% url 'catalog:walk_builder' %}" class="bottom-nav__item{% if request.resolver_match.url_name == 'walk_builder' %} is-active{% endif %}" aria-label="Прогулка">
+        <span class="bottom-nav__icon bottom-nav__icon--profile" aria-hidden="true"></span>
         <small>Прогулка</small>
         <b class="bottom-nav__count" data-walk-count hidden>0</b>
     </a>

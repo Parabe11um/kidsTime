@@ -40,6 +40,16 @@ class PublicPagesTests(TestCase):
         self.assertContains(response, "event-card--compact")
         self.assertContains(response, Event.objects.first().title)
 
+    def test_mobile_navigation_uses_figma_icons(self):
+        response = self.client.get(reverse("core:home"))
+
+        self.assertEqual(response.status_code, 200)
+        for icon in ("dashboard", "heart", "point", "search", "profile"):
+            self.assertContains(response, f"icons/navigation/{icon}.svg")
+
+        for legacy_glyph in ("⌂", "▦", "●", "♡", "⌁"):
+            self.assertNotContains(response, legacy_glyph)
+
     def test_catalog_cards_keep_route_and_walk_actions(self):
         event = Event.objects.first()
         event.venue.location = Point(37.6176, 55.7558, srid=4326)
