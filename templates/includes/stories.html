@@ -1,0 +1,17 @@
+{% if story_events %}
+    <nav class="stories" aria-label="Открыть событие">
+        {% for event in story_events %}
+            <a class="story"
+               href="{{ event.get_absolute_url }}"
+               aria-label="{{ event.title }}">
+                <img src="{{ event.display_cover_url }}"
+                     alt=""
+                     loading="lazy"
+                     referrerpolicy="no-referrer"><span class="story__avatar" aria-hidden="true"><img src="{{ event.display_cover_url }}"
+     alt=""
+     loading="lazy"
+     referrerpolicy="no-referrer">
+            </span></a>
+        {% endfor %}
+    </nav>
+{% endif %}

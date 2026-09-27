@@ -1,0 +1,15 @@
+<form class="hero-search"
+      action="{% url 'catalog:event_list' %}"
+      role="search">
+    <label class="sr-only" for="{{ search_id }}">Поиск событий в Москве</label><input id="{{ search_id }}"
+       name="q"
+       type="search"
+       value="{{ filters.q }}"
+       placeholder="Поиск в Москве">
+    <button type="submit" class="sr-only">Найти</button>
+    <button class="search-filter-button"
+            type="submit"
+            name="filters"
+            value="open"
+            aria-label="Открыть фильтры">{% include "includes/filter_icon.html" %}</button>
+</form>

@@ -1,89 +1,99 @@
 {% extends "base.html" %}
 {% load l10n %}
-
 {% block title %}{{ event.title }} — КидсТайм{% endblock %}
-
+{% block body_class %}page-detail{% endblock %}
 {% block content %}
-<article class="detail-shell">
-    <a class="detail-back" href="{% url 'catalog:event_list' %}">← К результатам</a>
-
-    <div class="detail-hero">
-        {% if event.display_cover_url %}
-            <img src="{{ event.display_cover_url }}" alt="" referrerpolicy="no-referrer">
-        {% else %}
-            <span class="detail-hero__empty" aria-hidden="true"></span>
-        {% endif %}
-        <button class="favorite-button favorite-button--detail" type="button" data-favorite-button="{{ event.pk }}" aria-label="Добавить «{{ event.title }}» в избранное" aria-pressed="false">♡</button>
-    </div>
-
-    <div class="detail-grid">
-        <div class="detail-main">
-            <div class="detail-tags">
-                <span>{{ event.category.name }}</span>
-                <span>{{ event.get_activity_format_display }}</span>
-                <span>{{ event.age_from }}–{{ event.age_to }} лет</span>
-            </div>
-            <h1>{{ event.title }}</h1>
-            <p class="detail-lead">{{ event.short_description }}</p>
-
-            <section class="detail-section">
-                <h2>О событии</h2>
-                <p>{{ event.description|linebreaksbr }}</p>
-            </section>
-
-            <section class="detail-section">
-                <h2>Расписание</h2>
-                <div class="session-list">
-                    {% for session in event.upcoming_sessions %}
-                        <div class="session-row">
-                            <div>
-                                <strong>{{ session.starts_at|date:"l, j E" }}</strong>
-                                <span>{{ session.starts_at|date:"H:i" }}{% if session.ends_at %}–{{ session.ends_at|date:"H:i" }}{% endif %}</span>
-                            </div>
-                            <span>{{ session.get_availability_display }}</span>
-                        </div>
-                    {% empty %}
-                        <p>Актуальное расписание уточняется у организатора.</p>
+    <article class="detail-shell">
+        <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>›</span><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}">{{ event.category.name }}</a><span>›</span><span>{{ event.title }}</span></nav>
+        <section class="detail-gallery" data-gallery aria-label="Фотографии события">
+            <div class="detail-hero">
+                <div class="detail-gallery__track"
+                     data-gallery-track
+                     tabindex="0"
+                     aria-label="Листайте фотографии">
+                    {% for image in gallery %}
+                        <img src="{{ image.url }}"
+                             alt="{{ image.alt|default:event.title }}"
+                             referrerpolicy="no-referrer"
+                             {% if not forloop.first %} loading="lazy"{% endif %}>
+                    {% empty %}<span class="detail-hero__empty" aria-hidden="true"></span>
                     {% endfor %}
                 </div>
-            </section>
-        </div>
-
-        <aside class="detail-aside">
-            <div class="booking-card">
-                <span class="booking-card__label">Стоимость</span>
-                <strong>{{ event.display_price }}</strong>
-                {% if event.duration_minutes %}<span>Продолжительность — {{ event.duration_minutes }} мин.</span>{% endif %}
-                {% if event.venue.location %}
-                    <div class="booking-card__actions">
-                        <a class="primary-button" href="https://yandex.ru/maps/?rtext=~{{ event.venue.location.y|unlocalize }}%2C{{ event.venue.location.x|unlocalize }}&amp;rtt=auto" target="_blank" rel="noopener">Построить маршрут</a>
-                        <button
-                            class="secondary-button"
-                            type="button"
-                            data-walk-button="{{ event.pk }}"
-                            data-walk-default-label="+ Добавить в прогулку"
-                            data-walk-active-label="✓ Уже в прогулке"
-                            aria-pressed="false"
-                        >+ Добавить в прогулку</button>
+                <a class="detail-back round-button"
+                   href="{% url 'catalog:event_list' %}"
+                   aria-label="К списку событий">←</a>
+                <div class="detail-hero__tools"><button class="share-button"
+        type="button"
+        data-share
+        aria-label="Поделиться событием"><span aria-hidden="true">↥</span></button>{% include "includes/favorite_button.html" %}</div>
+                {% if gallery|length > 1 %}
+                    <div class="gallery-dots">
+                        {% for image in gallery %}
+                            <button type="button"
+                                    data-gallery-index="{{ forloop.counter0 }}"
+                                    aria-label="Фото {{ forloop.counter }}"
+                                    aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"></button>
+                        {% endfor %}
                     </div>
-                {% else %}
-                    <a class="primary-button" href="https://yandex.ru/maps/?text={{ event.venue.address|urlencode }}" target="_blank" rel="noopener">Открыть адрес на карте</a>
                 {% endif %}
             </div>
-
-            <div class="place-card">
-                <span class="section-kicker">Где проходит</span>
-                <h2>{{ event.venue.name }}</h2>
-                <p>{{ event.venue.address }}</p>
-                {% if event.venue.metro %}<p>Метро «{{ event.venue.metro }}»</p>{% endif %}
-                {% if event.venue.stroller_access %}<span class="place-card__note">Можно с коляской</span>{% endif %}
+            {% if gallery|length > 1 %}
+                <div class="gallery-thumbnails">
+                    {% for image in gallery %}
+                        <button type="button"
+                                data-gallery-index="{{ forloop.counter0 }}"
+                                aria-label="Фото {{ forloop.counter }}"
+                                aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
+                            <img src="{{ image.url }}"
+                                 alt=""
+                                 loading="lazy"
+                                 referrerpolicy="no-referrer">
+                        </button>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </section>
+        <div class="detail-grid">
+            <div class="detail-main">
+                <header class="detail-heading"><h1>{{ event.title }}</h1>{% include "includes/place_meta.html" %}</header>
+                <div class="detail-tags"><span class="age-tag">{{ event.age_from }}+</span><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}">{{ event.category.name }}</a><span>{{ event.get_activity_format_display }}</span>{% if event.venue.accessible %}<span>Маломобильность</span>{% endif %}{% if event.venue.stroller_access %}<span>Можно с коляской</span>{% endif %}{% if event.venue.parking_notes %}<span>Парковка</span>{% endif %}</div>
+                <section class="detail-section detail-description"
+                         aria-label="Описание события">
+                    {% if event.short_description %}<p class="detail-lead">{{ event.short_description }}</p>{% endif %}
+                    <div class="detail-description__text">{{ event.description|linebreaks }}</div>
+                    {% if event.organizer.phone %}<p><strong>Телефон:</strong> <a href="tel:{{ event.organizer.phone }}">{{ event.organizer.phone }}</a></p>{% endif %}
+                    {% if event.duration_minutes %}<p><strong>Продолжительность:</strong> {{ event.duration_minutes }} мин.</p>{% endif %}
+                    {% if event.venue.parking_notes %}<p><strong>Парковка:</strong> {{ event.venue.parking_notes }}</p>{% endif %}
+                </section>
+                <section class="detail-section detail-schedule"><h2>Расписание</h2><div class="session-list">{% for session in event.upcoming_sessions %}<div class="session-row"><div><strong>{{ session.starts_at|date:'l, j E' }}</strong><span>{{ session.starts_at|date:'H:i' }}{% if session.ends_at %}–{{ session.ends_at|date:'H:i' }}{% endif %}</span></div><span>{{ session.get_availability_display }}</span></div>{% empty %}<p>Актуальное расписание уточняется у организатора.</p>{% endfor %}</div></section>
             </div>
-
-            <div class="trust-card">
-                <span>Проверено {{ event.last_verified_at|date:"j E Y" }}</span>
-                {% if event.source_url %}<a href="{{ event.source_url }}" target="_blank" rel="noopener">Первоисточник</a>{% endif %}
-            </div>
-        </aside>
+            <aside class="detail-aside">
+                <div class="booking-card">
+                    <div class="booking-card__price"><span>Стоимость</span><strong>{{ event.display_price }}</strong></div>
+                    <div class="booking-card__actions">
+                        {% if event.venue.location %}
+                            <button class="primary-button"
+                                    type="button"
+                                    data-walk-button="{{ event.pk }}"
+                                    data-walk-default-label="+ Добавить в прогулку"
+                                    data-walk-active-label="✓ Уже в прогулке"
+                                    aria-pressed="false">+ Добавить в прогулку</button>
+                            <a class="secondary-button"
+                               href="https://yandex.ru/maps/?rtext=~{{ event.venue.location.y|unlocalize }}%2C{{ event.venue.location.x|unlocalize }}&amp;rtt=auto"
+                               target="_blank"
+                               rel="noopener">Построить маршрут</a>
+{% else %}<a class="primary-button"
+   href="https://yandex.ru/maps/?text={{ event.venue.address|urlencode }}"
+   target="_blank"
+   rel="noopener">Открыть адрес на карте</a>{% endif %}
     </div>
-</article>
+    </div>
+    <div class="place-card"><h2>{{ event.venue.name }}</h2><p>{{ event.venue.address }}</p>{% if event.venue.metro %}<p>Метро «{{ event.venue.metro }}»</p>{% endif %}</div>
+    <div class="trust-card">{% if event.last_verified_at %}<span>Проверено {{ event.last_verified_at|date:'j E Y' }}</span>{% endif %}{% if event.source_url %}<a href="{{ event.source_url }}" target="_blank" rel="noopener">Первоисточник ↗</a>{% endif %}</div>
+    </aside>
+    </div>
+    {% if venue_events %}<section class="event-section detail-related"><div class="section-heading"><h2>В этом месте</h2></div><div class="event-row">{% for event in venue_events %}{% include "includes/event_card.html" with compact=True %}{% endfor %}</div></section>{% endif %}
+    {% if related_events %}<section class="event-section detail-related"><div class="section-heading"><h2>Вам может понравиться</h2><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}"
+   aria-label="Другие события этой категории">↗</a></div><div class="event-row">{% for event in related_events %}{% include "includes/event_card.html" with compact=True %}{% endfor %}</div></section>{% endif %}
+    </article>
 {% endblock %}

@@ -39,12 +39,13 @@ class PublicPagesTests(TestCase):
         self.assertContains(response, 'class="mobile-hero"')
         self.assertContains(response, 'class="home-overview"')
         self.assertContains(response, 'class="hero-calendar"')
-        self.assertContains(response, 'class="hero-search__icon"')
+        self.assertContains(response, 'class="filter-icon"')
         self.assertContains(response, 'class="weather-card__temperature"')
-        self.assertContains(response, 'class="today-plan-card__folder"')
-        self.assertContains(response, "25°")
+        self.assertContains(response, 'class="today-plan-card__pin"')
+        self.assertNotContains(response, "25°")
+        self.assertContains(response, "Маршрут")
+        self.assertContains(response, "home-desktop-intro")
         self.assertNotContains(response, "По погоде")
-        self.assertNotContains(response, "Подобрать события")
         self.assertNotContains(response, 'class="route-preview"')
         self.assertContains(response, "event-card--compact")
         self.assertContains(response, Event.objects.first().title)
@@ -56,10 +57,12 @@ class PublicPagesTests(TestCase):
         for icon in ("dashboard", "heart", "point", "search", "profile"):
             self.assertIsNotNone(finders.find(f"icons/navigation/{icon}.svg"))
 
-        for icon in ("dashboard", "heart", "search", "profile"):
+        for icon in ("dashboard", "search", "profile"):
             self.assertContains(response, f"bottom-nav__icon--{icon}")
 
         self.assertContains(response, "icons/navigation/point")
+        self.assertContains(response, 'aria-label="Маршрут на день"')
+        self.assertContains(response, reverse("core:profile"))
 
         html = response.content.decode()
         bottom_nav = html[html.index('<nav class="bottom-nav"') :]
@@ -109,7 +112,7 @@ class PublicPagesTests(TestCase):
         response = self.client.get(reverse("catalog:walk_builder"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Создать прогулку")
+        self.assertContains(response, "Маршрут на день")
         self.assertContains(response, 'data-walk-root')
         self.assertContains(response, 'data-limit="9"')
 
@@ -137,6 +140,8 @@ class PublicPagesTests(TestCase):
         )
         self.assertIn("lat", payload["results"][0])
         self.assertIn("lng", payload["results"][0])
+        for field in ("date", "age", "price"):
+            self.assertIn(field, payload["results"][0])
 
     def test_route_link_uses_unlocalized_coordinates(self):
         event = Event.objects.first()
@@ -158,6 +163,65 @@ class PublicPagesTests(TestCase):
         EventImage.objects.create(event=event, image="events/test-cover.jpg", is_cover=True)
 
         self.assertEqual(event.display_cover_url, "/media/events/test-cover.jpg")
+
+    def test_age_group_and_accessibility_filters_combine(self):
+        events = list(Event.objects.visible().order_by("pk")[:3])
+        for event, ages, accessible in zip(events, ((0, 3), (7, 10), (4, 7)), (True, True, False)):
+            event.age_from, event.age_to = ages
+            event.save(update_fields=("age_from", "age_to"))
+            event.venue.accessible = accessible
+            event.venue.save(update_fields=("accessible",))
+        response = self.client.get(reverse("catalog:event_list"), {"age_group": "4-7", "accessible": "1"})
+        results = list(response.context["events"])
+        self.assertIn(events[1], results)
+        self.assertNotIn(events[0], results)
+        self.assertNotIn(events[2], results)
+
+    def test_free_and_collection_filters(self):
+        response = self.client.get(reverse("catalog:event_list"), {"free": "1", "collection": "recommended"})
+        self.assertTrue(response.context["events"])
+        self.assertTrue(all(event.is_free and event.is_recommended for event in response.context["events"]))
+
+    def test_location_with_empty_radius_uses_default(self):
+        events = list(Event.objects.visible().order_by("pk")[:2])
+        for event, location in zip(events, (Point(37.62, 55.75), Point(30.32, 59.94))):
+            event.venue.location = location
+            event.venue.save(update_fields=("location",))
+        response = self.client.get(reverse("catalog:event_list"), {"lat": "55.75", "lng": "37.62", "radius": ""})
+        self.assertIn(events[0], response.context["events"])
+        self.assertNotIn(events[1], response.context["events"])
+
+    def test_invalid_filter_values_do_not_crash(self):
+        response = self.client.get(reverse("catalog:event_list"), {"age": "²", "max_price": "9" * 100, "lat": "nan", "lng": "inf"})
+        self.assertEqual(response.status_code, 200)
+
+    def test_detail_gallery_and_recommendations_use_published_data(self):
+        event = Event.objects.first()
+        EventImage.objects.create(event=event, image="events/second.jpg", sort_order=20)
+        EventImage.objects.create(event=event, image="events/cover.jpg", is_cover=True)
+        hidden = Event.objects.exclude(pk=event.pk).first()
+        hidden.category = event.category
+        hidden.venue = event.venue
+        hidden.status = PublicationStatus.DRAFT
+        hidden.save()
+
+        response = self.client.get(event.get_absolute_url())
+        self.assertEqual([image["url"] for image in response.context["gallery"]], ["/media/events/cover.jpg", "/media/events/second.jpg"])
+        self.assertNotIn(hidden, response.context["related_events"])
+        self.assertNotIn(hidden, response.context["venue_events"])
+
+    def test_guest_profile_links_existing_collections(self):
+        response = self.client.get(reverse("core:profile"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse("catalog:walk_builder"))
+        self.assertContains(response, reverse("favorites:list"))
+        self.assertNotContains(response, reverse("admin:catalog_event_add"))
+
+    def test_favorites_cards_tolerate_malformed_ids(self):
+        event = Event.objects.first()
+        response = self.client.get(reverse("favorites:cards"), {"ids": f"{event.pk},²,{event.pk}," + "9" * 100})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.context["events"]), [event])
 
 
 class VenueAdminTests(TestCase):

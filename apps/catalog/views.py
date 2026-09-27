@@ -1,4 +1,5 @@
 from datetime import datetime, time
+from math import isfinite
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
@@ -6,6 +7,7 @@ from django.db.models import Prefetch, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from django.utils.formats import date_format
 
 from .models import ActivityFormat, Category, Event, EventImage, EventSession
 
@@ -46,7 +48,11 @@ def _apply_filters(queryset, params):
         queryset = queryset.filter(category__slug=category)
 
     age = params.get("age")
-    if age and age.isdigit():
+    age_groups = {"0-3": (0, 3), "4-7": (4, 7), "8-11": (8, 11), "12+": (12, 18)}
+    if params.get("age_group") in age_groups:
+        lower, upper = age_groups[params["age_group"]]
+        queryset = queryset.filter(age_from__lte=upper, age_to__gte=lower)
+    elif age and age.isascii() and age.isdigit() and len(age) <= 2:
         queryset = queryset.filter(age_from__lte=int(age), age_to__gte=int(age))
 
     activity_format = params.get("format")
@@ -54,8 +60,23 @@ def _apply_filters(queryset, params):
         queryset = queryset.filter(activity_format__in=(activity_format, ActivityFormat.BOTH))
 
     max_price = params.get("max_price")
-    if max_price and max_price.isdigit():
+    if max_price and max_price.isascii() and max_price.isdigit() and len(max_price) <= 8:
         queryset = queryset.filter(Q(is_free=True) | Q(price_from__lte=int(max_price)))
+
+    if params.get("free") == "1":
+        queryset = queryset.filter(is_free=True)
+    if params.get("accessible") == "1":
+        queryset = queryset.filter(venue__accessible=True)
+    if params.get("stroller") == "1":
+        queryset = queryset.filter(venue__stroller_access=True)
+    if params.get("parking") == "1":
+        queryset = queryset.exclude(venue__parking_notes="")
+    if params.get("metro") == "1":
+        queryset = queryset.exclude(venue__metro="")
+    if params.get("collection") == "recommended":
+        queryset = queryset.filter(is_recommended=True)
+    elif params.get("collection") == "popular":
+        queryset = queryset.filter(is_featured=True)
 
     date_value = params.get("date")
     if date_value:
@@ -70,12 +91,13 @@ def _apply_filters(queryset, params):
 
     latitude = params.get("lat")
     longitude = params.get("lng")
-    radius = params.get("radius", "5")
+    radius = params.get("radius") or "5"
     try:
         if latitude and longitude:
-            center = Point(float(longitude), float(latitude), srid=4326)
-            distance_km = min(max(float(radius), 1), 50)
-            queryset = queryset.filter(venue__location__distance_lte=(center, D(km=distance_km)))
+            lat, lng, km = float(latitude), float(longitude), float(radius)
+            if all(isfinite(value) for value in (lat, lng, km)) and -90 <= lat <= 90 and -180 <= lng <= 180:
+                center = Point(lng, lat, srid=4326)
+                queryset = queryset.filter(venue__location__distance_lte=(center, D(km=min(max(km, 1), 50))))
     except (TypeError, ValueError):
         pass
 
@@ -83,7 +105,9 @@ def _apply_filters(queryset, params):
 
 
 def event_list(request):
-    events = _apply_filters(_base_events(), request.GET).order_by("-is_featured", "title")
+    order = ("-created_at", "title") if request.GET.get("collection") == "new" else ("-is_featured", "title")
+    events = _apply_filters(_base_events(), request.GET).order_by(*order)
+    has_filters = any(value for key, value in request.GET.items() if key != "filters")
     return render(
         request,
         "catalog/event_list.html",
@@ -92,13 +116,24 @@ def event_list(request):
             "categories": Category.objects.filter(is_active=True).order_by("sort_order", "name"),
             "formats": ActivityFormat.choices,
             "filters": request.GET,
+            "has_filters": has_filters,
+            "spotlight_event": events.first() if not has_filters else None,
+            "story_events": [event for event in events[:6] if event.display_cover_url] if not has_filters else [],
         },
     )
 
 
 def event_detail(request, slug):
     event = get_object_or_404(_base_events(), slug=slug)
-    return render(request, "catalog/event_detail.html", {"event": event})
+    gallery = [{"url": image.image.url, "alt": image.alt_text} for image in event.prefetched_images]
+    if not gallery and event.cover_url:
+        gallery = [{"url": event.cover_url, "alt": event.title}]
+    return render(request, "catalog/event_detail.html", {
+        "event": event,
+        "gallery": gallery,
+        "venue_events": _base_events().filter(venue=event.venue).exclude(pk=event.pk)[:6],
+        "related_events": _base_events().filter(category=event.category).exclude(pk=event.pk)[:6],
+    })
 
 
 def event_map(request):
@@ -163,6 +198,9 @@ def walk_events_api(request):
                 "lng": point.x,
                 "url": event.get_absolute_url(),
                 "cover": event.display_cover_url,
+                "age": f"{event.age_from}+",
+                "price": event.display_price,
+                "date": date_format(timezone.localtime(event.next_session.starts_at), "j E") if event.next_session else "Уточняется",
             }
         )
     return JsonResponse(

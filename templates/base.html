@@ -1,53 +1,83 @@
 {% load static %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#ff9380">
-    <meta name="description" content="КидсТайм — места и мероприятия для досуга с детьми в Москве.">
-    <title>{% block title %}КидсТайм{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/app.css' %}">
-    {% block head %}{% endblock %}
-</head>
-<body>
-    <a class="skip-link" href="#main-content">Перейти к содержимому</a>
-
-    <header class="desktop-header">
-        <div class="desktop-header__inner">
-            <a class="brand" href="{% url 'core:home' %}" aria-label="КидсТайм — на главную">
-                <span class="brand__mark" aria-hidden="true">K</span>
-                <span>КидсТайм</span>
-            </a>
-            <nav class="desktop-nav" aria-label="Основная навигация">
-                <a href="{% url 'catalog:event_list' %}">События</a>
-                <a href="{% url 'catalog:event_map' %}">Карта</a>
-                <a href="{% url 'favorites:list' %}">Избранное</a>
-                <a href="{% url 'catalog:walk_builder' %}">Прогулка <span class="nav-count" data-walk-count hidden>0</span></a>
-            </nav>
-            <form class="desktop-search" action="{% url 'catalog:event_list' %}" role="search">
-                <label class="sr-only" for="desktop-search">Поиск мероприятий</label>
-                <input id="desktop-search" type="search" name="q" placeholder="Название, место или район">
-                <button type="submit">Найти</button>
-            </form>
-        </div>
-    </header>
-
-    {% if messages %}
-        <div class="messages" aria-live="polite">
-            {% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}
-        </div>
-    {% endif %}
-
-    <main id="main-content">
-        {% block content %}{% endblock %}
-    </main>
-
-    {% include "includes/bottom_nav.html" %}
-    <script src="{% static 'js/app.js' %}" defer></script>
-    {% block scripts %}{% endblock %}
-</body>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1, viewport-fit=cover">
+        <meta name="theme-color" content="#ff9380">
+        <meta name="description"
+              content="КидсТайм — места и мероприятия для досуга с детьми в Москве.">
+        <title>{% block title %}КидсТайм{% endblock %}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+              rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/app.css' %}">
+        {% block head %}{% endblock %}
+    </head>
+    <body class="{% block body_class %}{% endblock %}">
+        <a class="skip-link" href="#main-content">Перейти к содержимому</a>
+        <header class="desktop-header">
+            <div class="desktop-header__inner">
+                <a class="brand"
+                   href="{% url 'core:home' %}"
+                   aria-label="КидсТайм — на главную">
+                    <span>КидсТайм</span>
+                </a>
+                <form class="desktop-search"
+                      action="{% url 'catalog:event_list' %}"
+                      role="search">
+                    <label class="sr-only" for="desktop-search">Поиск мероприятий</label>
+                    <input id="desktop-search"
+                           type="search"
+                           name="q"
+                           value="{{ filters.q }}"
+                           placeholder="Поиск в Москве">
+                    <button type="submit" class="sr-only">Найти</button>
+                    <button class="search-filter-button"
+                            type="submit"
+                            name="filters"
+                            value="open"
+                            aria-label="Открыть фильтры">{% include "includes/filter_icon.html" %}</button>
+                </form>
+                <nav class="desktop-nav" aria-label="Основная навигация">
+                    <a href="{% url 'catalog:walk_builder' %}"
+                       aria-label="Маршрут на день"
+                       title="Маршрут на день"><span class="route-icon" aria-hidden="true"><i></i></span><span class="nav-count" data-walk-count hidden>0</span></a>
+                    <a href="{% url 'favorites:list' %}"
+                       aria-label="Избранное"
+                       title="Избранное"><span class="ui-icon ui-icon--heart"
+      aria-hidden="true"></span></a>
+                    <a href="{% url 'catalog:event_list' %}"
+                       aria-label="События"
+                       title="События"><span class="ui-icon ui-icon--dashboard"
+      aria-hidden="true"></span></a>
+                    <a href="{% url 'core:profile' %}"
+                       class="desktop-profile"
+                       aria-label="Профиль"
+                       title="Профиль"><span class="ui-icon ui-icon--profile" aria-hidden="true"></span></a>
+                </nav>
+            </div>
+        </header>
+        {% if messages %}
+            <div class="messages" aria-live="polite">
+                {% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+        <main id="main-content">
+            {% block content %}{% endblock %}
+        </main>
+        <footer class="site-footer">
+            <div class="site-footer__inner">
+                <div class="site-footer__about"><a class="brand" href="{% url 'core:home' %}">КидсТайм</a><p>Места и события для досуга с детьми в Москве. Найдите, куда пойти, и соберите маршрут на день.</p></div>
+                <nav aria-label="Подборки"><h2>События</h2><a href="{% url 'catalog:event_list' %}">Все события</a><a href="{% url 'catalog:event_list' %}?collection=recommended">Рекомендации</a><a href="{% url 'catalog:event_list' %}?collection=popular">Популярное</a></nav>
+                <nav aria-label="Ваши места"><h2>Мои подборки</h2><a href="{% url 'favorites:list' %}">Избранное</a><a href="{% url 'catalog:walk_builder' %}">Маршрут на день</a><a href="{% url 'catalog:event_map' %}">Карта</a></nav>
+                <p class="site-footer__copyright">© {% now "Y" %} КидсТайм</p>
+            </div>
+        </footer>
+        {% include "includes/bottom_nav.html" %}
+        <script src="{% static 'js/app.js' %}" defer></script>
+        {% block scripts %}{% endblock %}
+    </body>
 </html>

@@ -1,102 +1,142 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %}КидсТайм — куда пойти с детьми{% endblock %}
-
+{% block body_class %}page-home{% endblock %}
 {% block content %}
-<div class="home-shell">
-    <section class="mobile-hero" aria-labelledby="home-title">
-        <h1 id="home-title" class="sr-only">Куда пойти с детьми в Москве</h1>
-        <form class="hero-search" action="{% url 'catalog:event_list' %}" role="search">
-            <label class="sr-only" for="hero-search">Найти мероприятие или место</label>
-            <input id="hero-search" type="search" name="q" placeholder="Поиск в Москве">
-            <button type="submit" aria-label="Найти">
-                <span class="hero-search__icon" aria-hidden="true">
-                    <i></i>
-                    <i></i>
-                    <i></i>
-                </span>
-            </button>
-        </form>
-    </section>
-
-    <section class="home-overview" aria-label="Подбор событий">
-        <section class="hero-calendar" aria-labelledby="date-title">
-            <div class="hero-calendar__heading">
-                <h2 id="date-title">{{ days.0.month }}</h2>
-            </div>
-            <div class="date-strip" aria-label="Ближайшие даты">
-                {% for day in days %}
-                    <a class="date-pill{% if day.is_today %} is-active{% endif %}" href="{% url 'catalog:event_list' %}?date={{ day.date }}">
-                        <span>{{ day.weekday }}</span>
-                        <strong>{{ day.day }}</strong>
-                    </a>
-                {% endfor %}
-            </div>
+    <div class="home-shell">
+        <h1 class="sr-only">Куда пойти с детьми в Москве</h1>
+        <section class="mobile-hero">
+            {% include "includes/search_form.html" with search_id="home-search" %}
         </section>
-
-        <div class="home-dashboard">
-            <article class="weather-card" aria-label="Погода: 25 градусов">
-                <span class="weather-card__icon" aria-hidden="true"></span>
-                <strong class="weather-card__temperature">25°</strong>
-            </article>
-            <a class="today-plan-card" href="{% url 'catalog:event_list' %}?date={{ days.0.date }}" aria-label="Подобрать план на сегодня">
-                <div class="today-plan-card__copy">
-                    <strong>План</strong>
-                    <small>на сегодня</small>
-                </div>
-                <span class="today-plan-card__folder" aria-hidden="true"></span>
-            </a>
+        <div class="home-desktop-intro">
+            {% include "includes/stories.html" %}
+            {% if spotlight_events %}
+                <section class="spotlight" aria-label="Выбор редакции" data-carousel>
+                    <div class="spotlight__track"
+                         data-carousel-track
+                         tabindex="0"
+                         aria-label="Листайте события">
+                        {% for event in spotlight_events %}
+                            <article class="spotlight-card">
+                                <div class="spotlight-card__picture">
+                                    <a href="{{ event.get_absolute_url }}">
+                                        {% if event.display_cover_url %}
+                                            <img src="{{ event.display_cover_url }}"
+                                                 alt="{{ event.title }}"
+                                                 referrerpolicy="no-referrer"
+                                                 {% if not forloop.first %} loading="lazy"{% endif %}>
+                                        {% endif %}
+                                    </a>
+                                    <span class="event-card__age">{{ event.age_from }}+</span>
+                                    {% include "includes/favorite_button.html" %}
+                                </div>
+                                <div class="spotlight-card__copy">
+                                    <h2><a href="{{ event.get_absolute_url }}">{{ event.title }}</a></h2>
+                                    <div class="spotlight-card__facts">
+                                        {% if event.next_session %}<div class="spotlight-date"><small>{{ event.next_session.starts_at|date:'F' }}</small><strong>{{ event.next_session.starts_at|date:'j' }}</strong></div>{% endif %}
+                                        <div class="spotlight-place">{% include "includes/place_meta.html" %}</div>
+                                    </div>
+                                    <p>{{ event.short_description }}</p>
+                                    <div class="detail-tags"><span>{{ event.display_price }}</span><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}">{{ event.category.name }}</a></div>
+                                    <a class="text-link" href="{{ event.get_absolute_url }}">Подробнее →</a>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                    {% if spotlight_events|length > 1 %}<button type="button"
+        class="carousel-arrow carousel-arrow--previous"
+        data-carousel-prev
+        aria-label="Предыдущее событие">←</button><button type="button"
+        class="carousel-arrow carousel-arrow--next"
+        data-carousel-next
+        aria-label="Следующее событие">→</button>{% endif %}
+                </section>
+            {% endif %}
         </div>
-
-        <nav class="hero-categories" aria-label="Популярные категории">
-            {% for category in categories %}
-                <a href="{% url 'catalog:event_list' %}?category={{ category.slug }}">{{ category.name }}</a>
-            {% endfor %}
-        </nav>
+        <section class="home-overview" aria-label="Подбор событий">
+            <section class="hero-calendar" aria-labelledby="date-title">
+                <h2 id="date-title">{{ days.0.month }}</h2>
+                <div class="date-strip" aria-label="Ближайшие даты">
+                    {% for day in days %}<a class="date-pill{% if day.is_today %} is-active{% endif %}{% if day.is_weekend %} is-weekend{% endif %}"
+   href="{% url 'catalog:event_list' %}?date={{ day.date }}"
+   aria-label="{{ day.day }} {{ day.month }}"><span>{{ day.weekday }}</span><strong>{{ day.day }}</strong></a>{% endfor %}
+                </div>
+            </section>
+            <div class="home-dashboard">
+                {% include "includes/weather_card.html" %}
+                <a class="today-plan-card" href="{% url 'catalog:walk_builder' %}"><span class="today-plan-card__copy"><strong>Маршрут</strong><small>на сегодня</small></span><span class="today-plan-card__pin" aria-hidden="true"><img src="{% static 'icons/navigation/point.svg' %}"
+     width="32"
+     height="32"
+     alt=""></span></a>
+            </div>
+            <nav class="hero-categories" aria-label="Популярные категории">{% for category in categories %}<a href="{% url 'catalog:event_list' %}?category={{ category.slug }}">{{ category.name }}</a>{% endfor %}</nav>
+            <form class="home-quick-filters"
+                  action="{% url 'catalog:event_list' %}"
+                  aria-label="Быстрый подбор">
+                <label>
+                    <span class="sr-only">Возраст</span><select name="age_group">
+                        <option value="">Все возраста</option>
+                        <option value="0-3">От 0 до 3 лет</option>
+                        <option value="4-7">От 4 до 7 лет</option>
+                        <option value="8-11">От 8 до 11 лет</option>
+                        <option value="12+">От 12 лет</option>
+                    </select>
+                </label>
+                <label>
+                    <span class="sr-only">Подборка</span><select name="collection">
+                        <option value="">Все события</option>
+                        <option value="popular">Популярное</option>
+                        <option value="recommended">Рекомендации</option>
+                        <option value="new">Новое</option>
+                    </select>
+                </label>
+                <button type="submit" class="round-button" aria-label="Подобрать события">→</button>
+            </form>
+        </section>
+        <div class="home-content">
+            <div class="home-mobile-stories">{% include "includes/stories.html" %}</div>
+            <section class="event-section home-nearby" aria-labelledby="nearby-title">
+                <div class="section-heading"><div><h2 id="nearby-title">Рядом с вами</h2><p class="desktop-only">Места и события для семейных открытий</p></div><a href="{% url 'catalog:event_map' %}" aria-label="Все места на карте">↗</a></div>
+                {% if nearby_events %}
+                    <div class="home-feature home-feature--nearby">
+                        <div class="home-feature__widgets"><div class="count-card"><strong>{{ event_count }}</strong><small>событий</small></div>{% include "includes/weather_card.html" %}</div>
+                        {% include "includes/feature_card.html" with event=nearby_events.0 %}
+                    </div>
+                    <div class="event-row">
+                        {% for event in nearby_events %}
+                            {% include "includes/event_card.html" with compact=True %}
+                        {% endfor %}
+                    </div>
+{% else %}<div class="empty-state">Скоро здесь появятся места и события.</div>{% endif %}
     </section>
-
-    <div class="home-content">
-        <section class="event-section" aria-labelledby="nearby-title">
-            <div class="section-heading">
-                <h2 id="nearby-title">Рядом с вами</h2>
-                <a href="{% url 'catalog:event_list' %}" aria-label="Смотреть все места рядом">↗</a>
-            </div>
-            <div class="event-row">
-                {% for event in nearby_events %}
-                    {% include "includes/event_card.html" with event=event compact=True %}
-                {% empty %}
-                    <div class="empty-state">После загрузки данных здесь появятся ближайшие мероприятия.</div>
-                {% endfor %}
-            </div>
-        </section>
-
-        <section class="event-section" aria-labelledby="recommended-title">
-            <div class="section-heading">
-                <h2 id="recommended-title">Рекомендации</h2>
-                <a href="{% url 'catalog:event_list' %}" aria-label="Смотреть все рекомендации">↗</a>
-            </div>
-            <div class="event-row">
-                {% for event in recommended_events %}
-                    {% include "includes/event_card.html" with event=event compact=True %}
-                {% empty %}
-                    <div class="empty-state">Рекомендации появятся после модерации каталога.</div>
-                {% endfor %}
-            </div>
-        </section>
-
-        <section class="event-section" aria-labelledby="popular-title">
-            <div class="section-heading">
-                <h2 id="popular-title">Популярное</h2>
-                <a href="{% url 'catalog:event_list' %}" aria-label="Смотреть всё популярное">↗</a>
-            </div>
-            <div class="event-row">
-                {% for event in popular_events %}
-                    {% include "includes/event_card.html" with event=event compact=True %}
-                {% empty %}
-                    <div class="empty-state">Популярные варианты появятся после первых просмотров.</div>
-                {% endfor %}
-            </div>
-        </section>
+    <section class="event-section home-recommended"
+             aria-labelledby="recommended-title">
+        <div class="section-heading"><h2 id="recommended-title">Рекомендации</h2><a href="{% url 'catalog:event_list' %}?collection=recommended"
+   aria-label="Все рекомендации">↗</a></div>
+        <div class="event-row">{% for event in recommended_events %}{% include "includes/event_card.html" with compact=True %}{% empty %}<div class="empty-state">Рекомендации скоро появятся.</div>{% endfor %}</div>
+    </section>
+    <section class="event-section home-popular" aria-labelledby="popular-title">
+        <div class="section-heading"><div><h2 id="popular-title">Популярное</h2><p class="desktop-only">События, на которые стоит обратить внимание</p></div><a href="{% url 'catalog:event_list' %}?collection=popular"
+   aria-label="Все популярные события">↗</a></div>
+        {% if popular_events %}<div class="home-feature home-feature--popular">{% include "includes/feature_card.html" with event=popular_events.0 %}<div class="home-feature__note">{% if popular_events.0.next_session %}<div class="count-card"><small>{{ popular_events.0.next_session.starts_at|date:'F' }}</small><strong>{{ popular_events.0.next_session.starts_at|date:'j' }}</strong></div>{% endif %}<a href="{{ popular_events.0.get_absolute_url }}"><strong>{{ popular_events.0.title }}</strong><p>{{ popular_events.0.venue.address }}</p></a></div></div>{% endif %}
+        <div class="event-row">{% for event in popular_events %}{% include "includes/event_card.html" with compact=True %}{% empty %}<div class="empty-state">Подборка скоро появится.</div>{% endfor %}</div>
+    </section>
+    <section class="event-section home-editorial"
+             aria-labelledby="editorial-title">
+        <div class="section-heading"><div><h2 id="editorial-title">Выбор редакции</h2><p>Идеи для вашего следующего выходного</p></div><a href="{% url 'catalog:event_list' %}?collection=recommended"
+   aria-label="Все идеи для прогулки">↗</a></div>
+        <div class="editorial-grid">
+            {% for event in recommended_events %}
+                {% include "includes/event_card.html" with compact=True %}
+            {% endfor %}
+        </div>
+    </section>
     </div>
-</div>
+    <section class="home-feed" aria-label="Ещё события">
+        <nav class="feed-tabs" aria-label="Подборки"><a class="is-active" href="{% url 'catalog:event_list' %}">Все события</a><a href="{% url 'catalog:event_map' %}">Рядом</a><a href="{% url 'catalog:event_list' %}?collection=new">Новое</a><a href="{% url 'catalog:event_list' %}?free=1">Бесплатно</a></nav>
+        {% for event in feed_events %}
+            {% include "includes/event_card.html" with compact=True %}
+        {% endfor %}
+    </section>
+    </div>
 {% endblock %}
