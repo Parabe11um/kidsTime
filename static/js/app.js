@@ -293,11 +293,19 @@
 
       const reorder = document.createElement("div");
       reorder.className = "walk-item__reorder";
-      const moveUp = makeButton("↑", "walk-item__move", `Переместить «${event.title}» выше`);
+      const moveUp = makeButton("", "walk-item__move", `Переместить «${event.title}» выше`);
+      const upIcon = document.createElement("span");
+      upIcon.className = "ui-icon ui-icon--arrow-up";
+      upIcon.setAttribute("aria-hidden", "true");
+      moveUp.append(upIcon);
       moveUp.dataset.walkMove = "-1";
       moveUp.dataset.eventId = String(event.id);
       moveUp.disabled = index === 0;
-      const moveDown = makeButton("↓", "walk-item__move", `Переместить «${event.title}» ниже`);
+      const moveDown = makeButton("", "walk-item__move", `Переместить «${event.title}» ниже`);
+      const downIcon = document.createElement("span");
+      downIcon.className = "ui-icon ui-icon--arrow-down";
+      downIcon.setAttribute("aria-hidden", "true");
+      moveDown.append(downIcon);
       moveDown.dataset.walkMove = "1";
       moveDown.dataset.eventId = String(event.id);
       moveDown.disabled = index === events.length - 1;

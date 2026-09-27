@@ -7,7 +7,7 @@
         <button type="button"
                 class="filters-close"
                 data-filters-close
-                aria-label="Закрыть фильтры">×</button>
+                aria-label="Закрыть фильтры">{% include "includes/icon.html" with name="close" %}</button>
     </header>
     <form method="get"
           class="filters-form"
@@ -16,7 +16,7 @@
         <section class="filter-section"><label><span>Поиск</span><input type="search"
        name="q"
        value="{{ filters.q }}"
-       placeholder="Название или место"></label><label><span>Дата</span><input type="date" name="date" value="{{ filters.date }}"></label><div class="filter-location"><button type="button" data-filter-location>⌖ Рядом со мной</button><span data-location-status role="status">{% if filters.lat and filters.lng %}Местоположение выбрано{% endif %}</span></div><input type="hidden" name="lat" value="{{ filters.lat }}"><input type="hidden" name="lng" value="{{ filters.lng }}"><label class="filter-inline"><span>Радиус поиска, км</span><input type="number"
+       placeholder="Название или место"></label><label><span>Дата</span><input type="date" name="date" value="{{ filters.date }}"></label><div class="filter-location"><button type="button" data-filter-location>{% include "includes/icon.html" with name="location" %} Рядом со мной</button><span data-location-status role="status">{% if filters.lat and filters.lng %}Местоположение выбрано{% endif %}</span></div><input type="hidden" name="lat" value="{{ filters.lat }}"><input type="hidden" name="lng" value="{{ filters.lng }}"><label class="filter-inline"><span>Радиус поиска, км</span><input type="number"
        name="radius"
        min="1"
        max="50"

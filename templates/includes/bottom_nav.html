@@ -10,7 +10,7 @@
     <a href="{% url 'catalog:walk_builder' %}"
        class="bottom-nav__item{% if request.resolver_match.url_name == 'walk_builder' %} is-active{% endif %}"
        aria-label="Маршрут на день">
-        <span class="route-icon" aria-hidden="true"><i></i></span>
+        {% include "includes/icon.html" with name="route" %}
         <small>Маршрут на день</small>
         <b class="bottom-nav__count" data-walk-count hidden>0</b>
     </a>

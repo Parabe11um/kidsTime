@@ -13,7 +13,7 @@
             </button>
         </form>
     </section>
-    <div class="page-shell favorites-page"><header class="section-heading"><h1>Избранное</h1><a href="{% url 'catalog:event_list' %}">Найти ещё ↗</a></header><p class="favorites-intro">События, которые вы сохранили в этом браузере.</p><div class="event-grid"
+    <div class="page-shell favorites-page"><header class="section-heading"><h1>Избранное</h1><a href="{% url 'catalog:event_list' %}">Найти ещё {% include "includes/icon.html" with name="arrow-up-right" %}</a></header><p class="favorites-intro">События, которые вы сохранили в этом браузере.</p><div class="event-grid"
      data-device-favorites
      data-endpoint="{% url 'favorites:cards' %}"><div class="empty-state">Загружаем избранное…</div></div><p class="empty-state" data-favorites-no-results hidden>Среди сохранённых событий ничего не найдено.</p><template data-favorites-empty><div class="empty-state empty-state--large"><h2>Сохраните то, что нравится</h2><p>Нажмите на сердечко в карточке события, чтобы вернуться к нему позже.</p><a class="primary-button" href="{% url 'catalog:event_list' %}">Выбрать события</a></div></template></div>
 {% endblock %}
