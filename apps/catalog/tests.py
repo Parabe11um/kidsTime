@@ -39,7 +39,7 @@ class PublicPagesTests(TestCase):
         self.assertContains(response, 'class="mobile-hero"')
         self.assertContains(response, 'class="home-overview"')
         self.assertContains(response, 'class="hero-calendar"')
-        self.assertContains(response, 'class="filter-icon"')
+        self.assertContains(response, 'aria-label="Открыть фильтры"', count=2)
         self.assertContains(response, 'class="weather-card__temperature"')
         self.assertContains(response, 'class="today-plan-card__pin"')
         self.assertNotContains(response, "25°")
