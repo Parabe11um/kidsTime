@@ -533,9 +533,11 @@ h3 { font-size: 16px; font-weight: 700; }
   .nav-count { right: -4px; top: 0; }
   .home-shell { max-width: none; }
   .home-desktop-intro { display: block; }
-  .home-desktop-intro > .stories { width: min(1000px,calc(100% - 64px)); margin: 24px auto 0; gap: 20px; }
+  .home-desktop-intro > .stories { width: min(1000px,calc(100% - 64px)); margin: 24px auto 0; gap: 12px; }
   .story { flex-basis: 94px; height: 112px; border-radius: 20px; padding: 0; border: 0; }
+  .home-desktop-intro .story { flex: 0 0 calc((100% - 48px)/5); height: auto; aspect-ratio: 2.1; border-radius: 16px; }
   .story__avatar { position: absolute; display: block; width: 34px; height: 34px; border: 2px solid white; border-radius: 50%; left: 8px; bottom: 8px; overflow: hidden; }
+  .home-desktop-intro .story__avatar { left: auto; right: 4px; bottom: 4px; width: 48px; height: 48px; }
   .story__avatar img { width: 100%; height: 100%; object-fit: cover; }
   .spotlight { position: relative; margin: 95px 0 92px; }
   .spotlight__track { display: flex; justify-content: center; align-items: center; gap: 56px; min-height: 360px; overflow: hidden; }
