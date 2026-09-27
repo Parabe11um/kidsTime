@@ -506,22 +506,37 @@
   const scrollBehavior = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth";
   document.querySelectorAll("[data-carousel]").forEach((carousel) => {
     const track = carousel.querySelector("[data-carousel-track]");
+    const cards = [...track.querySelectorAll(".spotlight-card")];
+    let activeIndex = 0;
+    const render = () => {
+      cards.forEach((card, index) => {
+        const active = index === activeIndex;
+        const previous = cards.length > 2 && index === (activeIndex - 1 + cards.length) % cards.length;
+        const next = cards.length > 1 && index === (activeIndex + 1) % cards.length;
+        card.classList.toggle("is-active", active);
+        card.classList.toggle("is-prev", previous);
+        card.classList.toggle("is-next", next);
+        card.setAttribute("aria-hidden", active || previous || next ? "false" : "true");
+      });
+    };
     const move = (direction) => {
-      const cards = [...track.children];
       if (!cards.length) return;
-      const start = cards[0].offsetLeft;
-      const closest = cards.reduce((best, card, index) => (
-        Math.abs(card.offsetLeft - start - track.scrollLeft) < Math.abs(cards[best].offsetLeft - start - track.scrollLeft) ? index : best
-      ), 0);
-      const target = cards[Math.max(0, Math.min(cards.length - 1, closest + direction))];
-      track.scrollTo({ left: target.offsetLeft - start, behavior: scrollBehavior() });
+      activeIndex = (activeIndex + direction + cards.length) % cards.length;
+      render();
     };
     carousel.querySelector("[data-carousel-prev]")?.addEventListener("click", () => move(-1));
     carousel.querySelector("[data-carousel-next]")?.addEventListener("click", () => move(1));
+    carousel.querySelectorAll("[data-carousel-select]").forEach((button) => {
+      button.addEventListener("click", () => {
+        activeIndex = Number(button.dataset.carouselSelect);
+        render();
+      });
+    });
     track.addEventListener("keydown", (event) => {
       if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       event.preventDefault(); move(event.key === "ArrowRight" ? 1 : -1);
     });
+    render();
   });
 
   document.querySelectorAll("[data-gallery]").forEach((gallery) => {
