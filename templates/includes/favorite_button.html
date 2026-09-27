@@ -1,0 +1,7 @@
+<button class="favorite-button{% if detail %} favorite-button--detail{% endif %}"
+        type="button"
+        data-favorite-button="{{ event.pk }}"
+        aria-label="Добавить «{{ event.title }}» в избранное"
+        aria-pressed="false">
+    <span class="ui-icon ui-icon--heart" aria-hidden="true"></span>
+</button>

@@ -5,21 +5,26 @@
 
   const readFavorites = () => {
     try {
-      return new Set(JSON.parse(window.localStorage.getItem(favoriteStorageKey) || "[]").map(String));
+      const values = JSON.parse(window.localStorage.getItem(favoriteStorageKey) || "[]");
+      return new Set((Array.isArray(values) ? values : []).map(String).filter((id) => /^\d{1,19}$/.test(id)).slice(0, 100));
     } catch (_error) {
       return new Set();
     }
   };
 
   const writeFavorites = (favorites) => {
-    window.localStorage.setItem(favoriteStorageKey, JSON.stringify(Array.from(favorites)));
+    try {
+      window.localStorage.setItem(favoriteStorageKey, JSON.stringify(Array.from(favorites)));
+    } catch (_error) {
+      showWalkNotice("Браузер не разрешает сохранение. Подборка доступна только до закрытия страницы.");
+    }
   };
 
   const refreshFavoriteButton = (button, favorites) => {
     const selected = favorites.has(String(button.dataset.favoriteButton));
     button.classList.toggle("is-active", selected);
     button.setAttribute("aria-pressed", selected ? "true" : "false");
-    button.textContent = selected ? "♥" : "♡";
+    if (!button.querySelector(".ui-icon")) button.textContent = selected ? "♥" : "♡";
   };
 
   const favorites = readFavorites();
@@ -32,12 +37,17 @@
         if (favorites.has(id)) {
           favorites.delete(id);
         } else {
+          if (favorites.size >= 100) {
+            showWalkNotice("Можно сохранить до 100 событий. Удалите одно из избранного.");
+            return;
+          }
           favorites.add(id);
         }
         writeFavorites(favorites);
         document.querySelectorAll(`[data-favorite-button="${id}"]`).forEach((item) => {
           refreshFavoriteButton(item, favorites);
         });
+        document.dispatchEvent(new CustomEvent("kidstime:favorites-changed"));
       });
     });
   };
@@ -60,12 +70,29 @@
         .then((html) => {
           favoriteContainer.innerHTML = html.trim() || emptyTemplate?.innerHTML || "";
           bindFavoriteButtons(favoriteContainer);
+          filterFavorites();
         })
         .catch(() => {
           favoriteContainer.innerHTML = '<div class="empty-state">Не удалось загрузить избранное. Обновите страницу.</div>';
         });
     }
   }
+
+  const favoriteSearch = document.querySelector("[data-favorites-search]");
+  const filterFavorites = () => {
+    if (!favoriteContainer) return;
+    const query = (favoriteSearch?.querySelector("input")?.value || "").trim().toLocaleLowerCase("ru");
+    let visible = 0;
+    favoriteContainer.querySelectorAll("[data-event-id]").forEach((card) => {
+      card.hidden = !favorites.has(card.dataset.eventId) || !card.textContent.toLocaleLowerCase("ru").includes(query);
+      if (!card.hidden) visible += 1;
+    });
+    const noResults = document.querySelector("[data-favorites-no-results]");
+    if (noResults) noResults.hidden = !query || visible > 0;
+  };
+  favoriteSearch?.addEventListener("submit", (event) => { event.preventDefault(); filterFavorites(); });
+  favoriteSearch?.querySelector("input")?.addEventListener("input", filterFavorites);
+  document.addEventListener("kidstime:favorites-changed", filterFavorites);
 
   const walkRoot = document.querySelector("[data-walk-root]");
   const configuredWalkLimit = Number.parseInt(walkRoot?.dataset.limit || "", 10);
@@ -96,7 +123,11 @@
   let noticeTimer;
 
   const writeWalkIds = () => {
-    window.localStorage.setItem(walkStorageKey, JSON.stringify(walkIds));
+    try {
+      window.localStorage.setItem(walkStorageKey, JSON.stringify(walkIds));
+    } catch (_error) {
+      showWalkNotice("Браузер не разрешает сохранение. Прогулка доступна только до закрытия страницы.");
+    }
   };
 
   const showWalkNotice = (message) => {
@@ -172,7 +203,13 @@
   refreshWalkControls();
 
   window.addEventListener("storage", (event) => {
-    if (event.key !== walkStorageKey) return;
+    if (event.key === favoriteStorageKey || event.key === null) {
+      favorites.clear();
+      readFavorites().forEach((id) => favorites.add(id));
+      document.querySelectorAll("[data-favorite-button]").forEach((button) => refreshFavoriteButton(button, favorites));
+      filterFavorites();
+    }
+    if (event.key !== walkStorageKey && event.key !== null) return;
     walkIds = readWalkIds();
     refreshWalkControls();
     document.dispatchEvent(new CustomEvent("kidstime:walk-changed", { detail: { ids: [...walkIds] } }));
@@ -224,7 +261,7 @@
       }
       const number = document.createElement("span");
       number.className = "walk-item__number";
-      number.textContent = String(index + 1);
+      number.textContent = String(index + 2);
       media.append(number);
 
       const content = document.createElement("div");
@@ -237,6 +274,13 @@
       venue.textContent = event.venue;
       const address = document.createElement("p");
       address.textContent = event.address;
+      const facts = document.createElement("div");
+      facts.className = "walk-item__facts";
+      [event.date, event.age, event.price].filter(Boolean).forEach((value) => {
+        const fact = document.createElement("span");
+        fact.textContent = value;
+        facts.append(fact);
+      });
 
       const actions = document.createElement("div");
       actions.className = "walk-item__actions";
@@ -261,7 +305,7 @@
       remove.dataset.walkRemove = String(event.id);
       reorder.append(moveUp, moveDown, remove);
       actions.append(directRoute, reorder);
-      content.append(title, venue, address, actions);
+      content.append(title, venue, address, facts, actions);
       item.append(media, content);
       return item;
     };
@@ -366,11 +410,28 @@
 
   const filtersPanel = document.getElementById("filters-panel");
   const backdrop = document.querySelector(".filters-backdrop");
+  const desktopViewport = window.matchMedia("(min-width: 1024px)");
+  let filtersReturnFocus;
   const setFiltersOpen = (open) => {
     if (!filtersPanel || !backdrop) return;
+    if (desktopViewport.matches) {
+      if (open) filtersPanel.querySelector("input")?.focus();
+      return;
+    }
+    if (open) filtersReturnFocus = document.activeElement;
     filtersPanel.classList.toggle("is-open", open);
     backdrop.classList.toggle("is-open", open);
     document.body.classList.toggle("has-overlay", open);
+    if (open) {
+      filtersPanel.setAttribute("role", "dialog");
+      filtersPanel.setAttribute("aria-modal", "true");
+      filtersPanel.querySelector("[data-filters-close]")?.focus();
+    } else {
+      filtersPanel.removeAttribute("role");
+      filtersPanel.removeAttribute("aria-modal");
+      filtersReturnFocus?.focus();
+    }
+    document.querySelectorAll("[data-filters-open]").forEach((button) => button.setAttribute("aria-expanded", String(open)));
   };
 
   document.querySelectorAll("[data-filters-open]").forEach((button) => {
@@ -378,5 +439,108 @@
   });
   document.querySelectorAll("[data-filters-close]").forEach((button) => {
     button.addEventListener("click", () => setFiltersOpen(false));
+  });
+  document.addEventListener("keydown", (event) => {
+    if (!filtersPanel?.classList.contains("is-open")) return;
+    if (event.key === "Escape") setFiltersOpen(false);
+    if (event.key !== "Tab") return;
+    const items = [...filtersPanel.querySelectorAll('a[href],button:not(:disabled),input:not([type="hidden"]),select')].filter((item) => item.getClientRects().length);
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault(); last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault(); first?.focus();
+    }
+  });
+  desktopViewport.addEventListener("change", () => {
+    filtersPanel?.classList.remove("is-open");
+    filtersPanel?.removeAttribute("role");
+    filtersPanel?.removeAttribute("aria-modal");
+    backdrop?.classList.remove("is-open");
+    document.body.classList.remove("has-overlay");
+    document.querySelectorAll("[data-filters-open]").forEach((button) => button.setAttribute("aria-expanded", "false"));
+  });
+  if (new URLSearchParams(window.location.search).get("filters") === "open") setFiltersOpen(true);
+
+  // On the results page the search button opens the existing sheet without a reload.
+  if (filtersPanel) {
+    document.querySelectorAll('.search-filter-button[name="filters"]').forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        const query = button.form.querySelector('[name="q"]')?.value;
+        if (query !== undefined) filtersPanel.querySelector('[name="q"]').value = query;
+        setFiltersOpen(true);
+      });
+    });
+  }
+
+  document.querySelector("[data-filter-location]")?.addEventListener("click", (event) => {
+    const button = event.currentTarget;
+    const status = document.querySelector("[data-location-status]");
+    if (!navigator.geolocation) {
+      status.textContent = "Браузер не поддерживает определение местоположения.";
+      return;
+    }
+    button.disabled = true;
+    status.textContent = "Определяем местоположение…";
+    navigator.geolocation.getCurrentPosition((position) => {
+      filtersPanel.querySelector('[name="lat"]').value = position.coords.latitude;
+      filtersPanel.querySelector('[name="lng"]').value = position.coords.longitude;
+      status.textContent = "Местоположение выбрано";
+      button.disabled = false;
+    }, () => {
+      status.textContent = "Не удалось определить местоположение. Проверьте разрешение браузера.";
+      button.disabled = false;
+    }, { maximumAge: 300000, timeout: 10000 });
+  });
+
+  const scrollBehavior = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth";
+  document.querySelectorAll("[data-carousel]").forEach((carousel) => {
+    const track = carousel.querySelector("[data-carousel-track]");
+    const move = (direction) => {
+      const cards = [...track.children];
+      if (!cards.length) return;
+      const start = cards[0].offsetLeft;
+      const closest = cards.reduce((best, card, index) => (
+        Math.abs(card.offsetLeft - start - track.scrollLeft) < Math.abs(cards[best].offsetLeft - start - track.scrollLeft) ? index : best
+      ), 0);
+      const target = cards[Math.max(0, Math.min(cards.length - 1, closest + direction))];
+      track.scrollTo({ left: target.offsetLeft - start, behavior: scrollBehavior() });
+    };
+    carousel.querySelector("[data-carousel-prev]")?.addEventListener("click", () => move(-1));
+    carousel.querySelector("[data-carousel-next]")?.addEventListener("click", () => move(1));
+    track.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault(); move(event.key === "ArrowRight" ? 1 : -1);
+    });
+  });
+
+  document.querySelectorAll("[data-gallery]").forEach((gallery) => {
+    const track = gallery.querySelector("[data-gallery-track]");
+    const buttons = [...gallery.querySelectorAll("[data-gallery-index]")];
+    const goTo = (index) => track.scrollTo({ left: index * track.clientWidth, behavior: scrollBehavior() });
+    buttons.forEach((button) => button.addEventListener("click", () => goTo(Number(button.dataset.galleryIndex))));
+    track.addEventListener("scroll", () => {
+      const index = Math.round(track.scrollLeft / track.clientWidth);
+      buttons.forEach((button) => button.setAttribute("aria-pressed", String(Number(button.dataset.galleryIndex) === index)));
+    }, { passive: true });
+    track.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault();
+      goTo(Math.max(0, Math.min(track.children.length - 1, Math.round(track.scrollLeft / track.clientWidth) + (event.key === "ArrowRight" ? 1 : -1))));
+    });
+  });
+
+  document.querySelector("[data-share]")?.addEventListener("click", async () => {
+    try {
+      if (navigator.share) await navigator.share({ title: document.title, url: window.location.href });
+      else {
+        await navigator.clipboard.writeText(window.location.href);
+        showWalkNotice("Ссылка скопирована");
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") showWalkNotice("Не удалось поделиться. Скопируйте адрес из строки браузера.");
+    }
   });
 })();

@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
-from apps.catalog.views import _base_events
+from apps.catalog.views import _base_events, _event_ids_from_query
 from apps.catalog.models import Event
 
 from .models import Favorite
@@ -14,8 +14,7 @@ def favorite_list(request):
 
 
 def favorite_cards(request):
-    raw_ids = request.GET.get("ids", "")
-    event_ids = [int(value) for value in raw_ids.split(",") if value.strip().isdigit()][:100]
+    event_ids = _event_ids_from_query(request.GET.get("ids", ""), limit=100)
     events_by_id = {event.pk: event for event in _base_events().filter(pk__in=event_ids)}
     events = [events_by_id[event_id] for event_id in event_ids if event_id in events_by_id]
     return render(request, "catalog/favorite_cards.html", {"events": events})

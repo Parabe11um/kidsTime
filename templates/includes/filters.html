@@ -1,0 +1,76 @@
+<aside class="filters-panel"
+       id="filters-panel"
+       aria-labelledby="filters-title">
+    <header class="filters-panel__heading">
+        <span class="sheet-handle" aria-hidden="true"></span>
+        <h2 id="filters-title">Фильтр</h2>
+        <button type="button"
+                class="filters-close"
+                data-filters-close
+                aria-label="Закрыть фильтры">×</button>
+    </header>
+    <form method="get"
+          class="filters-form"
+          action="{% url 'catalog:event_list' %}">
+        {% if filters.collection %}<input type="hidden" name="collection" value="{{ filters.collection }}">{% endif %}
+        <section class="filter-section"><label><span>Поиск</span><input type="search"
+       name="q"
+       value="{{ filters.q }}"
+       placeholder="Название или место"></label><label><span>Дата</span><input type="date" name="date" value="{{ filters.date }}"></label><div class="filter-location"><button type="button" data-filter-location>⌖ Рядом со мной</button><span data-location-status role="status">{% if filters.lat and filters.lng %}Местоположение выбрано{% endif %}</span></div><input type="hidden" name="lat" value="{{ filters.lat }}"><input type="hidden" name="lng" value="{{ filters.lng }}"><label class="filter-inline"><span>Радиус поиска, км</span><input type="number"
+       name="radius"
+       min="1"
+       max="50"
+       value="{{ filters.radius }}"
+       placeholder="5"
+       aria-label="Радиус поиска в километрах"></label></section>
+        <fieldset class="filter-section">
+            <legend>Возраст</legend>
+            <label class="choice-row"><span>Любой</span><input type="radio"
+       name="age_group"
+       value=""
+       {% if not filters.age_group %} checked{% endif %}></label>
+            <label class="choice-row"><span>От 0 до 3 лет</span><input type="radio"
+       name="age_group"
+       value="0-3"
+       {% if filters.age_group == '0-3' %} checked{% endif %}></label>
+            <label class="choice-row"><span>От 4 до 7 лет</span><input type="radio"
+       name="age_group"
+       value="4-7"
+       {% if filters.age_group == '4-7' %} checked{% endif %}></label>
+            <label class="choice-row"><span>От 8 до 11 лет</span><input type="radio"
+       name="age_group"
+       value="8-11"
+       {% if filters.age_group == '8-11' %} checked{% endif %}></label>
+            <label class="choice-row"><span>От 12 лет</span><input type="radio"
+       name="age_group"
+       value="12+"
+       {% if filters.age_group == '12+' %} checked{% endif %}></label>
+        </fieldset>
+        <section class="filter-section"><h3>События и места</h3><label><span>Категория</span><select name="category"><option value="">Любая</option>{% for category in categories %}<option value="{{ category.slug }}"
+        {% if filters.category == category.slug %} selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label><label><span>Где проходит</span><select name="format"><option value="">Неважно</option>{% for value, label in formats %}<option value="{{ value }}"
+        {% if filters.format == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label></section>
+        <fieldset class="filter-section"><legend>Доступность</legend><label class="choice-row"><span>Маломобильность</span><input type="checkbox"
+       name="accessible"
+       value="1"
+       {% if filters.accessible == '1' %} checked{% endif %}></label><label class="choice-row"><span>Можно с коляской</span><input type="checkbox"
+       name="stroller"
+       value="1"
+       {% if filters.stroller == '1' %} checked{% endif %}></label><label class="choice-row"><span>Парковка</span><input type="checkbox"
+       name="parking"
+       value="1"
+       {% if filters.parking == '1' %} checked{% endif %}></label><label class="choice-row"><span>Рядом с метро</span><input type="checkbox"
+       name="metro"
+       value="1"
+       {% if filters.metro == '1' %} checked{% endif %}></label></fieldset>
+        <fieldset class="filter-section"><legend>Стоимость</legend><label class="choice-row"><span>Бесплатно</span><input type="checkbox"
+       name="free"
+       value="1"
+       {% if filters.free == '1' %} checked{% endif %}></label><label class="filter-inline"><span>Цена до, ₽</span><input type="number"
+       name="max_price"
+       value="{{ filters.max_price }}"
+       min="0"
+       max="99999999"
+       placeholder="До"></label></fieldset>
+        <div class="filters-form__actions"><button class="primary-button" type="submit">Показать события</button><a class="secondary-button" href="{% url 'catalog:event_list' %}">Сбросить фильтры</a></div>
+    </form>
+</aside>

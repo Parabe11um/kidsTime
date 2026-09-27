@@ -1,49 +1,30 @@
 from datetime import timedelta
 
 from django.conf import settings
-from django.db.models import Prefetch
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 
-from apps.catalog.models import Category, Event, EventSession
+from apps.catalog.models import Category
+from apps.catalog.views import _base_events
 
 
 WEEKDAYS = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")
 MONTHS = (
     "",
-    "янв",
-    "фев",
-    "мар",
-    "апр",
-    "мая",
-    "июн",
-    "июл",
-    "авг",
-    "сен",
-    "окт",
-    "ноя",
-    "дек",
+    "январь", "февраль", "март", "апрель", "май", "июнь",
+    "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь",
 )
 
 
 def home(request):
-    now = timezone.now()
     today = timezone.localdate()
-    upcoming = Prefetch(
-        "sessions",
-        queryset=EventSession.objects.filter(starts_at__gte=now).order_by("starts_at"),
-        to_attr="upcoming_sessions",
-    )
     events = list(
-        Event.objects.visible()
-        .select_related("category", "venue", "organizer")
-        .prefetch_related(upcoming)
-        .order_by("-is_featured", "-is_recommended", "title")[:18]
+        _base_events().order_by("-is_featured", "-is_recommended", "title")[:24]
     )
 
     days = []
-    for offset in range(7):
+    for offset in range(21):
         day = today + timedelta(days=offset)
         days.append(
             {
@@ -52,17 +33,26 @@ def home(request):
                 "day": day.day,
                 "month": MONTHS[day.month],
                 "is_today": offset == 0,
+                "is_weekend": day.weekday() >= 5,
             }
         )
 
     context = {
         "days": days,
-        "categories": Category.objects.filter(is_active=True).order_by("sort_order", "name")[:8],
+        "categories": Category.objects.filter(is_active=True).order_by("sort_order", "name"),
+        "spotlight_events": events[:5],
+        "story_events": [event for event in events if event.display_cover_url][:6],
         "nearby_events": events[:6],
-        "recommended_events": [event for event in events if event.is_recommended][:6] or events[6:12],
-        "popular_events": [event for event in events if event.is_featured][:6] or events[12:18],
+        "recommended_events": [event for event in events if event.is_recommended][:6] or events[:6],
+        "popular_events": [event for event in events if event.is_featured][:6] or events[:6],
+        "feed_events": events[:10],
+        "event_count": _base_events().count(),
     }
     return render(request, "core/home.html", context)
+
+
+def profile(request):
+    return render(request, "core/profile.html", {"today": timezone.localdate()})
 
 
 def health(request):

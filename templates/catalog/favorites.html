@@ -1,20 +1,19 @@
 {% extends "base.html" %}
-
-{% block title %}Избранное — КидсТайм{% endblock %}
-
+{% block title %}Избранные события — КидсТайм{% endblock %}
+{% block body_class %}page-favorites{% endblock %}
 {% block content %}
-<div class="page-shell simple-page">
-    <span class="section-kicker">Личная подборка</span>
-    <h1>Избранное</h1>
-    <div data-device-favorites data-endpoint="{% url 'favorites:cards' %}">
-        <div class="empty-state">Загружаем сохранённые варианты…</div>
-    </div>
-    <template data-favorites-empty>
-        <div class="empty-state empty-state--large">
-            <h2>Здесь появятся сохранённые варианты</h2>
-            <p>Добавляйте интересные мероприятия, чтобы не искать их заново.</p>
-            <a class="primary-button" href="{% url 'catalog:event_list' %}">Найти мероприятие</a>
-        </div>
-    </template>
-</div>
+    <section class="mobile-hero">
+        <form class="hero-search" role="search" data-favorites-search>
+            <label class="sr-only" for="favorite-search">Поиск по избранным событиям</label><input type="search"
+       id="favorite-search"
+       placeholder="Поиск по избранным событиям"><button type="submit"
+        class="search-filter-button"
+        aria-label="Найти в избранном">
+                <span class="ui-icon ui-icon--search" aria-hidden="true"></span>
+            </button>
+        </form>
+    </section>
+    <div class="page-shell favorites-page"><header class="section-heading"><h1>Избранное</h1><a href="{% url 'catalog:event_list' %}">Найти ещё ↗</a></header><p class="favorites-intro">События, которые вы сохранили в этом браузере.</p><div class="event-grid"
+     data-device-favorites
+     data-endpoint="{% url 'favorites:cards' %}"><div class="empty-state">Загружаем избранное…</div></div><p class="empty-state" data-favorites-no-results hidden>Среди сохранённых событий ничего не найдено.</p><template data-favorites-empty><div class="empty-state empty-state--large"><h2>Сохраните то, что нравится</h2><p>Нажмите на сердечко в карточке события, чтобы вернуться к нему позже.</p><a class="primary-button" href="{% url 'catalog:event_list' %}">Выбрать события</a></div></template></div>
 {% endblock %}

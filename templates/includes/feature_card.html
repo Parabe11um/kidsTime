@@ -1,0 +1,14 @@
+<article class="feature-card" tabindex="0">
+    <a class="feature-card__cover"
+       href="{{ event.get_absolute_url }}"
+       aria-label="{{ event.title }}">
+        {% if event.display_cover_url %}
+            <img src="{{ event.display_cover_url }}"
+                 alt=""
+                 loading="lazy"
+                 referrerpolicy="no-referrer">
+        {% endif %}
+    </a>
+    <span class="event-card__age">{{ event.age_from }}+</span>{% include "includes/favorite_button.html" %}
+    <div class="feature-card__info"><h3><a href="{{ event.get_absolute_url }}">{{ event.title }}</a></h3><p>{{ event.venue.address }}{% if event.next_session %} · {{ event.next_session.starts_at|date:'j E' }}{% endif %} · {{ event.display_price }}</p><p>{{ event.short_description }}</p><a class="text-link" href="{{ event.get_absolute_url }}">Подробнее →</a></div>
+</article>
