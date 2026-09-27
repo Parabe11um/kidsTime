@@ -1,3 +1,4 @@
+{% load static %}
 <article class="weather-card"
          aria-label="Погода в Москве недоступна"
-         title="Погодные данные пока не подключены"><span class="weather-card__icon" aria-hidden="true"></span><span class="weather-card__temperature" aria-hidden="true">—°</span><span class="weather-card__label">Погода</span></article>
+         title="Погодные данные пока не подключены"><img class="weather-card__icon" src="{% static 'icons/weather.svg' %}" width="40" height="43" alt=""><span class="weather-card__temperature" aria-hidden="true">—°</span><span class="weather-card__label">Погода</span></article>

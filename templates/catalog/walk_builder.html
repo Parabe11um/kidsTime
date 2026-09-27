@@ -8,7 +8,7 @@
          data-limit="{{ walk_point_limit }}">
         <header class="section-page-header"><a class="round-button"
    href="{% url 'core:home' %}"
-   aria-label="На главную">←</a><h1>Маршрут на день</h1><a href="{% url 'catalog:event_list' %}" aria-label="К событиям">×</a></header>
+   aria-label="На главную">{% include "includes/icon.html" with name="arrow-left" %}</a><h1>Маршрут на день</h1><a href="{% url 'catalog:event_list' %}" aria-label="К событиям">{% include "includes/icon.html" with name="close" %}</a></header>
         <div class="walk-layout">
             <section class="walk-list-card" aria-labelledby="walk-list-title">
                 <div class="walk-list-card__heading">
@@ -21,7 +21,7 @@
                         <strong>Моё местоположение</strong>
                         <p>Начальная точка в Яндекс Картах</p>
                     </div>
-                    <span class="walk-origin__marker" aria-hidden="true">⌖</span>
+                    <span class="walk-origin__marker" aria-hidden="true">{% include "includes/icon.html" with name="location" %}</span>
                 </div>
                 <div class="walk-list" data-walk-list aria-live="polite">
                     <div class="empty-state">Загружаем выбранные места…</div>

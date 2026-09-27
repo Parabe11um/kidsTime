@@ -44,7 +44,7 @@
                 <nav class="desktop-nav" aria-label="Основная навигация">
                     <a href="{% url 'catalog:walk_builder' %}"
                        aria-label="Маршрут на день"
-                       title="Маршрут на день"><span class="route-icon" aria-hidden="true"><i></i></span><span class="nav-count" data-walk-count hidden>0</span></a>
+                       title="Маршрут на день">{% include "includes/icon.html" with name="route" %}<span class="nav-count" data-walk-count hidden>0</span></a>
                     <a href="{% url 'favorites:list' %}"
                        aria-label="Избранное"
                        title="Избранное"><span class="ui-icon ui-icon--heart"

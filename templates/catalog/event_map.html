@@ -15,7 +15,7 @@
         <div class="map-toolbar">
             <a href="{% url 'catalog:event_list' %}?{{ active_filters }}"
                class="map-toolbar__back"
-               aria-label="Вернуться к списку">←</a>
+               aria-label="Вернуться к списку">{% include "includes/icon.html" with name="arrow-left" %}</a>
             <form action="{% url 'catalog:event_map' %}"
                   class="map-search"
                   role="search">
@@ -24,7 +24,7 @@
                        type="search"
                        name="q"
                        placeholder="Название, место или район">
-                <button type="submit" aria-label="Найти">⌕</button>
+                <button type="submit" aria-label="Найти">{% include "includes/icon.html" with name="search" %}</button>
             </form>
             <a class="map-toolbar__filter"
                href="{% url 'catalog:event_list' %}?{{ active_filters }}">Фильтры</a>
@@ -39,7 +39,7 @@
             <button type="button"
                     class="map-sheet__close"
                     data-map-sheet-close
-                    aria-label="Закрыть карточку">×</button>
+                    aria-label="Закрыть карточку">{% include "includes/icon.html" with name="close" %}</button>
             <img data-map-sheet-image alt="" referrerpolicy="no-referrer">
             <div>
                 <span data-map-sheet-category></span>
@@ -61,7 +61,7 @@
                             data-walk-active-label="✓ В прогулке"
                             aria-pressed="false">+ В прогулку</button>
                 </div>
-                <a class="map-sheet__details" data-map-sheet-link>Подробнее о мероприятии →</a>
+                <a class="map-sheet__details" data-map-sheet-link>Подробнее о мероприятии {% include "includes/icon.html" with name="arrow-right" %}</a>
             </div>
         </aside>
     </div>

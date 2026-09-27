@@ -4,11 +4,11 @@
     <div class="profile-page">
         <header class="screen-heading"><a class="round-button"
    href="{% url 'core:home' %}"
-   aria-label="На главную">←</a><h1>Профиль</h1></header>
+   aria-label="На главную">{% include "includes/icon.html" with name="arrow-left" %}</a><h1>Профиль</h1></header>
         <div class="profile-layout">
             <div class="profile-identity"><div class="profile-avatar" aria-hidden="true"></div><h2>{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% else %}Мои подборки{% endif %}</h2>{% if not request.user.is_authenticated %}<p>Избранное и текущая прогулка сохраняются в этом браузере.</p>{% endif %}</div>
             <nav class="profile-links" aria-label="Мои подборки">
-                <a href="{% url 'catalog:walk_builder' %}"><span class="route-icon" aria-hidden="true"><i></i></span>Маршрут на день <b data-walk-count hidden>0</b></a>
+                <a href="{% url 'catalog:walk_builder' %}">{% include "includes/icon.html" with name="route" %}Маршрут на день <b data-walk-count hidden>0</b></a>
                 <a href="{% url 'favorites:list' %}"><span class="ui-icon ui-icon--heart"
       aria-hidden="true"></span>Избранное</a>
                 <a href="{% url 'catalog:event_list' %}?date={{ today|date:'Y-m-d' }}"><span class="ui-icon ui-icon--dashboard" aria-hidden="true"></span>События на сегодня</a>

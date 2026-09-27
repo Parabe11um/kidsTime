@@ -38,7 +38,7 @@
                                     </div>
                                     <p>{{ event.short_description }}</p>
                                     <div class="detail-tags"><span>{{ event.display_price }}</span><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}">{{ event.category.name }}</a></div>
-                                    <a class="text-link" href="{{ event.get_absolute_url }}">Подробнее →</a>
+                                    <a class="text-link" href="{{ event.get_absolute_url }}">Подробнее {% include "includes/icon.html" with name="arrow-right" %}</a>
                                 </div>
                             </article>
                         {% endfor %}
@@ -46,10 +46,10 @@
                     {% if spotlight_events|length > 1 %}<button type="button"
         class="carousel-arrow carousel-arrow--previous"
         data-carousel-prev
-        aria-label="Предыдущее событие">←</button><button type="button"
+        aria-label="Предыдущее событие">{% include "includes/icon.html" with name="arrow-left" %}</button><button type="button"
         class="carousel-arrow carousel-arrow--next"
         data-carousel-next
-        aria-label="Следующее событие">→</button>{% endif %}
+        aria-label="Следующее событие">{% include "includes/icon.html" with name="arrow-right" %}</button>{% endif %}
                 </section>
             {% endif %}
         </div>
@@ -64,9 +64,9 @@
             </section>
             <div class="home-dashboard">
                 {% include "includes/weather_card.html" %}
-                <a class="today-plan-card" href="{% url 'catalog:walk_builder' %}"><span class="today-plan-card__copy"><strong>Маршрут</strong><small>на сегодня</small></span><span class="today-plan-card__pin" aria-hidden="true"><img src="{% static 'icons/navigation/point.svg' %}"
-     width="32"
-     height="32"
+                <a class="today-plan-card" href="{% url 'catalog:walk_builder' %}"><span class="today-plan-card__copy"><strong>Маршрут</strong><small>на сегодня</small></span><span class="today-plan-card__pin" aria-hidden="true"><img src="{% static 'icons/today-route.svg' %}"
+     width="50"
+     height="50"
      alt=""></span></a>
             </div>
             <nav class="hero-categories" aria-label="Популярные категории">{% for category in categories %}<a href="{% url 'catalog:event_list' %}?category={{ category.slug }}">{{ category.name }}</a>{% endfor %}</nav>
@@ -90,13 +90,13 @@
                         <option value="new">Новое</option>
                     </select>
                 </label>
-                <button type="submit" class="round-button" aria-label="Подобрать события">→</button>
+                <button type="submit" class="round-button" aria-label="Подобрать события">{% include "includes/icon.html" with name="arrow-right" %}</button>
             </form>
         </section>
         <div class="home-content">
             <div class="home-mobile-stories">{% include "includes/stories.html" %}</div>
             <section class="event-section home-nearby" aria-labelledby="nearby-title">
-                <div class="section-heading"><div><h2 id="nearby-title">Рядом с вами</h2><p class="desktop-only">Места и события для семейных открытий</p></div><a href="{% url 'catalog:event_map' %}" aria-label="Все места на карте">↗</a></div>
+                <div class="section-heading"><div><h2 id="nearby-title">Рядом с вами</h2><p class="desktop-only">Места и события для семейных открытий</p></div><a href="{% url 'catalog:event_map' %}" aria-label="Все места на карте">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div>
                 {% if nearby_events %}
                     <div class="home-feature home-feature--nearby">
                         <div class="home-feature__widgets"><div class="count-card"><strong>{{ event_count }}</strong><small>событий</small></div>{% include "includes/weather_card.html" %}</div>
@@ -112,19 +112,19 @@
     <section class="event-section home-recommended"
              aria-labelledby="recommended-title">
         <div class="section-heading"><h2 id="recommended-title">Рекомендации</h2><a href="{% url 'catalog:event_list' %}?collection=recommended"
-   aria-label="Все рекомендации">↗</a></div>
+   aria-label="Все рекомендации">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div>
         <div class="event-row">{% for event in recommended_events %}{% include "includes/event_card.html" with compact=True %}{% empty %}<div class="empty-state">Рекомендации скоро появятся.</div>{% endfor %}</div>
     </section>
     <section class="event-section home-popular" aria-labelledby="popular-title">
         <div class="section-heading"><div><h2 id="popular-title">Популярное</h2><p class="desktop-only">События, на которые стоит обратить внимание</p></div><a href="{% url 'catalog:event_list' %}?collection=popular"
-   aria-label="Все популярные события">↗</a></div>
+   aria-label="Все популярные события">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div>
         {% if popular_events %}<div class="home-feature home-feature--popular">{% include "includes/feature_card.html" with event=popular_events.0 %}<div class="home-feature__note">{% if popular_events.0.next_session %}<div class="count-card"><small>{{ popular_events.0.next_session.starts_at|date:'F' }}</small><strong>{{ popular_events.0.next_session.starts_at|date:'j' }}</strong></div>{% endif %}<a href="{{ popular_events.0.get_absolute_url }}"><strong>{{ popular_events.0.title }}</strong><p>{{ popular_events.0.venue.address }}</p></a></div></div>{% endif %}
         <div class="event-row">{% for event in popular_events %}{% include "includes/event_card.html" with compact=True %}{% empty %}<div class="empty-state">Подборка скоро появится.</div>{% endfor %}</div>
     </section>
     <section class="event-section home-editorial"
              aria-labelledby="editorial-title">
         <div class="section-heading"><div><h2 id="editorial-title">Выбор редакции</h2><p>Идеи для вашего следующего выходного</p></div><a href="{% url 'catalog:event_list' %}?collection=recommended"
-   aria-label="Все идеи для прогулки">↗</a></div>
+   aria-label="Все идеи для прогулки">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div>
         <div class="editorial-grid">
             {% for event in recommended_events %}
                 {% include "includes/event_card.html" with compact=True %}

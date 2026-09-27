@@ -21,11 +21,11 @@
                 </div>
                 <a class="detail-back round-button"
                    href="{% url 'catalog:event_list' %}"
-                   aria-label="К списку событий">←</a>
+                   aria-label="К списку событий">{% include "includes/icon.html" with name="arrow-left" %}</a>
                 <div class="detail-hero__tools"><button class="share-button"
         type="button"
         data-share
-        aria-label="Поделиться событием"><span aria-hidden="true">↥</span></button>{% include "includes/favorite_button.html" %}</div>
+        aria-label="Поделиться событием">{% include "includes/icon.html" with name="share" %}</button>{% include "includes/favorite_button.html" %}</div>
                 {% if gallery|length > 1 %}
                     <div class="gallery-dots">
                         {% for image in gallery %}
@@ -89,11 +89,11 @@
     </div>
     </div>
     <div class="place-card"><h2>{{ event.venue.name }}</h2><p>{{ event.venue.address }}</p>{% if event.venue.metro %}<p>Метро «{{ event.venue.metro }}»</p>{% endif %}</div>
-    <div class="trust-card">{% if event.last_verified_at %}<span>Проверено {{ event.last_verified_at|date:'j E Y' }}</span>{% endif %}{% if event.source_url %}<a href="{{ event.source_url }}" target="_blank" rel="noopener">Первоисточник ↗</a>{% endif %}</div>
+    <div class="trust-card">{% if event.last_verified_at %}<span>Проверено {{ event.last_verified_at|date:'j E Y' }}</span>{% endif %}{% if event.source_url %}<a href="{{ event.source_url }}" target="_blank" rel="noopener">Первоисточник {% include "includes/icon.html" with name="arrow-up-right" %}</a>{% endif %}</div>
     </aside>
     </div>
     {% if venue_events %}<section class="event-section detail-related"><div class="section-heading"><h2>В этом месте</h2></div><div class="event-row">{% for event in venue_events %}{% include "includes/event_card.html" with compact=True %}{% endfor %}</div></section>{% endif %}
     {% if related_events %}<section class="event-section detail-related"><div class="section-heading"><h2>Вам может понравиться</h2><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}"
-   aria-label="Другие события этой категории">↗</a></div><div class="event-row">{% for event in related_events %}{% include "includes/event_card.html" with compact=True %}{% endfor %}</div></section>{% endif %}
+   aria-label="Другие события этой категории">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div><div class="event-row">{% for event in related_events %}{% include "includes/event_card.html" with compact=True %}{% endfor %}</div></section>{% endif %}
     </article>
 {% endblock %}
