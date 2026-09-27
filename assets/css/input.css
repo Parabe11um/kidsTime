@@ -538,9 +538,19 @@ h3 { font-size: 16px; font-weight: 700; }
   .story__avatar { position: absolute; display: block; width: 34px; height: 34px; border: 2px solid white; border-radius: 50%; left: 8px; bottom: 8px; overflow: hidden; }
   .story__avatar img { width: 100%; height: 100%; object-fit: cover; }
   .spotlight { position: relative; margin: 95px 0 92px; }
-  .spotlight__track { display: flex; gap: 36px; overflow-x: auto; padding: 0 max(32px,calc((100% - 800px)/2)); scroll-snap-type: x mandatory; scroll-padding-inline: max(32px,calc((100% - 800px)/2)); scrollbar-width: none; }
-  .spotlight__track::-webkit-scrollbar { display: none; }
-  .spotlight-card { display: grid; grid-template-columns: 1fr 1.15fr; flex: 0 0 800px; min-width: 0; scroll-snap-align: start; gap: 24px; }
+  .spotlight__track { display: flex; justify-content: center; align-items: center; gap: 56px; min-height: 360px; overflow: hidden; }
+  .spotlight-card { display: none; min-width: 0; }
+  .spotlight-card.is-active { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.15fr); flex: 0 0 min(800px,calc(100vw - 480px)); order: 2; gap: 24px; }
+  .spotlight-card.is-prev,.spotlight-card.is-next { display: block; flex: 0 0 clamp(180px,18vw,260px); }
+  .spotlight-card.is-prev { order: 1; }
+  .spotlight-card.is-next { order: 3; }
+  .spotlight-card__preview { display: none; width: 100%; padding: 8px 8px 12px; border: 0; border-radius: 20px; background: white; text-align: left; }
+  .spotlight-card.is-prev .spotlight-card__preview,.spotlight-card.is-next .spotlight-card__preview { display: block; }
+  .spotlight-card.is-prev .spotlight-card__picture,.spotlight-card.is-next .spotlight-card__picture,.spotlight-card.is-prev .spotlight-card__copy,.spotlight-card.is-next .spotlight-card__copy { display: none; }
+  .spotlight-card__preview-image { display: block; position: relative; overflow: hidden; aspect-ratio: 1.55; border-radius: 14px; background: #e7e1ec; }
+  .spotlight-card__preview-image img { width: 100%; height: 100%; object-fit: cover; }
+  .spotlight-card__preview strong { display: block; margin: 8px 4px 3px; font-size: 15px; line-height: 1.25; }
+  .spotlight-card__preview-meta { display: block; margin: 0 4px; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .spotlight-card__picture { position: relative; overflow: hidden; height: 360px; border-radius: 36px; background: #e7e1ec; }
   .spotlight-card__picture > a,.spotlight-card__picture img { width: 100%; height: 100%; display: block; object-fit: cover; }
   .spotlight-card__copy { align-self: center; padding: 20px 8px; }
@@ -553,8 +563,8 @@ h3 { font-size: 16px; font-weight: 700; }
   .spotlight-place .place-address,.spotlight-place .place-metro { font-size: 13px; }
   .spotlight-card__copy .detail-tags { margin: 22px 0; }
   .carousel-arrow { position: absolute; z-index: 1; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border: 0; border-radius: 50%; background: white; box-shadow: var(--shadow); font-size: 24px; }
-  .carousel-arrow--previous { left: max(12px,calc(50% - 452px)); }
-  .carousel-arrow--next { right: max(12px,calc(50% - 400px)); }
+  .carousel-arrow--previous { left: max(4px,calc(50% - min(400px,50vw - 240px) - 48px)); }
+  .carousel-arrow--next { right: max(4px,calc(50% - min(400px,50vw - 240px) - 48px)); }
   .home-overview { width: min(1000px,calc(100% - 64px)); margin: 0 auto 56px; }
   .hero-calendar { border-radius: 22px; padding: 14px 24px 18px; }
   .hero-calendar h2 { margin-bottom: 8px; font-size: 12px; }

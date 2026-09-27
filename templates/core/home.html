@@ -17,7 +17,7 @@
                          tabindex="0"
                          aria-label="Листайте события">
                         {% for event in spotlight_events %}
-                            <article class="spotlight-card">
+                            <article class="spotlight-card{% if forloop.first %} is-active{% elif forloop.counter == 2 %} is-next{% elif forloop.last and spotlight_events|length > 2 %} is-prev{% endif %}">
                                 <div class="spotlight-card__picture">
                                     <a href="{{ event.get_absolute_url }}">
                                         {% if event.display_cover_url %}
@@ -40,6 +40,14 @@
                                     <div class="detail-tags"><span>{{ event.display_price }}</span><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}">{{ event.category.name }}</a></div>
                                     <a class="text-link" href="{{ event.get_absolute_url }}">Подробнее {% include "includes/icon.html" with name="arrow-right" %}</a>
                                 </div>
+                                <button class="spotlight-card__preview" type="button" data-carousel-select="{{ forloop.counter0 }}" aria-label="Показать событие {{ event.title }}">
+                                    <span class="spotlight-card__preview-image">
+                                        {% if event.display_cover_url %}<img src="{{ event.display_cover_url }}" alt="" referrerpolicy="no-referrer" loading="lazy">{% endif %}
+                                        <span class="event-card__age">{{ event.age_from }}+</span>
+                                    </span>
+                                    <strong>{{ event.title }}</strong>
+                                    <span class="spotlight-card__preview-meta">{{ event.venue.name }}</span>
+                                </button>
                             </article>
                         {% endfor %}
                     </div>
