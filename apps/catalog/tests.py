@@ -277,6 +277,21 @@ class StageEventsCommandTests(TestCase):
         self.assertIn("MODE=APPLY", output.getvalue())
         self.assertIn("rolled_back=no", output.getvalue())
 
+    def test_repeat_import_preserves_editor_review_and_skipped_records(self):
+        path = self._write_payload()
+        call_command("stage_events", path, source="test-feed", stdout=io.StringIO())
+        imported = ImportedEvent.objects.get()
+        for status in (ImportedEventStatus.REVIEW, ImportedEventStatus.SKIPPED):
+            imported.status = status
+            imported.normalized_payload = {"price_from": 1050}
+            imported.save(update_fields=["status", "normalized_payload"])
+            output = io.StringIO()
+            call_command("stage_events", path, source="test-feed", stdout=output)
+            imported.refresh_from_db()
+            self.assertEqual(imported.status, status)
+            self.assertEqual(imported.normalized_payload, {"price_from": 1050})
+            self.assertIn("PROTECTED=1", output.getvalue())
+
     def test_reviewed_import_can_create_prefilled_draft(self):
         path = self._write_payload()
         call_command("stage_events", path, source="test-feed", stdout=io.StringIO())

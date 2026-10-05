@@ -80,6 +80,7 @@ class Command(BaseCommand):
             run = ImportRun.objects.create(source=source, dry_run=False)
             staged_count = 0
             updated_count = 0
+            protected_count = 0
 
             for item in prepared:
                 defaults = {
@@ -99,7 +100,13 @@ class Command(BaseCommand):
                 existing = ImportedEvent.objects.filter(
                     source=source,
                     external_id=item["external_id"],
-                ).first()
+                ).select_for_update().first()
+                if existing and existing.status in (
+                    ImportedEventStatus.REVIEW,
+                    ImportedEventStatus.SKIPPED,
+                ):
+                    protected_count += 1
+                    continue
                 content_changed = existing and existing.fingerprint != item["fingerprint"]
                 if existing and existing.event:
                     defaults["event"] = existing.event
@@ -124,12 +131,16 @@ class Command(BaseCommand):
             run.staged_count = staged_count
             run.updated_count = updated_count
             run.failed_count = failed_count
-            run.message = "Все записи сохранены только в очереди импорта и требуют проверки редактором."
+            run.message = (
+                "Записи сохранены только в очереди импорта. "
+                f"Сохранено без изменений после решения редактора: {protected_count}."
+            )
             run.save()
             source.last_import_at = run.finished_at
             source.save(update_fields=("last_import_at",))
 
         self._print_summary(len(prepared), staged_count, updated_count, failed_count, dry_run=False)
+        self.stdout.write(f"PROTECTED={protected_count}")
 
     def _get_source(self, identifier):
         queryset = (
