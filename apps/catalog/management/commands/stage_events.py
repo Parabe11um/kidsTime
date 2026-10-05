@@ -37,6 +37,8 @@ NORMALIZED_FIELDS = (
     "is_free",
     "duration_minutes",
     "activity_format",
+    "available_from",
+    "available_until",
     "sessions",
     "images",
 )

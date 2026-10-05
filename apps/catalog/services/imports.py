@@ -5,7 +5,7 @@ from decimal import Decimal, InvalidOperation
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.utils.dateparse import parse_datetime
+from django.utils.dateparse import parse_date, parse_datetime
 
 from apps.catalog.models import (
     ActivityFormat,
@@ -106,6 +106,19 @@ def _aware_datetime(value):
     return parsed
 
 
+def _date(payload, key):
+    value = payload.get(key)
+    if value in (None, ""):
+        return None
+    try:
+        parsed = parse_date(str(value))
+    except ValueError as exc:
+        raise ImportPromotionError(f"Некорректная дата {key}: {value!r}.") from exc
+    if parsed is None:
+        raise ImportPromotionError(f"Некорректная дата {key}: {value!r}.")
+    return parsed
+
+
 @transaction.atomic
 def promote_imported_event(item: ImportedEvent):
     payload = item.normalized_payload
@@ -124,6 +137,10 @@ def promote_imported_event(item: ImportedEvent):
         organizer = Organizer.objects.create(name=organizer_name)
     venue = Venue.objects.filter(name=venue_name, address=address).first()
     if not venue:
+        if Venue.objects.filter(name__iexact=venue_name).exists():
+            raise ImportPromotionError(
+                f"Место {venue_name!r} уже есть с другим адресом. Проверьте адрес перед переносом."
+            )
         venue = Venue.objects.create(
             name=venue_name,
             address=address,
@@ -157,6 +174,8 @@ def promote_imported_event(item: ImportedEvent):
             else ActivityFormat.INDOOR
         ),
         "status": PublicationStatus.DRAFT,
+        "available_from": _date(payload, "available_from"),
+        "available_until": _date(payload, "available_until"),
     }
 
     event = item.event

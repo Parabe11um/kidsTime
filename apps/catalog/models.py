@@ -145,6 +145,8 @@ class EventQuerySet(models.QuerySet):
         today = timezone.localdate()
         return self.filter(status=PublicationStatus.PUBLISHED).filter(
             models.Q(published_until__isnull=True) | models.Q(published_until__gte=today)
+        ).filter(
+            models.Q(available_until__isnull=True) | models.Q(available_until__gte=today)
         )
 
 
@@ -200,6 +202,8 @@ class Event(models.Model):
     is_featured = models.BooleanField("Популярное", default=False)
     is_recommended = models.BooleanField("Рекомендуем", default=False)
     published_until = models.DateField("Показывать до", null=True, blank=True)
+    available_from = models.DateField("Доступно с", null=True, blank=True)
+    available_until = models.DateField("Доступно по", null=True, blank=True)
     last_verified_at = models.DateTimeField("Проверено", default=timezone.now)
     created_at = models.DateTimeField("Создано", auto_now_add=True)
     updated_at = models.DateTimeField("Изменено", auto_now=True)
@@ -230,6 +234,10 @@ class Event(models.Model):
 
     def clean(self):
         errors = {}
+        if (self.available_from is None) != (self.available_until is None):
+            errors["available_until"] = "Укажите обе даты периода доступности."
+        elif self.available_from and self.available_until and self.available_until < self.available_from:
+            errors["available_until"] = "Конец периода не может быть раньше начала."
         if self.age_to < self.age_from:
             errors["age_to"] = "Возраст «до» не может быть меньше возраста «от»."
         if self.price_to is not None and self.price_to < self.price_from:

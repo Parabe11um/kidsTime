@@ -1,6 +1,7 @@
 import io
 import json
 import tempfile
+from datetime import timedelta
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
@@ -10,6 +11,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from .models import (
     Category,
@@ -22,7 +24,7 @@ from .models import (
     Source,
     Venue,
 )
-from .services.imports import promote_imported_event
+from .services.imports import ImportPromotionError, promote_imported_event
 
 
 class PublicPagesTests(TestCase):
@@ -85,6 +87,33 @@ class PublicPagesTests(TestCase):
         response = self.client.get(reverse("catalog:event_list"), {"age": 4})
         self.assertEqual(response.status_code, 200)
         self.assertTrue(all(event.age_from <= 4 <= event.age_to for event in response.context["events"]))
+
+    def test_period_event_without_sessions_appears_only_for_dates_in_range(self):
+        event = Event.objects.first()
+        event.sessions.all().delete()
+        start = timezone.localdate() + timedelta(days=2)
+        end = start + timedelta(days=5)
+        event.available_from = start
+        event.available_until = end
+        event.save(update_fields=("available_from", "available_until"))
+
+        for day in (start, end):
+            response = self.client.get(reverse("catalog:event_list"), {"date": day.isoformat()})
+            self.assertIn(event, response.context["events"])
+        response = self.client.get(reverse("catalog:event_list"), {"date": (end + timedelta(days=1)).isoformat()})
+        self.assertNotIn(event, response.context["events"])
+        detail = self.client.get(event.get_absolute_url())
+        self.assertContains(detail, "Период посещения")
+        self.assertContains(detail, "Дни и часы посещения уточняйте у организатора")
+
+    def test_period_does_not_invent_dates_when_event_has_sessions(self):
+        event = Event.objects.first()
+        event.available_from = timezone.localdate()
+        event.available_until = timezone.localdate() + timedelta(days=30)
+        event.save(update_fields=("available_from", "available_until"))
+        date_without_session = timezone.localdate() + timedelta(days=29)
+        response = self.client.get(reverse("catalog:event_list"), {"date": date_without_session.isoformat()})
+        self.assertNotIn(event, response.context["events"])
 
     def test_map_api_returns_coordinates(self):
         response = self.client.get(reverse("catalog:map_events_api"))
@@ -305,6 +334,40 @@ class StageEventsCommandTests(TestCase):
         self.assertEqual(event.venue.name, "Музей науки")
         self.assertFalse(event.venue.is_published)
         self.assertEqual(event.sessions.count(), 1)
+
+    def test_period_import_creates_draft_without_invented_sessions(self):
+        payload = [{
+            "external_id": "exhibition-1",
+            "title": "Выставка",
+            "source_url": "https://example.com/exhibition/1",
+            "venue_name": "Музей науки",
+            "address": "Москва, Примерная улица, 1",
+            "category": "museums",
+            "age_from": 6,
+            "available_from": "2026-10-06",
+            "available_until": "2026-12-30",
+        }]
+        temporary = tempfile.NamedTemporaryFile(mode="w", suffix=".json", encoding="utf-8", delete=False)
+        with temporary:
+            json.dump(payload, temporary, ensure_ascii=False)
+        self.addCleanup(Path(temporary.name).unlink, missing_ok=True)
+
+        call_command("stage_events", temporary.name, source="test-feed", stdout=io.StringIO())
+        imported = ImportedEvent.objects.get()
+        self.assertEqual(imported.normalized_payload["available_until"], "2026-12-30")
+        event = promote_imported_event(imported)
+        self.assertEqual(event.status, PublicationStatus.DRAFT)
+        self.assertEqual(event.sessions.count(), 0)
+        self.assertEqual(event.available_until.isoformat(), "2026-12-30")
+
+    def test_promotion_blocks_duplicate_venue_with_differently_written_address(self):
+        Venue.objects.create(name="Музей науки", slug="existing-museum", address="Москва, Примерная ул., 1")
+        path = self._write_payload()
+        call_command("stage_events", path, source="test-feed", stdout=io.StringIO())
+        with self.assertRaises(ImportPromotionError):
+            promote_imported_event(ImportedEvent.objects.get())
+        self.assertEqual(Venue.objects.count(), 1)
+        self.assertEqual(Event.objects.count(), 0)
 
     def _write_payload(self):
         payload = [

@@ -87,7 +87,14 @@ def _apply_filters(queryset, params):
         if selected_date:
             start = timezone.make_aware(datetime.combine(selected_date, time.min))
             end = timezone.make_aware(datetime.combine(selected_date, time.max))
-            queryset = queryset.filter(sessions__starts_at__range=(start, end))
+            queryset = queryset.filter(
+                Q(sessions__starts_at__range=(start, end))
+                | Q(
+                    sessions__isnull=True,
+                    available_from__lte=selected_date,
+                    available_until__gte=selected_date,
+                )
+            )
 
     latitude = params.get("lat")
     longitude = params.get("lng")
@@ -200,7 +207,11 @@ def walk_events_api(request):
                 "cover": event.display_cover_url,
                 "age": f"{event.age_from}+",
                 "price": event.display_price,
-                "date": date_format(timezone.localtime(event.next_session.starts_at), "j E") if event.next_session else "Уточняется",
+                "date": (
+                    date_format(timezone.localtime(event.next_session.starts_at), "j E")
+                    if event.next_session else
+                    f"до {date_format(event.available_until, 'j E')}" if event.available_until else "Уточняется"
+                ),
             }
         )
     return JsonResponse(

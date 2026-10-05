@@ -167,6 +167,7 @@ class EventAdmin(admin.ModelAdmin):
                     "status",
                     ("is_featured", "is_recommended"),
                     "published_until",
+                    ("available_from", "available_until"),
                     "last_verified_at",
                 )
             },
