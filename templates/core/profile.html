@@ -1,12 +1,28 @@
 {% extends "base.html" %}
 {% block title %}Профиль — КидсТайм{% endblock %}
+{% block body_class %}{% if not request.user.is_authenticated %}page-account page-account--guest{% endif %}{% endblock %}
+{% block head %}<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500&display=swap" rel="stylesheet">{% endblock %}
 {% block content %}
+{% if not request.user.is_authenticated %}
+<section class="account-shell account-shell--guest">
+    <div class="account-art" aria-hidden="true"><span class="account-wordmark">КидсТайм</span></div>
+    <div class="account-panel">
+        <h1 class="sr-only">Ваш профиль</h1>
+        <a class="account-button account-button--outline" href="{% url 'accounts:login' %}">Войти</a>
+        <a class="account-button" href="{% url 'accounts:register' %}">Зарегистрироваться</a>
+        <nav class="account-guest-links" aria-label="Мои подборки">
+            <a href="{% url 'favorites:list' %}"><span class="ui-icon ui-icon--heart" aria-hidden="true"></span>Избранное</a>
+            <a href="{% url 'catalog:walk_builder' %}">{% include "includes/icon.html" with name="route" %}Маршрут на день</a>
+        </nav>
+    </div>
+</section>
+{% else %}
     <div class="profile-page">
         <header class="screen-heading"><a class="round-button"
    href="{% url 'core:home' %}"
    aria-label="На главную">{% include "includes/icon.html" with name="arrow-left" %}</a><h1>Профиль</h1></header>
         <div class="profile-layout">
-            <div class="profile-identity"><div class="profile-avatar" aria-hidden="true"></div><h2>{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% else %}Мои подборки{% endif %}</h2>{% if not request.user.is_authenticated %}<p>Избранное и текущая прогулка сохраняются в этом браузере.</p>{% endif %}</div>
+            <div class="profile-identity"><div class="profile-avatar" aria-hidden="true"></div><h2>{{ request.user.get_full_name|default:request.user.email|default:request.user.username }}</h2><p>Избранное сохраняется в аккаунте, маршрут на день — в этом браузере.</p></div>
             <nav class="profile-links" aria-label="Мои подборки">
                 <a href="{% url 'catalog:walk_builder' %}">{% include "includes/icon.html" with name="route" %}Маршрут на день <b data-walk-count hidden>0</b></a>
                 <a href="{% url 'favorites:list' %}"><span class="ui-icon ui-icon--heart"
@@ -17,5 +33,7 @@
                 {% if request.user.is_staff %}<a href="{% url 'admin:catalog_event_add' %}">+ Добавить событие</a>{% endif %}
             </nav>
         </div>
+        <form method="post" action="{% url 'accounts:logout' %}" class="profile-logout">{% csrf_token %}<button class="secondary-button" type="submit">Выйти из аккаунта</button></form>
     </div>
+{% endif %}
 {% endblock %}

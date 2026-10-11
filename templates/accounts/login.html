@@ -1,0 +1,15 @@
+{% extends "accounts/layout.html" %}
+{% block title %}Войти — КидсТайм{% endblock %}
+{% block heading %}Авторизация{% endblock %}
+{% block account_content %}
+<form method="post" class="account-form">
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    {% for error in form.non_field_errors %}<p class="account-error" role="alert">{{ error }}</p>{% endfor %}
+    {% include "accounts/field.html" with field=form.email %}
+    {% include "accounts/field.html" with field=form.password %}
+    <a class="account-recover" href="{% url 'accounts:password_reset' %}">Восстановить пароль</a>
+    <button class="account-button account-button--outline" type="submit">Войти</button>
+    <a class="account-button" href="{% url 'accounts:register' %}">Зарегистрироваться</a>
+</form>
+{% endblock %}

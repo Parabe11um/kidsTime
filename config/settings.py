@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.catalog",
     "apps.favorites",
+    "apps.accounts",
 ]
 
 MIDDLEWARE = [
@@ -97,7 +98,24 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-LOGIN_URL = "admin:login"
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "core:profile"
+AUTHENTICATION_BACKENDS = [
+    "apps.accounts.backends.EmailBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+PRIVACY_POLICY_URL = env("PRIVACY_POLICY_URL", default="")
+# Enable only when a trusted reverse proxy replaces X-Forwarded-For.
+AUTH_TRUST_PROXY_IP = env.bool("AUTH_TRUST_PROXY_IP", default=False)
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
+EMAIL_TIMEOUT = 10
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="")
 
 YANDEX_MAPS_API_KEY = env("YANDEX_MAPS_API_KEY", default="")
 

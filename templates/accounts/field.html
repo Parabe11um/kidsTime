@@ -1,0 +1,11 @@
+<div class="account-field">
+    <label class="sr-only" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    <div class="account-input{% if field.errors %} account-input--error{% endif %}">
+        {{ field }}
+        {% if field.field.widget.input_type == 'password' %}
+            <button type="button" class="password-toggle" data-password-toggle="{{ field.id_for_label }}" aria-label="Показать пароль" aria-pressed="false"><span class="ui-icon ui-icon--eye" aria-hidden="true"></span></button>
+        {% endif %}
+    </div>
+    {% if field.help_text %}<p class="account-help">{{ field.help_text|striptags }}</p>{% endif %}
+    {% for error in field.errors %}<p class="account-error" role="alert">{{ error }}</p>{% endfor %}
+</div>
