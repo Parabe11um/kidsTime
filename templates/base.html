@@ -77,6 +77,10 @@
             </div>
         </footer>
         {% include "includes/bottom_nav.html" %}
+        {% if request.user.is_authenticated %}
+            {{ account_favorite_ids|json_script:"account-favorites" }}
+            <div hidden data-account-favorites data-save-url="{% url 'favorites:set' 0 %}" data-merge-url="{% url 'favorites:merge' %}">{% csrf_token %}</div>
+        {% endif %}
         <script src="{% static 'js/app.js' %}" defer></script>
         {% block scripts %}{% endblock %}
     </body>

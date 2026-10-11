@@ -29,7 +29,7 @@
         <small>События</small>
     </a>
     <a href="{% url 'core:profile' %}"
-       class="bottom-nav__item{% if request.resolver_match.url_name == 'profile' %} is-active{% endif %}"
+       class="bottom-nav__item{% if request.resolver_match.url_name == 'profile' or request.resolver_match.namespace == 'accounts' %} is-active{% endif %}"
        aria-label="Профиль">
         <span class="bottom-nav__icon bottom-nav__icon--profile" aria-hidden="true"></span>
         <small>Профиль</small>

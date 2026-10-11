@@ -1,0 +1,21 @@
+{% extends "accounts/layout.html" %}
+{% block body_class %}page-account page-account--register{% endblock %}
+{% block title %}Регистрация — КидсТайм{% endblock %}
+{% block heading %}Регистрация{% endblock %}
+{% block account_content %}
+<form method="post" class="account-form">
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<p class="account-error" role="alert">{{ error }}</p>{% endfor %}
+    {% if not privacy_policy_url %}<p class="account-help">Регистрация станет доступна после публикации политики конфиденциальности.</p>{% endif %}
+    {% include "accounts/field.html" with field=form.email %}
+    {% include "accounts/field.html" with field=form.password1 %}
+    {% include "accounts/field.html" with field=form.password2 %}
+    <div class="account-consents">
+        <label class="account-consent" for="{{ form.privacy.id_for_label }}"><span>Ознакомлен с условиями {% if privacy_policy_url %}<a href="{{ privacy_policy_url }}" target="_blank" rel="noopener">Политики конфиденциальности</a>{% else %}Политики конфиденциальности{% endif %}</span>{{ form.privacy }}</label>
+        {% for error in form.privacy.errors %}<p class="account-error" role="alert">{{ error }}</p>{% endfor %}
+        <label class="account-consent" for="{{ form.newsletter.id_for_label }}"><span>Согласен <span class="account-consent__accent">получать рассылку с акциями</span></span>{{ form.newsletter }}</label>
+    </div>
+    <button class="account-button account-button--outline" type="submit"{% if not privacy_policy_url %} disabled{% endif %}>Зарегистрироваться</button>
+    <a class="account-button" href="{% url 'accounts:login' %}">Войти</a>
+</form>
+{% endblock %}

@@ -27,57 +27,74 @@
     if (!button.querySelector(".ui-icon")) button.textContent = selected ? "♥" : "♡";
   };
 
-  const favorites = readFavorites();
+  const accountRoot = document.querySelector("[data-account-favorites]");
+  const accountMode = Boolean(accountRoot);
+  const favorites = accountMode
+    ? new Set(JSON.parse(document.getElementById("account-favorites").textContent).map(String))
+    : readFavorites();
+  const setFavorites = (ids) => {
+    favorites.clear();
+    ids.forEach((id) => favorites.add(String(id)));
+    document.querySelectorAll("[data-favorite-button]").forEach((button) => refreshFavoriteButton(button, favorites));
+    document.dispatchEvent(new CustomEvent("kidstime:favorites-changed"));
+  };
+  const saveAccountFavorites = async (url, payload) => {
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": accountRoot.querySelector("[name=csrfmiddlewaretoken]").value },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) throw new Error("favorite save failed");
+    const data = await response.json();
+    setFavorites(data.ids);
+  };
+  const favoritesReady = (async () => {
+    const guestIds = Array.from(readFavorites());
+    if (!accountMode || !guestIds.length) return;
+    try {
+      await saveAccountFavorites(accountRoot.dataset.mergeUrl, { ids: guestIds });
+      window.localStorage.removeItem(favoriteStorageKey);
+    } catch (_error) {
+      showWalkNotice("Не удалось перенести избранное из браузера. Попробуйте обновить страницу.");
+    }
+  })();
+  let favoriteBusy = false;
   const bindFavoriteButtons = (scope = document) => {
     scope.querySelectorAll("[data-favorite-button]:not([data-favorite-bound])").forEach((button) => {
       button.dataset.favoriteBound = "true";
       refreshFavoriteButton(button, favorites);
-      button.addEventListener("click", () => {
+      button.addEventListener("click", async () => {
+        await favoritesReady;
+        if (favoriteBusy) return;
         const id = String(button.dataset.favoriteButton);
-        if (favorites.has(id)) {
-          favorites.delete(id);
-        } else {
-          if (favorites.size >= 100) {
-            showWalkNotice("Можно сохранить до 100 событий. Удалите одно из избранного.");
-            return;
-          }
-          favorites.add(id);
+        const selected = !favorites.has(id);
+        if (selected && favorites.size >= 100) {
+          showWalkNotice("Можно сохранить до 100 событий. Удалите одно из избранного.");
+          return;
         }
-        writeFavorites(favorites);
-        document.querySelectorAll(`[data-favorite-button="${id}"]`).forEach((item) => {
-          refreshFavoriteButton(item, favorites);
-        });
-        document.dispatchEvent(new CustomEvent("kidstime:favorites-changed"));
+        if (accountMode) {
+          favoriteBusy = true;
+          button.disabled = true;
+          try {
+            await saveAccountFavorites(accountRoot.dataset.saveUrl.replace("/0/", `/${id}/`), { favorite: selected });
+          } catch (_error) {
+            showWalkNotice("Не удалось сохранить избранное. Обновите страницу и попробуйте ещё раз.");
+          } finally {
+            favoriteBusy = false;
+            button.disabled = false;
+          }
+        } else {
+          selected ? favorites.add(id) : favorites.delete(id);
+          writeFavorites(favorites);
+          setFavorites(Array.from(favorites));
+        }
       });
     });
   };
   bindFavoriteButtons();
 
   const favoriteContainer = document.querySelector("[data-device-favorites]");
-  if (favoriteContainer) {
-    const emptyTemplate = document.querySelector("[data-favorites-empty]");
-    if (!favorites.size) {
-      favoriteContainer.innerHTML = emptyTemplate?.innerHTML || "";
-    } else {
-      const ids = Array.from(favorites).join(",");
-      fetch(`${favoriteContainer.dataset.endpoint}?ids=${encodeURIComponent(ids)}`, {
-        headers: { Accept: "text/html" },
-      })
-        .then((response) => {
-          if (!response.ok) throw new Error("favorites unavailable");
-          return response.text();
-        })
-        .then((html) => {
-          favoriteContainer.innerHTML = html.trim() || emptyTemplate?.innerHTML || "";
-          bindFavoriteButtons(favoriteContainer);
-          filterFavorites();
-        })
-        .catch(() => {
-          favoriteContainer.innerHTML = '<div class="empty-state">Не удалось загрузить избранное. Обновите страницу.</div>';
-        });
-    }
-  }
-
   const favoriteSearch = document.querySelector("[data-favorites-search]");
   const filterFavorites = () => {
     if (!favoriteContainer) return;
@@ -90,6 +107,27 @@
     const noResults = document.querySelector("[data-favorites-no-results]");
     if (noResults) noResults.hidden = !query || visible > 0;
   };
+  const loadFavoriteCards = async () => {
+    if (!favoriteContainer) return;
+    await favoritesReady;
+    const emptyTemplate = document.querySelector("[data-favorites-empty]");
+    if (!favorites.size) {
+      favoriteContainer.innerHTML = emptyTemplate?.innerHTML || "";
+      return;
+    }
+    try {
+      const ids = Array.from(favorites).join(",");
+      const response = await fetch(`${favoriteContainer.dataset.endpoint}?ids=${encodeURIComponent(ids)}`, { headers: { Accept: "text/html" } });
+      if (!response.ok) throw new Error("favorites unavailable");
+      const html = await response.text();
+      favoriteContainer.innerHTML = html.trim() || emptyTemplate?.innerHTML || "";
+      bindFavoriteButtons(favoriteContainer);
+      filterFavorites();
+    } catch (_error) {
+      favoriteContainer.innerHTML = '<div class="empty-state">Не удалось загрузить избранное. Обновите страницу.</div>';
+    }
+  };
+  loadFavoriteCards();
   favoriteSearch?.addEventListener("submit", (event) => { event.preventDefault(); filterFavorites(); });
   favoriteSearch?.querySelector("input")?.addEventListener("input", filterFavorites);
   document.addEventListener("kidstime:favorites-changed", filterFavorites);
@@ -203,7 +241,7 @@
   refreshWalkControls();
 
   window.addEventListener("storage", (event) => {
-    if (event.key === favoriteStorageKey || event.key === null) {
+    if (!accountMode && (event.key === favoriteStorageKey || event.key === null)) {
       favorites.clear();
       readFavorites().forEach((id) => favorites.add(id));
       document.querySelectorAll("[data-favorite-button]").forEach((button) => refreshFavoriteButton(button, favorites));
