@@ -15,6 +15,7 @@ from django.views.decorators.cache import never_cache
 
 from .forms import EmailLoginForm, EmailPasswordResetForm, RegistrationForm
 from .limits import rate_limited
+from .policy import registration_policy_url
 
 logger = logging.getLogger(__name__)
 LIMIT_MESSAGE = "Слишком много попыток. Попробуйте позже."
@@ -55,7 +56,11 @@ def register(request):
             else:
                 login(request, user, backend="apps.accounts.backends.EmailBackend")
                 return redirect("core:profile")
-    return render(request, "accounts/register.html", {"form": form, "privacy_policy_url": settings.PRIVACY_POLICY_URL}, status=status)
+    return render(request, "accounts/register.html", {
+        "form": form,
+        "privacy_policy_url": registration_policy_url(),
+        "test_registration_enabled": settings.TEST_REGISTRATION_ENABLED,
+    }, status=status)
 
 
 @method_decorator(never_cache, name="dispatch")

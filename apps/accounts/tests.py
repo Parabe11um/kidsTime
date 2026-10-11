@@ -16,7 +16,7 @@ from .models import Account, AuthAttempt
 PASSWORD = "FamilyCalendar!8537"
 
 
-@override_settings(PRIVACY_POLICY_URL="https://example.org/privacy/", EMAIL_HOST="smtp.example.org", DEFAULT_FROM_EMAIL="support@example.org", EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(TEST_REGISTRATION_ENABLED=False, PRIVACY_POLICY_URL="https://example.org/privacy/", EMAIL_HOST="smtp.example.org", DEFAULT_FROM_EMAIL="support@example.org", EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class AccountFlowTests(TestCase):
     def registration(self, **kwargs):
         return {"email": "Parent@Example.org", "password1": PASSWORD, "password2": PASSWORD, "privacy": True, **kwargs}
@@ -48,6 +48,39 @@ class AccountFlowTests(TestCase):
     def test_registration_requires_published_policy(self):
         self.client.post(reverse("accounts:register"), self.registration())
         self.assertFalse(get_user_model().objects.exists())
+
+    @override_settings(TEST_REGISTRATION_ENABLED=True, PRIVACY_POLICY_URL="")
+    def test_test_registration_uses_draft_and_creates_account(self):
+        page = self.client.get(reverse("accounts:register"))
+        self.assertContains(page, "Тестовая регистрация.")
+        self.assertContains(page, 'href="/privacy/"')
+        self.assertEqual(page.context["privacy_policy_url"], "/privacy/")
+        response = self.client.post(reverse("accounts:register"), self.registration())
+        self.assertRedirects(response, reverse("core:profile"))
+        account = Account.objects.get()
+        self.assertEqual(account.privacy_policy_url, "/privacy/")
+        self.assertIsNotNone(account.privacy_accepted_at)
+        self.assertFalse(account.user.is_staff)
+        self.assertFalse(account.user.is_superuser)
+        self.assertIn("_auth_user_id", self.client.session)
+
+    @override_settings(TEST_REGISTRATION_ENABLED=True, PRIVACY_POLICY_URL="")
+    def test_test_registration_still_requires_draft_acknowledgment(self):
+        response = self.client.post(reverse("accounts:register"), self.registration(privacy=False))
+        self.assertFormError(response.context["form"], "privacy", "Необходимо ознакомиться с черновиком политики тестовой версии.")
+        self.assertFalse(get_user_model().objects.exists())
+
+    def test_disabling_test_mode_keeps_existing_account_login_available(self):
+        with override_settings(TEST_REGISTRATION_ENABLED=True, PRIVACY_POLICY_URL=""):
+            self.client.post(reverse("accounts:register"), self.registration())
+        self.client.post(reverse("accounts:logout"))
+        with override_settings(TEST_REGISTRATION_ENABLED=False, PRIVACY_POLICY_URL=""):
+            page = self.client.get(reverse("accounts:register"))
+            self.assertEqual(page.context["privacy_policy_url"], "")
+            self.client.post(reverse("accounts:register"), self.registration(email="second@example.org"))
+            self.assertEqual(Account.objects.count(), 1)
+            response = self.client.post(reverse("accounts:login"), {"email": "parent@example.org", "password": PASSWORD})
+            self.assertRedirects(response, reverse("core:profile"))
 
     def test_case_insensitive_duplicate_email_including_legacy_account(self):
         get_user_model().objects.create_user("legacy-admin", email="PARENT@example.org", password=PASSWORD)

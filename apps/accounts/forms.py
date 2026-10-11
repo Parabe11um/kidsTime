@@ -9,6 +9,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import Account
+from .policy import registration_policy_url
 
 
 class EmailLoginForm(forms.Form):
@@ -39,6 +40,12 @@ class RegistrationForm(forms.Form):
     privacy = forms.BooleanField(label="Ознакомлен с Политикой конфиденциальности", error_messages={"required": "Необходимо ознакомиться с Политикой конфиденциальности."})
     newsletter = forms.BooleanField(label="Согласен получать рассылку с акциями", required=False)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if settings.TEST_REGISTRATION_ENABLED:
+            self.fields["privacy"].label = "Ознакомлен с черновиком политики тестовой версии"
+            self.fields["privacy"].error_messages["required"] = "Необходимо ознакомиться с черновиком политики тестовой версии."
+
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
         if get_user_model().objects.filter(email__iexact=email).exists() or Account.objects.filter(email=email).exists():
@@ -47,7 +54,7 @@ class RegistrationForm(forms.Form):
 
     def clean(self):
         data = super().clean()
-        if not settings.PRIVACY_POLICY_URL:
+        if not registration_policy_url():
             raise ValidationError("Регистрация временно недоступна: политика конфиденциальности ещё не опубликована.")
         if data.get("password1") and data.get("password2"):
             if data["password1"] != data["password2"]:
@@ -64,7 +71,7 @@ class RegistrationForm(forms.Form):
         email = self.cleaned_data["email"]
         user = get_user_model().objects.create_user(username="kidstime_" + uuid4().hex, email=email, password=self.cleaned_data["password1"])
         now = timezone.now()
-        Account.objects.create(user=user, email=email, privacy_accepted_at=now, privacy_policy_url=settings.PRIVACY_POLICY_URL, newsletter_accepted_at=now if self.cleaned_data["newsletter"] else None)
+        Account.objects.create(user=user, email=email, privacy_accepted_at=now, privacy_policy_url=registration_policy_url(), newsletter_accepted_at=now if self.cleaned_data["newsletter"] else None)
         return user
 
 

@@ -105,6 +105,7 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 PRIVACY_POLICY_URL = env("PRIVACY_POLICY_URL", default="")
+TEST_REGISTRATION_ENABLED = env.bool("TEST_REGISTRATION_ENABLED", default=False)
 # Enable only when a trusted reverse proxy replaces X-Forwarded-For.
 AUTH_TRUST_PROXY_IP = env.bool("AUTH_TRUST_PROXY_IP", default=False)
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
