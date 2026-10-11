@@ -1,4 +1,5 @@
-from django.test import SimpleTestCase, override_settings
+from django.contrib.auth import get_user_model
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 
@@ -25,3 +26,29 @@ class RobotsPolicyTests(SimpleTestCase):
         response = self.client.get(reverse("core:robots_txt"))
 
         self.assertContains(response, "Allow: /")
+
+
+@override_settings(PRIVACY_POLICY_URL="")
+class PrivacyDraftTests(TestCase):
+    def test_draft_is_accessible_and_explicit_about_temporary_operator(self):
+        response = self.client.get(reverse("core:privacy"))
+        self.assertContains(response, "ООО «Кидстайм»")
+        self.assertContains(response, "Компания ещё не зарегистрирована")
+        self.assertContains(response, "mailto:info@kidstime.devtestenv.ru")
+        self.assertContains(response, 'name="robots" content="noindex, nofollow, noarchive"')
+        self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow, noarchive")
+
+    def test_profile_and_disabled_registration_link_to_draft(self):
+        for name in ("core:profile", "accounts:register"):
+            with self.subTest(page=name):
+                self.assertContains(self.client.get(reverse(name)), 'href="/privacy/"')
+
+    def test_adding_draft_does_not_enable_registration(self):
+        response = self.client.post(reverse("accounts:register"), {
+            "email": "parent@example.org",
+            "password1": "FamilyCalendar!8537",
+            "password2": "FamilyCalendar!8537",
+            "privacy": True,
+        })
+        self.assertContains(response, "политика конфиденциальности ещё не опубликована")
+        self.assertFalse(get_user_model().objects.filter(email="parent@example.org").exists())

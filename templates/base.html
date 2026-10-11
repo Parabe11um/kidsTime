@@ -73,7 +73,7 @@
                 <div class="site-footer__about"><a class="brand" href="{% url 'core:home' %}">КидсТайм</a><p>Места и события для досуга с детьми в Москве. Найдите, куда пойти, и соберите маршрут на день.</p></div>
                 <nav aria-label="Подборки"><h2>События</h2><a href="{% url 'catalog:event_list' %}">Все события</a><a href="{% url 'catalog:event_list' %}?collection=recommended">Рекомендации</a><a href="{% url 'catalog:event_list' %}?collection=popular">Популярное</a></nav>
                 <nav aria-label="Ваши места"><h2>Мои подборки</h2><a href="{% url 'favorites:list' %}">Избранное</a><a href="{% url 'catalog:walk_builder' %}">Маршрут на день</a><a href="{% url 'catalog:event_map' %}">Карта</a></nav>
-                <p class="site-footer__copyright">© {% now "Y" %} КидсТайм</p>
+                <p class="site-footer__copyright">© {% now "Y" %} КидсТайм · <a href="{% url 'core:privacy' %}">Конфиденциальность (черновик)</a></p>
             </div>
         </footer>
         {% include "includes/bottom_nav.html" %}

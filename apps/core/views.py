@@ -55,6 +55,12 @@ def profile(request):
     return render(request, "core/profile.html", {"today": timezone.localdate()})
 
 
+def privacy(request):
+    response = render(request, "core/privacy.html")
+    response["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+    return response
+
+
 def health(request):
     return JsonResponse({"status": "ok", "service": "kidstime"})
 

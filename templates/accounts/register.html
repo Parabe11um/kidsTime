@@ -6,7 +6,7 @@
 <form method="post" class="account-form">
     {% csrf_token %}
     {% for error in form.non_field_errors %}<p class="account-error" role="alert">{{ error }}</p>{% endfor %}
-    {% if not privacy_policy_url %}<p class="account-help">Регистрация станет доступна после публикации политики конфиденциальности.</p>{% endif %}
+    {% if not privacy_policy_url %}<p class="account-help">Регистрация станет доступна после публикации политики конфиденциальности. <a class="text-link" href="{% url 'core:privacy' %}">Посмотреть черновик</a></p>{% endif %}
     {% include "accounts/field.html" with field=form.email %}
     {% include "accounts/field.html" with field=form.password1 %}
     {% include "accounts/field.html" with field=form.password2 %}
