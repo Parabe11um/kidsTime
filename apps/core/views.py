@@ -56,7 +56,9 @@ def profile(request):
 
 
 def privacy(request):
-    response = render(request, "core/privacy.html")
+    response = render(request, "core/privacy.html", {
+        "test_registration_enabled": settings.TEST_REGISTRATION_ENABLED,
+    })
     response["X-Robots-Tag"] = "noindex, nofollow, noarchive"
     return response
 

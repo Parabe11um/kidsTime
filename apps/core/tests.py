@@ -28,7 +28,7 @@ class RobotsPolicyTests(SimpleTestCase):
         self.assertContains(response, "Allow: /")
 
 
-@override_settings(PRIVACY_POLICY_URL="")
+@override_settings(TEST_REGISTRATION_ENABLED=False, PRIVACY_POLICY_URL="")
 class PrivacyDraftTests(TestCase):
     def test_draft_is_accessible_and_explicit_about_temporary_operator(self):
         response = self.client.get(reverse("core:privacy"))
@@ -37,6 +37,13 @@ class PrivacyDraftTests(TestCase):
         self.assertContains(response, "mailto:info@kidstime.devtestenv.ru")
         self.assertContains(response, 'name="robots" content="noindex, nofollow, noarchive"')
         self.assertEqual(response["X-Robots-Tag"], "noindex, nofollow, noarchive")
+
+    @override_settings(TEST_REGISTRATION_ENABLED=True)
+    def test_draft_discloses_open_test_registration(self):
+        response = self.client.get(reverse("core:privacy"))
+        self.assertContains(response, "Тестовая регистрация открыта.")
+        self.assertContains(response, "Компания ещё не зарегистрирована")
+        self.assertNotContains(response, "Этот черновик не используется")
 
     def test_profile_and_disabled_registration_link_to_draft(self):
         for name in ("core:profile", "accounts:register"):
