@@ -116,10 +116,10 @@ def verify_email(request, uidb64, token):
             account.email_verification_digest = ""
             account.save(update_fields=["email_verified_at", "email_verification_digest"])
             response = redirect("accounts:email_verified")
-            response["Referrer-Policy"] = "no-referrer"
+            response["Referrer-Policy"] = "strict-origin"
             return response
     response = render(request, "accounts/email_verification_confirm.html", {"validlink": validlink})
-    response["Referrer-Policy"] = "no-referrer"
+    response["Referrer-Policy"] = "strict-origin"
     return response
 
 
