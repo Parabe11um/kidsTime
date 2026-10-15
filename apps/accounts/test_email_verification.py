@@ -54,7 +54,7 @@ class EmailVerificationTests(TestCase):
 
         response = self.client.get(self.link())
         self.assertTrue(response.context["validlink"])
-        self.assertEqual(response["Referrer-Policy"], "no-referrer")
+        self.assertEqual(response["Referrer-Policy"], "strict-origin")
         user.refresh_from_db()
         self.assertFalse(user.is_active)  # Mail scanners only opening the link cannot activate.
         self.assertRedirects(self.client.post(self.link()), reverse("accounts:email_verified"))
@@ -174,6 +174,58 @@ class EmailVerificationTests(TestCase):
         client = Client(enforce_csrf_checks=True)
         self.assertEqual(client.post(self.link()).status_code, 403)
         self.assertEqual(client.post(reverse("accounts:email_verification_resend"), {"email": "parent@example.org"}).status_code, 403)
+        self.assertFalse(get_user_model().objects.get().is_active)
+
+    @override_settings(CSRF_COOKIE_SECURE=True)
+    def test_https_confirmation_accepts_valid_csrf_with_origin_only_referrer(self):
+        self.register(secure=True)
+        client = Client(enforce_csrf_checks=True)
+        page = client.get(self.link(), secure=True)
+        csrf = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', page.content.decode()).group(1)
+
+        # An HTTPS browser following no-referrer fails even with a valid CSRF token.
+        with self.assertLogs("django.security.csrf", level="WARNING") as logs:
+            rejected = client.post(self.link(), {"csrfmiddlewaretoken": csrf}, secure=True)
+        self.assertEqual(rejected.status_code, 403)
+        self.assertIn("no Referer", " ".join(logs.output))
+        self.assertFalse(get_user_model().objects.get().is_active)
+
+        with self.assertLogs("django.security.csrf", level="WARNING"):
+            rejected = client.post(self.link(), {"csrfmiddlewaretoken": csrf}, secure=True, HTTP_ORIGIN="null")
+        self.assertEqual(rejected.status_code, 403)
+
+        self.assertEqual(page["Referrer-Policy"], "strict-origin")
+        self.assertContains(page, 'name="referrer" content="strict-origin"')
+        response = client.post(self.link(), {"csrfmiddlewaretoken": csrf}, secure=True, HTTP_REFERER="https://testserver/")
+        self.assertRedirects(response, reverse("accounts:email_verified"))
+        self.assertEqual(response["Referrer-Policy"], "strict-origin")
+        self.assertTrue(get_user_model().objects.get().is_active)
+
+    @override_settings(CSRF_COOKIE_SECURE=True)
+    def test_https_confirmation_accepts_browser_origin_through_proxy(self):
+        self.register(secure=True)
+        client = Client(enforce_csrf_checks=True, HTTP_HOST="testserver")
+        page = client.get(self.link(), HTTP_X_FORWARDED_PROTO="https")
+        csrf = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', page.content.decode()).group(1)
+        response = client.post(
+            self.link(), {"csrfmiddlewaretoken": csrf},
+            HTTP_X_FORWARDED_PROTO="https", HTTP_ORIGIN="https://testserver", HTTP_REFERER="https://testserver/",
+        )
+        self.assertRedirects(response, reverse("accounts:email_verified"))
+        self.assertTrue(get_user_model().objects.get().is_active)
+
+    def test_https_confirmation_rejects_foreign_origin_even_with_valid_csrf(self):
+        self.register(secure=True)
+        client = Client(enforce_csrf_checks=True)
+        page = client.get(self.link(), secure=True)
+        csrf = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', page.content.decode()).group(1)
+        for headers in (
+            {"HTTP_ORIGIN": "https://untrusted.example", "HTTP_REFERER": "https://testserver/"},
+            {"HTTP_REFERER": "https://untrusted.example/"},
+        ):
+            with self.subTest(headers=headers), self.assertLogs("django.security.csrf", level="WARNING"):
+                response = client.post(self.link(), {"csrfmiddlewaretoken": csrf}, secure=True, **headers)
+                self.assertEqual(response.status_code, 403)
         self.assertFalse(get_user_model().objects.get().is_active)
 
     def test_staff_account_cannot_be_activated_by_registration_token(self):
