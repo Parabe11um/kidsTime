@@ -1,0 +1,9 @@
+{% extends "accounts/layout.html" %}
+{% block title %}Подтвердите email — КидсТайм{% endblock %}
+{% block heading %}Проверьте почту{% endblock %}
+{% block account_content %}
+<p class="account-copy">Для активации аккаунта подтвердите email по ссылке из письма. Проверьте входящие и папку «Спам». Ссылка действует 24 часа.</p>
+<p class="account-copy">Для аккаунта, ожидающего подтверждения, письмо отправляется не чаще раза в минуту.</p>
+<a class="account-button account-button--outline" href="{% url 'accounts:email_verification_resend' %}">Отправить письмо повторно</a>
+<a class="account-button" href="{% url 'accounts:login' %}">Вернуться ко входу</a>
+{% endblock %}

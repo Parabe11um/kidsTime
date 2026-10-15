@@ -8,6 +8,9 @@ class Account(models.Model):
     privacy_accepted_at = models.DateTimeField("Политика принята")
     privacy_policy_url = models.CharField("Принятая политика", max_length=500)
     newsletter_accepted_at = models.DateTimeField("Согласие на рассылку", null=True, blank=True)
+    email_verified_at = models.DateTimeField("Email подтверждён", null=True, blank=True, editable=False)
+    email_verification_digest = models.CharField(max_length=64, blank=True, default="", editable=False)
+    email_verification_sent_at = models.DateTimeField("Письмо подтверждения отправлено", null=True, blank=True, editable=False)
 
     class Meta:
         verbose_name = "Аккаунт"

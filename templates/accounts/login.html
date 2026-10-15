@@ -9,6 +9,7 @@
     {% include "accounts/field.html" with field=form.email %}
     {% include "accounts/field.html" with field=form.password %}
     <a class="account-recover" href="{% url 'accounts:password_reset' %}">Восстановить пароль</a>
+    <a class="account-recover" href="{% url 'accounts:email_verification_resend' %}">Не пришло письмо подтверждения?</a>
     <button class="account-button account-button--outline" type="submit">Войти</button>
     <a class="account-button" href="{% url 'accounts:register' %}">Зарегистрироваться</a>
 </form>

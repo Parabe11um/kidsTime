@@ -1,0 +1,13 @@
+{% extends "accounts/layout.html" %}
+{% block title %}Повторное письмо — КидсТайм{% endblock %}
+{% block heading %}Подтвердить email{% endblock %}
+{% block account_content %}
+<p class="account-copy">Укажите email, использованный при регистрации. Для ожидающего подтверждения аккаунта можно отправить новое письмо. Повторная отправка доступна через минуту после предыдущей.</p>
+<form method="post" class="account-form">
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}<p class="account-error" role="alert">{{ error }}</p>{% endfor %}
+    {% include "accounts/field.html" with field=form.email %}
+    <button class="account-button account-button--outline" type="submit">Отправить письмо</button>
+    <a class="account-button" href="{% url 'accounts:login' %}">Вернуться ко входу</a>
+</form>
+{% endblock %}

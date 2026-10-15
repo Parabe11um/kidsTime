@@ -1,0 +1,7 @@
+{% extends "accounts/layout.html" %}
+{% block title %}Email подтверждён — КидсТайм{% endblock %}
+{% block heading %}Email подтверждён{% endblock %}
+{% block account_content %}
+<p class="account-copy">Аккаунт активирован. Теперь войдите с email и паролем, указанными при регистрации.</p>
+<a class="account-button account-button--outline" href="{% url 'accounts:login' %}">Войти в аккаунт</a>
+{% endblock %}

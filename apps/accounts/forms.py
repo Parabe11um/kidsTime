@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from .models import Account
 from .policy import registration_policy_url
+from .verification import mail_configured
 
 
 class EmailLoginForm(forms.Form):
@@ -56,6 +57,8 @@ class RegistrationForm(forms.Form):
         data = super().clean()
         if not registration_policy_url():
             raise ValidationError("Регистрация временно недоступна: политика конфиденциальности ещё не опубликована.")
+        if not mail_configured():
+            raise ValidationError("Регистрация временно недоступна: отправка писем ещё не настроена.")
         if data.get("password1") and data.get("password2"):
             if data["password1"] != data["password2"]:
                 self.add_error("password2", "Пароли не совпадают.")
@@ -69,7 +72,7 @@ class RegistrationForm(forms.Form):
     @transaction.atomic
     def save(self):
         email = self.cleaned_data["email"]
-        user = get_user_model().objects.create_user(username="kidstime_" + uuid4().hex, email=email, password=self.cleaned_data["password1"])
+        user = get_user_model().objects.create_user(username="kidstime_" + uuid4().hex, email=email, password=self.cleaned_data["password1"], is_active=False)
         now = timezone.now()
         Account.objects.create(user=user, email=email, privacy_accepted_at=now, privacy_policy_url=registration_policy_url(), newsletter_accepted_at=now if self.cleaned_data["newsletter"] else None)
         return user
@@ -83,6 +86,10 @@ class EmailPasswordResetForm(PasswordResetForm):
         if get_user_model().objects.filter(email__iexact=email).count() != 1:
             return []
         return super().get_users(email)
+
+
+class ResendVerificationForm(forms.Form):
+    email = forms.EmailField(label="Email", widget=forms.EmailInput(attrs={"autocomplete": "email", "placeholder": "Email"}))
 
 
 class StyledSetPasswordForm(SetPasswordForm):
