@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 {% block title %}Профиль — КидсТайм{% endblock %}
 {% block body_class %}{% if not request.user.is_authenticated %}page-account page-account--guest{% endif %}{% endblock %}
-{% block head %}<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500&display=swap" rel="stylesheet">{% endblock %}
 {% block content %}
 {% if not request.user.is_authenticated %}
 <section class="account-shell account-shell--guest">
-    <div class="account-art" aria-hidden="true"><span class="account-wordmark">КидсТайм</span></div>
+    <div class="account-art" aria-hidden="true"><span class="account-wordmark">{% include "includes/brand_mark.html" %}</span></div>
     <div class="account-panel">
         <h1 class="sr-only">Ваш профиль</h1>
         <a class="account-button account-button--outline" href="{% url 'accounts:login' %}">Войти</a>
