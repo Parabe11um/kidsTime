@@ -1,0 +1,17 @@
+{% extends "accounts/layout.html" %}
+{% block title %}Подтверждение email — КидсТайм{% endblock %}
+{% block head %}{{ block.super }}<meta name="referrer" content="no-referrer">{% endblock %}
+{% block heading %}Подтверждение email{% endblock %}
+{% block account_content %}
+{% if validlink %}
+    <p class="account-copy">Нажмите кнопку, чтобы подтвердить email и активировать аккаунт.</p>
+    <form method="post" class="account-form">
+        {% csrf_token %}
+        <button class="account-button account-button--outline" type="submit">Подтвердить email</button>
+    </form>
+{% else %}
+    <p class="account-copy">Ссылка недействительна, уже использована или срок её действия истёк. Запросите новое письмо. Если email уже подтверждён, войдите в аккаунт.</p>
+    <a class="account-button account-button--outline" href="{% url 'accounts:email_verification_resend' %}">Запросить новое письмо</a>
+    <a class="account-button" href="{% url 'accounts:login' %}">Войти</a>
+{% endif %}
+{% endblock %}

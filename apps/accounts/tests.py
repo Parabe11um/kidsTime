@@ -23,12 +23,14 @@ class AccountFlowTests(TestCase):
 
     def test_register_creates_normalized_nonstaff_user_and_records_consents(self):
         response = self.client.post(reverse("accounts:register"), self.registration(newsletter=True))
-        self.assertRedirects(response, reverse("core:profile"))
+        self.assertRedirects(response, reverse("accounts:email_verification_sent"))
         user = get_user_model().objects.get(email="parent@example.org")
         self.assertTrue(user.check_password(PASSWORD))
         self.assertFalse(user.is_staff)
         self.assertFalse(user.is_superuser)
-        self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
+        self.assertFalse(user.is_active)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertEqual(len(mail.outbox), 1)
         self.assertIsNotNone(user.account.privacy_accepted_at)
         self.assertIsNotNone(user.account.newsletter_accepted_at)
 
@@ -56,13 +58,14 @@ class AccountFlowTests(TestCase):
         self.assertContains(page, 'href="/privacy/"')
         self.assertEqual(page.context["privacy_policy_url"], "/privacy/")
         response = self.client.post(reverse("accounts:register"), self.registration())
-        self.assertRedirects(response, reverse("core:profile"))
+        self.assertRedirects(response, reverse("accounts:email_verification_sent"))
         account = Account.objects.get()
         self.assertEqual(account.privacy_policy_url, "/privacy/")
         self.assertIsNotNone(account.privacy_accepted_at)
         self.assertFalse(account.user.is_staff)
         self.assertFalse(account.user.is_superuser)
-        self.assertIn("_auth_user_id", self.client.session)
+        self.assertFalse(account.user.is_active)
+        self.assertNotIn("_auth_user_id", self.client.session)
 
     @override_settings(TEST_REGISTRATION_ENABLED=True, PRIVACY_POLICY_URL="")
     def test_test_registration_still_requires_draft_acknowledgment(self):
@@ -73,6 +76,8 @@ class AccountFlowTests(TestCase):
     def test_disabling_test_mode_keeps_existing_account_login_available(self):
         with override_settings(TEST_REGISTRATION_ENABLED=True, PRIVACY_POLICY_URL=""):
             self.client.post(reverse("accounts:register"), self.registration())
+            url = re.search(r"http://testserver(/accounts/email/verify/[^\s]+)", mail.outbox[-1].body).group(1)
+            self.client.post(url)
         self.client.post(reverse("accounts:logout"))
         with override_settings(TEST_REGISTRATION_ENABLED=False, PRIVACY_POLICY_URL=""):
             page = self.client.get(reverse("accounts:register"))
