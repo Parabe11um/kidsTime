@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 
+from .demo_media import resolve_demo_cover_url
+
 
 class PublicationStatus(models.TextChoices):
     DRAFT = "draft", "Черновик"
@@ -273,7 +275,7 @@ class Event(models.Model):
             image = primary or (prefetched_images[0] if prefetched_images else None)
         else:
             image = self.images.order_by("-is_cover", "sort_order", "pk").first()
-        return image.image.url if image else self.cover_url
+        return image.image.url if image else resolve_demo_cover_url(self.cover_url)
 
 
 class EventImage(models.Model):
