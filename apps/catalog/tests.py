@@ -60,13 +60,16 @@ class PublicPagesTests(TestCase):
         response = self.client.get(reverse("core:home"))
 
         self.assertEqual(response.status_code, 200)
-        for icon in ("dashboard", "heart", "point", "search", "profile"):
-            self.assertIsNotNone(finders.find(f"icons/navigation/{icon}.svg"))
+        for asset in (
+            "icons/navigation/dashboard.svg", "icons/navigation/route.svg",
+            "icons/bottom-nav/point.svg", "icons/bottom-nav/search.svg", "icons/bottom-nav/profile.svg",
+        ):
+            self.assertIsNotNone(finders.find(asset))
 
         for icon in ("dashboard", "search", "profile"):
             self.assertContains(response, f"bottom-nav__icon--{icon}")
 
-        self.assertContains(response, "icons/navigation/point")
+        self.assertContains(response, "icons/bottom-nav/point")
         self.assertContains(response, 'aria-label="Маршрут на день"')
         self.assertContains(response, reverse("core:profile"))
 

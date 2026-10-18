@@ -54,6 +54,8 @@ h3 { font-size: 16px; font-weight: 700; }
 .ui-icon--heart,.bottom-nav__icon--heart { --icon: url("../icons/navigation/heart.svg"); }
 .ui-icon--search,.bottom-nav__icon--search { --icon: url("../icons/navigation/search.svg"); }
 .ui-icon--profile,.bottom-nav__icon--profile { --icon: url("../icons/navigation/profile.svg"); }
+.bottom-nav__icon--search { --icon: url("../icons/bottom-nav/search.svg"); }
+.bottom-nav__icon--profile { --icon: url("../icons/bottom-nav/profile.svg"); }
 .ui-icon--point { --icon: url("../icons/navigation/point.svg"); }
 .ui-icon--route { --icon: url("../icons/navigation/route.svg"); }
 .ui-icon--arrow-right,.ui-icon--arrow-left,.ui-icon--arrow-up,.ui-icon--arrow-down { --icon: url("../icons/ui/arrow.svg"); }
