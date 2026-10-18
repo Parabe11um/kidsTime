@@ -1,8 +1,9 @@
 import io
 import json
 import tempfile
-from datetime import timedelta
+from datetime import date, timedelta
 from pathlib import Path
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
@@ -72,7 +73,7 @@ class PublicPagesTests(TestCase):
         for legacy_glyph in ("⌂", "▦", "●", "♡", "⌁"):
             self.assertNotIn(legacy_glyph, bottom_nav)
 
-    def test_catalog_cards_keep_route_and_walk_actions(self):
+    def test_catalog_cards_link_to_details_where_route_actions_remain_available(self):
         event = Event.objects.first()
         event.venue.location = Point(37.6176, 55.7558, srid=4326)
         event.venue.save(update_fields=("location",))
@@ -80,8 +81,40 @@ class PublicPagesTests(TestCase):
         response = self.client.get(reverse("catalog:event_list"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, f'data-walk-button="{event.pk}"')
-        self.assertContains(response, "rtext=~55.7558%2C37.6176")
+        self.assertContains(response, event.get_absolute_url())
+        self.assertNotContains(response, 'class="event-card__actions"')
+        detail = self.client.get(event.get_absolute_url())
+        self.assertContains(detail, f'data-walk-button="{event.pk}"')
+        self.assertContains(detail, "rtext=~55.7558%2C37.6176")
+
+    def test_home_week_starts_on_monday_across_month_boundary(self):
+        with patch("apps.core.views.timezone.localdate", return_value=date(2026, 11, 1)):
+            response = self.client.get(reverse("core:home"))
+        days = response.context["days"]
+        self.assertEqual([day["weekday"] for day in days[:7]], ["пн", "вт", "ср", "чт", "пт", "сб", "вс"])
+        self.assertEqual(days[0]["date"], "2026-10-26")
+        self.assertEqual([day["date"] for day in days if day["is_today"]], ["2026-11-01"])
+        self.assertEqual(days[7]["date"], "2026-11-02")
+
+    def test_home_feed_has_distinct_new_and_free_collections(self):
+        event = Event.objects.first()
+        Event.objects.update(is_free=False)
+        Event.objects.filter(pk=event.pk).update(is_free=True, created_at=timezone.now() + timedelta(minutes=1))
+        response = self.client.get(reverse("core:home"))
+        self.assertEqual(list(response.context["feed_free_events"]), [event])
+        self.assertEqual(response.context["feed_new_events"][0].pk, event.pk)
+
+    def test_accessibility_and_stroller_filters_are_independent(self):
+        first, second = list(Event.objects.select_related("venue").order_by("pk")[:2])
+        Venue.objects.update(accessible=False, stroller_access=False)
+        Venue.objects.filter(pk=first.venue_id).update(accessible=True)
+        Venue.objects.filter(pk=second.venue_id).update(stroller_access=True)
+        for params, included, excluded in (({"accessible": "1"}, first, second), ({"stroller": "1"}, second, first)):
+            response = self.client.get(reverse("catalog:event_list"), params)
+            self.assertIn(included, response.context["events"])
+            self.assertNotIn(excluded, response.context["events"])
+        response = self.client.get(reverse("catalog:event_list"), {"accessible": "1", "stroller": "1"})
+        self.assertFalse(response.context["events"].exists())
 
     def test_catalog_filters_by_age(self):
         response = self.client.get(reverse("catalog:event_list"), {"age": 4})

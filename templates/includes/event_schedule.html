@@ -1,0 +1,24 @@
+<section class="detail-schedule" aria-label="Расписание и стоимость">
+    <dl>
+        <div>
+            <dt>{% if event.available_from and not event.upcoming_sessions %}Период посещения{% else %}Расписание{% endif %}</dt>
+            <dd>
+                {% if event.next_session %}
+                    <time datetime="{{ event.next_session.starts_at|date:'c' }}">{{ event.next_session.starts_at|date:'j E, H:i' }}</time>{% if event.next_session.ends_at %}–{{ event.next_session.ends_at|date:'H:i' }}{% endif %}
+                {% elif event.available_from and event.available_until %}
+                    {{ event.available_from|date:'j E' }} — {{ event.available_until|date:'j E Y' }}
+                {% else %}Уточняется у организатора{% endif %}
+            </dd>
+        </div>
+        <div><dt>Стоимость</dt><dd>{{ event.display_price }}</dd></div>
+    </dl>
+    {% if event.upcoming_sessions|length > 1 %}
+        <details class="session-details">
+            <summary>Все сеансы ({{ event.upcoming_sessions|length }})</summary>
+            {% for session in event.upcoming_sessions %}
+                <div class="session-row"><div><strong>{{ session.starts_at|date:'l, j E' }}</strong><span>{{ session.starts_at|date:'H:i' }}{% if session.ends_at %}–{{ session.ends_at|date:'H:i' }}{% endif %}</span></div><span>{{ session.get_availability_display }}</span></div>
+            {% endfor %}
+        </details>
+    {% elif event.next_session %}<p class="schedule-note">{{ event.next_session.get_availability_display }}</p>
+    {% elif event.available_from and event.available_until %}<p class="schedule-note">Дни и часы посещения уточняйте у организатора.</p>{% endif %}
+</section>

@@ -8,14 +8,12 @@
     <div class="page-shell catalog-layout">
         {% include "includes/filters.html" %}
         <section class="catalog-results" aria-labelledby="catalog-title">
-            <div class="catalog-toolbar"><div><h1 id="catalog-title">{% if has_filters %}Результаты поиска{% else %}Найдите своё событие{% endif %}</h1>{% if has_filters %}<p>{{ events|length }} вариантов{% if filters.q %} по запросу «{{ filters.q }}»{% endif %}</p>{% endif %}</div><div class="catalog-toolbar__actions"><button type="button"
-        class="filter-button"
-        data-filters-open
-        aria-controls="filters-panel"
-        aria-expanded="false">{% include "includes/filter_icon.html" %}<span>Фильтры</span></button><a class="map-button"
-   href="{% url 'catalog:event_map' %}?{{ request.GET.urlencode }}">На карте</a></div></div>
+            <h1 id="catalog-title" class="sr-only">Поиск событий</h1>
+            <div class="catalog-toolbar{% if not events %} catalog-toolbar--empty{% endif %}">
+                <p>Найдено {{ events|length }} событий</p>
+                {% if events %}<a class="map-button" href="{% url 'catalog:event_map' %}?{{ request.GET.urlencode }}">На карте</a>{% endif %}
+            </div>
             {% if not has_filters %}
-                {% include "includes/stories.html" %}
                 {% if spotlight_event %}
                     <div class="search-spotlight">{% include "includes/feature_card.html" with event=spotlight_event %}</div>
                 {% endif %}
@@ -26,7 +24,7 @@
                         {% include "includes/event_card.html" %}
                     {% endfor %}
                 </div>
-{% else %}<div class="empty-state empty-state--large"><h2>Пока ничего не найдено</h2><p>Попробуйте другую дату, возраст или категорию.</p><a class="primary-button" href="{% url 'catalog:event_list' %}">Сбросить фильтры</a></div>{% endif %}
+{% else %}<div class="search-empty"><h2>Пока ничего не найдено</h2><p>Попробуйте ввести другую дату, возраст или категорию</p><a class="primary-button" href="{% url 'catalog:event_list' %}">Сбросить фильтры</a></div>{% endif %}
     </section>
     </div>
     <div class="filters-backdrop" data-filters-close></div>
