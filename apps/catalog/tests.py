@@ -11,9 +11,12 @@ from django.contrib.staticfiles import finders
 from django.core.management import call_command
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
+from .demo_media import DEMO_COVER_IMAGES
 from .models import (
     Category,
     Event,
@@ -225,6 +228,32 @@ class PublicPagesTests(TestCase):
         EventImage.objects.create(event=event, image="events/test-cover.jpg", is_cover=True)
 
         self.assertEqual(event.display_cover_url, "/media/events/test-cover.jpg")
+
+    def test_demo_covers_use_local_assets_on_home_and_detail(self):
+        response = self.client.get(reverse("core:home"))
+        self.assertNotContains(response, "https://images.unsplash.com/")
+        for event in Event.objects.all():
+            with self.subTest(event=event.slug):
+                self.assertTrue(event.display_cover_url.startswith("/static/images/demo/"))
+                self.assertContains(response, event.display_cover_url)
+                detail = self.client.get(event.get_absolute_url())
+                self.assertEqual(detail.context["gallery"][0]["url"], event.display_cover_url)
+                self.assertNotContains(detail, "https://images.unsplash.com/")
+
+    def test_all_demo_assets_are_valid_jpegs(self):
+        for asset in DEMO_COVER_IMAGES.values():
+            with self.subTest(asset=asset):
+                path = finders.find(asset)
+                self.assertIsNotNone(path)
+                with Image.open(path) as image:
+                    self.assertEqual(image.format, "JPEG")
+                    image.verify()
+                self.assertTrue(static(asset).startswith("/static/images/demo/"))
+
+    def test_other_cover_urls_are_preserved(self):
+        event = Event.objects.first()
+        event.cover_url = "https://example.org/organizer-cover.jpg"
+        self.assertEqual(event.display_cover_url, event.cover_url)
 
     def test_age_group_and_accessibility_filters_combine(self):
         events = list(Event.objects.visible().order_by("pk")[:3])

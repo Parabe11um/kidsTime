@@ -133,8 +133,8 @@ def event_list(request):
 def event_detail(request, slug):
     event = get_object_or_404(_base_events(), slug=slug)
     gallery = [{"url": image.image.url, "alt": image.alt_text} for image in event.prefetched_images]
-    if not gallery and event.cover_url:
-        gallery = [{"url": event.cover_url, "alt": event.title}]
+    if not gallery and event.display_cover_url:
+        gallery = [{"url": event.display_cover_url, "alt": event.title}]
     return render(request, "catalog/event_detail.html", {
         "event": event,
         "gallery": gallery,
