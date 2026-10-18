@@ -1,0 +1,29 @@
+<footer class="site-footer">
+    <div class="site-footer__inner">
+        <div class="site-footer__columns">
+            <div class="site-footer__about" id="about-kidstime">
+                <a class="brand" href="{% url 'core:home' %}" aria-label="КидсТайм — на главную">{% include "includes/brand_mark.html" %}</a>
+                <p>Сервис рекомендаций и планирования детского досуга в Москве. Узнайте, где и когда проходят события, и соберите маршрут на день.</p>
+            </div>
+            <nav aria-label="Ресурсы">
+                <h2>Ресурсы</h2>
+                <a href="mailto:info@kidstime.devtestenv.ru">Контакты</a>
+                <a href="#about-kidstime">О проекте</a>
+                <a href="{% url 'core:privacy' %}">Конфиденциальность (черновик)</a>
+            </nav>
+            <nav aria-label="Подборки">
+                <h2>События</h2>
+                <a href="{% url 'catalog:event_list' %}">Все события</a>
+                <a href="{% url 'catalog:event_list' %}?collection=recommended">Рекомендации</a>
+                <a href="{% url 'catalog:event_list' %}?collection=popular">Популярное</a>
+            </nav>
+            <nav aria-label="Личный кабинет">
+                <h2>Личный кабинет</h2>
+                <a href="{% url 'favorites:list' %}">Избранное</a>
+                <a href="{% url 'catalog:walk_builder' %}">Маршрут на день</a>
+                <a href="{% url 'core:profile' %}">Профиль</a>
+            </nav>
+        </div>
+        <p class="site-footer__copyright">© {% now "Y" %} КидсТайм. Все права защищены.</p>
+    </div>
+</footer>

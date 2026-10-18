@@ -461,7 +461,7 @@
   const setFiltersOpen = (open) => {
     if (!filtersPanel || !backdrop) return;
     if (desktopViewport.matches) {
-      if (open) filtersPanel.querySelector("input")?.focus();
+      if (open) filtersPanel.querySelector('input:not([type="hidden"])')?.focus();
       return;
     }
     if (open) filtersReturnFocus = document.activeElement;
@@ -477,7 +477,7 @@
       filtersPanel.removeAttribute("aria-modal");
       filtersReturnFocus?.focus();
     }
-    document.querySelectorAll("[data-filters-open]").forEach((button) => button.setAttribute("aria-expanded", String(open)));
+    document.querySelectorAll('[data-filters-open], .search-filter-button[name="filters"]').forEach((button) => button.setAttribute("aria-expanded", String(open)));
   };
 
   document.querySelectorAll("[data-filters-open]").forEach((button) => {
@@ -505,13 +505,15 @@
     filtersPanel?.removeAttribute("aria-modal");
     backdrop?.classList.remove("is-open");
     document.body.classList.remove("has-overlay");
-    document.querySelectorAll("[data-filters-open]").forEach((button) => button.setAttribute("aria-expanded", "false"));
+    document.querySelectorAll('[data-filters-open], .search-filter-button[name="filters"]').forEach((button) => button.setAttribute("aria-expanded", "false"));
   });
   if (new URLSearchParams(window.location.search).get("filters") === "open") setFiltersOpen(true);
 
   // On the results page the search button opens the existing sheet without a reload.
   if (filtersPanel) {
     document.querySelectorAll('.search-filter-button[name="filters"]').forEach((button) => {
+      button.setAttribute("aria-controls", "filters-panel");
+      button.setAttribute("aria-expanded", String(filtersPanel.classList.contains("is-open")));
       button.addEventListener("click", (event) => {
         event.preventDefault();
         const query = button.form.querySelector('[name="q"]')?.value;
@@ -542,38 +544,104 @@
   });
 
   const scrollBehavior = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth";
+  document.querySelectorAll("[data-feed-tabs]").forEach((feed) => {
+    const tabs = [...feed.querySelectorAll('[role="tab"]')];
+    const panels = [...feed.querySelectorAll('[role="tabpanel"]')];
+    const selectTab = (selected) => {
+      tabs.forEach((tab) => {
+        const active = tab === selected;
+        tab.setAttribute("aria-selected", String(active));
+        tab.tabIndex = active ? 0 : -1;
+        tab.classList.toggle("is-active", active);
+      });
+      panels.forEach((panel) => { panel.hidden = panel.id !== selected.getAttribute("aria-controls"); });
+    };
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => selectTab(tab));
+      tab.addEventListener("keydown", (event) => {
+        const next = { ArrowRight: (index + 1) % tabs.length, ArrowLeft: (index - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 }[event.key];
+        if (next === undefined) return;
+        event.preventDefault();
+        selectTab(tabs[next]);
+        tabs[next].focus();
+      });
+    });
+  });
   document.querySelectorAll("[data-carousel]").forEach((carousel) => {
     const track = carousel.querySelector("[data-carousel-track]");
     const cards = [...track.querySelectorAll(".spotlight-card")];
+    const pauseButton = carousel.querySelector("[data-carousel-pause]");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let activeIndex = 0;
-    const render = () => {
+    let paused = reducedMotion.matches;
+    let inView = false;
+    let timer;
+    const syncPlayback = () => {
+      window.clearTimeout(timer);
+      if (pauseButton) {
+        pauseButton.setAttribute("aria-pressed", String(paused));
+        pauseButton.textContent = paused ? "Продолжить показ" : "Приостановить показ";
+      }
+      if (cards.length < 2 || paused || !inView || !desktopViewport.matches || document.hidden || carousel.matches(":hover") || carousel.contains(document.activeElement)) return;
+      timer = window.setTimeout(() => move(1), 7000);
+    };
+    const render = (animate = false, direction = 1) => {
+      const before = new Map(cards.filter((card) => card.getClientRects().length).map((card) => [card, card.getBoundingClientRect()]));
       cards.forEach((card, index) => {
+        card.getAnimations().forEach((animation) => animation.cancel());
         const active = index === activeIndex;
         const previous = cards.length > 2 && index === (activeIndex - 1 + cards.length) % cards.length;
         const next = cards.length > 1 && index === (activeIndex + 1) % cards.length;
         card.classList.toggle("is-active", active);
         card.classList.toggle("is-prev", previous);
         card.classList.toggle("is-next", next);
-        card.setAttribute("aria-hidden", active || previous || next ? "false" : "true");
+        card.setAttribute("aria-hidden", String(!active && !previous && !next));
       });
+      if (animate && !reducedMotion.matches) {
+        cards.filter((card) => card.getClientRects().length).forEach((card) => {
+          const target = card.getBoundingClientRect();
+          const from = before.get(card);
+          const x = from ? from.x - target.x : direction * 120;
+          const y = from ? from.y - target.y : 0;
+          const scaleX = from && target.width ? from.width / target.width : .94;
+          const scaleY = from && target.height ? from.height / target.height : .94;
+          card.animate([
+            { transformOrigin: "top left", transform: `translate(${x}px,${y}px) scale(${scaleX},${scaleY})`, opacity: from ? 1 : 0 },
+            { transformOrigin: "top left", transform: "translate(0,0) scale(1)", opacity: 1 },
+          ], { duration: 650, easing: "cubic-bezier(.22,.61,.36,1)" });
+        });
+      }
+      syncPlayback();
     };
     const move = (direction) => {
       if (!cards.length) return;
       activeIndex = (activeIndex + direction + cards.length) % cards.length;
-      render();
+      render(true, direction);
     };
     carousel.querySelector("[data-carousel-prev]")?.addEventListener("click", () => move(-1));
     carousel.querySelector("[data-carousel-next]")?.addEventListener("click", () => move(1));
     carousel.querySelectorAll("[data-carousel-select]").forEach((button) => {
       button.addEventListener("click", () => {
+        const direction = button.closest(".spotlight-card").classList.contains("is-prev") ? -1 : 1;
         activeIndex = Number(button.dataset.carouselSelect);
-        render();
+        render(true, direction);
+        track.focus({ preventScroll: true });
       });
     });
     track.addEventListener("keydown", (event) => {
       if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       event.preventDefault(); move(event.key === "ArrowRight" ? 1 : -1);
+      track.focus({ preventScroll: true });
     });
+    pauseButton?.addEventListener("click", () => { paused = !paused; syncPlayback(); });
+    carousel.addEventListener("pointerenter", syncPlayback);
+    carousel.addEventListener("pointerleave", syncPlayback);
+    carousel.addEventListener("focusin", syncPlayback);
+    carousel.addEventListener("focusout", () => window.setTimeout(syncPlayback, 0));
+    document.addEventListener("visibilitychange", syncPlayback);
+    desktopViewport.addEventListener("change", syncPlayback);
+    reducedMotion.addEventListener("change", () => { paused = reducedMotion.matches; syncPlayback(); });
+    new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; syncPlayback(); }, { threshold: .3 }).observe(carousel);
     render();
   });
 

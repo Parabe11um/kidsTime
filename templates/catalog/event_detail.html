@@ -57,6 +57,7 @@
             <div class="detail-main">
                 <header class="detail-heading"><h1>{{ event.title }}</h1>{% include "includes/place_meta.html" %}</header>
                 <div class="detail-tags"><span class="age-tag">{{ event.age_from }}+</span><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}">{{ event.category.name }}</a><span>{{ event.get_activity_format_display }}</span>{% if event.venue.accessible %}<span>Маломобильность</span>{% endif %}{% if event.venue.stroller_access %}<span>Можно с коляской</span>{% endif %}{% if event.venue.parking_notes %}<span>Парковка</span>{% endif %}</div>
+                {% include "includes/event_schedule.html" %}
                 <section class="detail-section detail-description"
                          aria-label="Описание события">
                     {% if event.short_description %}<p class="detail-lead">{{ event.short_description }}</p>{% endif %}
@@ -65,11 +66,10 @@
                     {% if event.duration_minutes %}<p><strong>Продолжительность:</strong> {{ event.duration_minutes }} мин.</p>{% endif %}
                     {% if event.venue.parking_notes %}<p><strong>Парковка:</strong> {{ event.venue.parking_notes }}</p>{% endif %}
                 </section>
-                <section class="detail-section detail-schedule"><h2>{% if event.available_from and not event.upcoming_sessions %}Период посещения{% else %}Расписание{% endif %}</h2><div class="session-list">{% for session in event.upcoming_sessions %}<div class="session-row"><div><strong>{{ session.starts_at|date:'l, j E' }}</strong><span>{{ session.starts_at|date:'H:i' }}{% if session.ends_at %}–{{ session.ends_at|date:'H:i' }}{% endif %}</span></div><span>{{ session.get_availability_display }}</span></div>{% empty %}{% if event.available_from and event.available_until %}<p>С {{ event.available_from|date:'j E Y' }} по {{ event.available_until|date:'j E Y' }}. Дни и часы посещения уточняйте у организатора.</p>{% else %}<p>Актуальное расписание уточняется у организатора.</p>{% endif %}{% endfor %}</div></section>
+
             </div>
             <aside class="detail-aside">
                 <div class="booking-card">
-                    <div class="booking-card__price"><span>Стоимость</span><strong>{{ event.display_price }}</strong></div>
                     <div class="booking-card__actions">
                         {% if event.venue.location %}
                             <button class="primary-button"
@@ -78,7 +78,7 @@
                                     data-walk-default-label="+ Добавить в прогулку"
                                     data-walk-active-label="✓ Уже в прогулке"
                                     aria-pressed="false">+ Добавить в прогулку</button>
-                            <a class="secondary-button"
+                            <a class="secondary-button route-button"
                                href="https://yandex.ru/maps/?rtext=~{{ event.venue.location.y|unlocalize }}%2C{{ event.venue.location.x|unlocalize }}&amp;rtt=auto"
                                target="_blank"
                                rel="noopener">Построить маршрут</a>
@@ -88,8 +88,9 @@
    rel="noopener">Открыть адрес на карте</a>{% endif %}
     </div>
     </div>
-    <div class="place-card"><h2>{{ event.venue.name }}</h2><p>{{ event.venue.address }}</p>{% if event.venue.metro %}<p>Метро «{{ event.venue.metro }}»</p>{% endif %}</div>
-    <div class="trust-card">{% if event.last_verified_at %}<span>Проверено {{ event.last_verified_at|date:'j E Y' }}</span>{% endif %}{% if event.source_url %}<a href="{{ event.source_url }}" target="_blank" rel="noopener">Первоисточник {% include "includes/icon.html" with name="arrow-up-right" %}</a>{% endif %}</div>
+    {% if event.source_url %}
+        <a class="trust-card" href="{{ event.source_url }}" target="_blank" rel="noopener"><span>Информация из первоисточника</span>{% if event.last_verified_at %}<span>от {{ event.last_verified_at|date:'d.m.Y' }}</span>{% endif %}</a>
+    {% endif %}
     </aside>
     </div>
     {% if venue_events %}<section class="event-section detail-related"><div class="section-heading"><h2>В этом месте</h2></div><div class="event-row">{% for event in venue_events %}{% include "includes/event_card.html" with compact=True %}{% endfor %}</div></section>{% endif %}

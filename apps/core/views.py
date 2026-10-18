@@ -24,15 +24,16 @@ def home(request):
     )
 
     days = []
+    week_start = today - timedelta(days=today.weekday())
     for offset in range(21):
-        day = today + timedelta(days=offset)
+        day = week_start + timedelta(days=offset)
         days.append(
             {
                 "date": day.isoformat(),
                 "weekday": WEEKDAYS[day.weekday()],
                 "day": day.day,
                 "month": MONTHS[day.month],
-                "is_today": offset == 0,
+                "is_today": day == today,
                 "is_weekend": day.weekday() >= 5,
             }
         )
@@ -45,8 +46,9 @@ def home(request):
         "nearby_events": events[:6],
         "recommended_events": [event for event in events if event.is_recommended][:6] or events[:6],
         "popular_events": [event for event in events if event.is_featured][:6] or events[:6],
-        "feed_events": events[:10],
-        "event_count": _base_events().count(),
+        "feed_top_events": events[:10],
+        "feed_new_events": _base_events().order_by("-created_at", "pk")[:10],
+        "feed_free_events": _base_events().filter(is_free=True).order_by("-is_featured", "title")[:10],
     }
     return render(request, "core/home.html", context)
 

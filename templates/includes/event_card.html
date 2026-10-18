@@ -1,4 +1,3 @@
-{% load l10n %}
 <article class="event-card{% if compact %} event-card--compact{% endif %}"
          data-event-id="{{ event.pk }}">
     <a class="event-card__image-wrap"
@@ -20,14 +19,11 @@
         <a class="event-card__title" href="{{ event.get_absolute_url }}">{{ event.title }}</a>
         <div class="event-card__location">{% include "includes/place_meta.html" %}</div>
         {% if not compact %}
-            <div class="event-card__facts"><div><small>Дата</small><span>{% if event.next_session %}{{ event.next_session.starts_at|date:'j E' }}{% elif event.available_until %}до {{ event.available_until|date:'j E' }}{% else %}Уточняется{% endif %}</span></div><div><small>Возраст</small><span>{{ event.age_from }}+</span></div><div><small>Цена</small><span>{{ event.display_price }}</span></div></div>
-            {% if event.venue.location %}<div class="event-card__actions"><a href="https://yandex.ru/maps/?rtext=~{{ event.venue.location.y|unlocalize }}%2C{{ event.venue.location.x|unlocalize }}&amp;rtt=auto"
-   target="_blank"
-   rel="noopener">Маршрут</a><button type="button"
-        data-walk-button="{{ event.pk }}"
-        data-walk-default-label="+ В прогулку"
-        data-walk-active-label="✓ В прогулке"
-        aria-pressed="false">+ В прогулку</button></div>{% endif %}
+            <div class="event-card__facts">
+                <span class="event-card__date"><span class="sr-only">Дата: </span>{% include "includes/icon.html" with name="calendar" %}{% if event.next_session %}{{ event.next_session.starts_at|date:'j E' }}{% elif event.available_until %}до {{ event.available_until|date:'j E' }}{% else %}Расписание уточняется{% endif %}</span>
+                <span><span class="sr-only">Возраст: </span>{% include "includes/icon.html" with name="child" %}{{ event.age_from }}+</span>
+                <span><span class="sr-only">Стоимость: </span>{% include "includes/icon.html" with name="wallet" %}{{ event.display_price }}</span>
+            </div>
         {% endif %}
     </div>
 </article>
