@@ -57,6 +57,20 @@ jobs:
             --env-file .env.production \
             -f compose.production.yaml \
             config --quiet
+      - name: Validate shared Caddy configuration
+        run: |
+          validate_caddy() {
+            docker run --rm \
+              -e SITE_DOMAIN=kidstime.example.test \
+              -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" \
+              -v "$PWD/deploy/caddy-extra:/etc/caddy/extra:ro" \
+              caddy:2-alpine validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          }
+          validate_caddy
+          printf '%s\n' 'http://score-it.example.test {' '    reverse_proxy score-it-web:8000' '}' \
+            > deploy/caddy-extra/ci.caddy
+          trap 'rm -f deploy/caddy-extra/ci.caddy' EXIT
+          validate_caddy
       - name: Run migrations and tests
         run: |
           python manage.py migrate --noinput

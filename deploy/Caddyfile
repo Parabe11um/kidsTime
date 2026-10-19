@@ -26,3 +26,5 @@
         format console
     }
 }
+
+import /etc/caddy/extra/*.caddy
