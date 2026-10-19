@@ -78,6 +78,9 @@ services:
 
   caddy:
     image: caddy:2-alpine
+    networks:
+      - default
+      - proxy
     restart: unless-stopped
     environment:
       SITE_DOMAIN: ${SITE_DOMAIN:?SITE_DOMAIN is required}
@@ -90,6 +93,7 @@ services:
         condition: service_healthy
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/caddy-extra:/etc/caddy/extra:ro
       - media_data:/srv/media:ro
       - caddy_data:/data
       - caddy_config:/config
@@ -97,6 +101,10 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  proxy:
+    name: ${CADDY_PROXY_NETWORK:-score_it_proxy}
 
 volumes:
   postgres_data:

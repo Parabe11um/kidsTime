@@ -16,3 +16,6 @@ media/*
 .idea/
 .vscode/
 .DS_Store
+
+# Дополнительные домены общего Caddy на конкретном сервере.
+/deploy/caddy-extra/*.caddy
