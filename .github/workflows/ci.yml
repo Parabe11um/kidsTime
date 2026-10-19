@@ -60,7 +60,7 @@ jobs:
       - name: Validate shared Caddy configuration
         run: |
           validate_caddy() {
-            docker run --rm \
+            docker run --rm --entrypoint caddy \
               -e SITE_DOMAIN=kidstime.example.test \
               -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" \
               -v "$PWD/deploy/caddy-extra:/etc/caddy/extra:ro" \

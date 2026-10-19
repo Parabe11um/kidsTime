@@ -57,7 +57,10 @@ curl -fsS https://kidstime.devtestenv.ru/robots.txt
 Production Compose подключает Caddy к сети проекта и отдельной сети
 `score_it_proxy`. Имя второй сети задаётся через `CADDY_PROXY_NETWORK`; сеть
 создаёт Compose KidsTime. PostgreSQL, Redis и web KidsTime к этой второй сети
-не подключаются.
+не подключаются. Web KidsTime получает в своей сети уникальный alias
+`kidstime-web`; основной маршрут Caddy использует именно его. Общие имена
+сервисов вроде `web` могут совпадать у разных приложений, поэтому для upstream
+общего прокси используйте уникальные имена.
 
 Другие приложения объявляют эту сеть как `external: true` и подключают к ней
 только свой web. Например, score-it использует в ней имя `score-it-web`;
@@ -81,7 +84,7 @@ score-it.devtestenv.ru {
 не импортирует. Не добавляйте файл `.caddy`, который направляет пользователей
 в пробную базу.
 
-При первом применении изменения сети и монтирования пересоздайте только Caddy:
+При первом применении сетевого alias сначала пересоздайте web, затем Caddy:
 
 ```bash
 COMPOSE=(docker compose --env-file .env.production -f compose.production.yaml)
@@ -90,6 +93,8 @@ COMPOSE=(docker compose --env-file .env.production -f compose.production.yaml)
 "${COMPOSE[@]}" run --rm --no-deps --pull never -T \
   --entrypoint caddy caddy validate \
   --config /etc/caddy/Caddyfile --adapter caddyfile </dev/null
+"${COMPOSE[@]}" up -d --no-deps --no-build --pull never \
+  --wait --wait-timeout 120 web </dev/null
 "${COMPOSE[@]}" up -d --no-deps --no-build --pull never caddy </dev/null
 ```
 
@@ -98,7 +103,9 @@ COMPOSE=(docker compose --env-file .env.production -f compose.production.yaml)
 `caddy reload` не работает, поэтому при следующих изменениях маршрутов после
 `validate` используйте `"${COMPOSE[@]}" restart caddy </dev/null`.
 Во время пересоздания или перезапуска возможен краткий перерыв HTTPS обоих сайтов.
-Контейнеры приложений и базы этими командами не перезапускаются.
+При первом применении пересоздаётся web KidsTime с прежним образом; его entrypoint
+может выполнить штатные миграции. PostgreSQL и Redis эти команды не пересоздают.
+Последующие изменения маршрутов требуют только перезапуска Caddy.
 
 После применения проверьте `https://kidstime.devtestenv.ru/health/` и health
 добавленного приложения. Удаление стека KidsTime также останавливает общий

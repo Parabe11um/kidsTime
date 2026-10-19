@@ -39,6 +39,10 @@ services:
     build:
       context: .
     image: kidstime-web:latest
+    networks:
+      default:
+        aliases:
+          - kidstime-web
     restart: unless-stopped
     env_file:
       - .env.production
