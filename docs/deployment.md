@@ -83,7 +83,7 @@ Production Compose подключает Caddy к сети проекта и от
 score-it.devtestenv.ru {
     import private-access-log
     encode zstd gzip
-    header Referrer-Policy no-referrer
+    header >Referrer-Policy no-referrer
     reverse_proxy score-it-web:8000
 }
 ```
@@ -97,6 +97,8 @@ score-it.devtestenv.ru {
 `log default` защищает журнал ошибок прокси, включая 502. Код ответа, домен,
 метод и длительность запроса остаются в журнале. Политика `no-referrer` для
 score-it не позволяет браузеру передать адрес комнаты следующему сайту.
+Префикс `>` применяет заголовок после upstream, даже если приложение вернуло
+другую referrer policy.
 `debug` и `log_credentials` включать нельзя: произвольные сообщения сторонних
 модулей не покрываются фильтрами структурированных полей.
 

@@ -2,6 +2,6 @@
 score-it.example.com {
     import private-access-log
     encode zstd gzip
-    header Referrer-Policy no-referrer
+    header >Referrer-Policy no-referrer
     reverse_proxy score-it-web:8000
 }

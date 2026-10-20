@@ -25,6 +25,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(body)))
         self.send_header('Set-Cookie', 'probe=' + self.headers.get('X-Probe', ''))
         self.send_header('Location', self.path)
+        self.send_header('Referrer-Policy', 'unsafe-url')
         self.end_headers()
         self.wfile.write(body)
 
