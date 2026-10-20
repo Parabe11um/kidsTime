@@ -5,7 +5,30 @@ on:
     branches: [main]
   pull_request:
 
+env:
+  # Parser/runtime checks only; production uses the separately audited release image.
+  CADDY_IMAGE: caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+  CADDY_TEST_BACKEND_IMAGE: python:3.12.15-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
+
 jobs:
+  caddy-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Load test images
+        run: |
+          docker pull "$CADDY_IMAGE"
+          docker pull "$CADDY_TEST_BACKEND_IMAGE"
+      - name: Check shared routes and access/error log privacy
+        run: |
+          python3 tests/check_caddy_security.py \
+            --image "$CADDY_IMAGE" --backend-image "$CADDY_TEST_BACKEND_IMAGE"
+
   test:
     runs-on: ubuntu-latest
     services:
@@ -57,20 +80,6 @@ jobs:
             --env-file .env.production \
             -f compose.production.yaml \
             config --quiet
-      - name: Validate shared Caddy configuration
-        run: |
-          validate_caddy() {
-            docker run --rm --entrypoint caddy \
-              -e SITE_DOMAIN=kidstime.example.test \
-              -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" \
-              -v "$PWD/deploy/caddy-extra:/etc/caddy/extra:ro" \
-              caddy:2-alpine validate --config /etc/caddy/Caddyfile --adapter caddyfile
-          }
-          validate_caddy
-          printf '%s\n' 'http://score-it.example.test {' '    reverse_proxy score-it-web:8000' '}' \
-            > deploy/caddy-extra/ci.caddy
-          trap 'rm -f deploy/caddy-extra/ci.caddy' EXIT
-          validate_caddy
       - name: Run migrations and tests
         run: |
           python manage.py migrate --noinput

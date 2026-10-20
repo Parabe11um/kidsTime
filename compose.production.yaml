@@ -81,7 +81,8 @@ services:
         max-file: "3"
 
   caddy:
-    image: caddy:2-alpine
+    image: ${CADDY_IMAGE:?Set CADDY_IMAGE to a verified, locally loaded image}
+    pull_policy: never
     networks:
       - default
       - proxy

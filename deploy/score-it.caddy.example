@@ -1,0 +1,7 @@
+# Copy to deploy/caddy-extra/score-it.caddy and set the actual public domain.
+score-it.example.com {
+    import private-access-log
+    encode zstd gzip
+    header Referrer-Policy no-referrer
+    reverse_proxy score-it-web:8000
+}
