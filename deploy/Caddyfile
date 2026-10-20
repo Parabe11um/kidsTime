@@ -1,8 +1,34 @@
 {
     admin off
+    # Reverse-proxy errors use this logger, not only the site's access log.
+    log default {
+        format filter {
+            wrap json
+            fields {
+                request>uri replace [redacted]
+                request>headers delete
+                resp_headers delete
+            }
+        }
+    }
+}
+
+(private-access-log) {
+    log {
+        output stdout
+        format filter {
+            wrap json
+            fields {
+                request>uri replace [redacted]
+                request>headers delete
+                resp_headers delete
+            }
+        }
+    }
 }
 
 {$SITE_DOMAIN} {
+    import private-access-log
     encode zstd gzip
 
     header {
@@ -19,11 +45,6 @@
 
     handle {
         reverse_proxy kidstime-web:8000
-    }
-
-    log {
-        output stdout
-        format console
     }
 }
 
