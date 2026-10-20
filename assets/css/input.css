@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @source "../../templates/**/*.html";
 @source "../../static/js/**/*.js";
+/* Infrastructure and test words are not UI utility classes. */
+@source not "../../deploy";
+@source not "../../tests";
+@source not "../../.github";
 
 /* Shared design tokens. Mobile artboard: 402px; desktop content: 1000px. */
 :root {

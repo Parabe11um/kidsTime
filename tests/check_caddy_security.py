@@ -206,7 +206,8 @@ def main():
                         continue
                 accesses = [r for r in records
                             if r.get('logger', '').startswith('http.log.access')]
-                errors = [r for r in records if r.get('logger') == 'http.log.error']
+                errors = [r for r in records
+                          if r.get('logger', '').startswith('http.log.error')]
                 if len(accesses) >= 7 and errors:
                     break
                 check(time.monotonic() < deadline, 'Access/error log controls are absent')
