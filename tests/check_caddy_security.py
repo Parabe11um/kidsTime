@@ -2,11 +2,10 @@
 """Exercise shared Caddy routes and log privacy using disposable containers.
 
 Images must already be loaded. No application, database, production network or
-certificate volume is used. The only published test port binds to 127.0.0.1.
+certificate volume is used. No ports are published to the host.
 """
 
 import argparse
-import http.client
 import json
 import subprocess
 import tempfile
@@ -33,6 +32,31 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 ThreadingHTTPServer(('0.0.0.0', 8000), Handler).serve_forever()
+'''
+
+CLIENT = r'''
+import http.client
+import json
+import sys
+
+host, path, probe, token = sys.argv[1:]
+connection = http.client.HTTPConnection('caddy-check-proxy', 80, timeout=3)
+try:
+    connection.request('GET', path, headers={
+        'Host': host,
+        'Authorization': 'Bearer ' + probe,
+        'Cookie': 'session=' + probe,
+        'Referer': 'https://' + host + '/room/' + token + '/',
+        'X-Probe': probe,
+    })
+    response = connection.getresponse()
+    result = {'status': response.status, 'headers': dict(response.getheaders()),
+              'body': response.read().decode()}
+except (OSError, http.client.HTTPException):
+    result = {'status': 0, 'headers': {}, 'body': ''}
+finally:
+    connection.close()
+print(json.dumps(result))
 '''
 
 
@@ -115,7 +139,8 @@ def main():
 
             caddy = docker(
                 'create', '--pull=never', '--name', prefix + '-proxy',
-                '--network', networks[0], '-p', '127.0.0.1::80', *mounts,
+                '--network', networks[0], '--network-alias', 'caddy-check-proxy',
+                *mounts,
                 '--entrypoint', 'caddy', args.image, 'run',
                 '--config', '/etc/caddy/Caddyfile', '--adapter', 'caddyfile',
             )
@@ -123,24 +148,15 @@ def main():
             docker('network', 'connect', networks[1], caddy)
             docker('start', caddy)
             info = json.loads(docker('inspect', caddy))[0]
-            binding = info['NetworkSettings']['Ports']['80/tcp'][0]
-            check(binding['HostIp'] == '127.0.0.1', 'Test port is not loopback-only')
-            port = int(binding['HostPort'])
+            check(info['State']['Running'], 'Test proxy failed to start')
+            check(not info['HostConfig'].get('PortBindings'), 'Test proxy publishes ports')
 
             def request(host, path):
-                connection = http.client.HTTPConnection('127.0.0.1', port, timeout=3)
-                try:
-                    connection.request('GET', path, headers={
-                        'Host': host,
-                        'Authorization': 'Bearer ' + probe,
-                        'Cookie': 'session=' + probe,
-                        'Referer': 'https://' + host + '/room/' + token + '/',
-                        'X-Probe': probe,
-                    })
-                    response = connection.getresponse()
-                    return response.status, dict(response.getheaders()), response.read()
-                finally:
-                    connection.close()
+                result = json.loads(docker(
+                    'exec', containers[0], 'python', '-c', CLIENT,
+                    host, path, probe, token,
+                ))
+                return result['status'], result['headers'], result['body'].encode()
 
             deadline = time.monotonic() + 20
             for host, expected in (
@@ -148,12 +164,9 @@ def main():
                 ('score-it.example.test', b'SCORE_IT_OK'),
             ):
                 while True:
-                    try:
-                        status, _, body = request(host, '/health/')
-                        if status == 200 and body == expected:
-                            break
-                    except (OSError, http.client.HTTPException):
-                        pass
+                    status, _, body = request(host, '/health/')
+                    if status == 200 and body == expected:
+                        break
                     check(time.monotonic() < deadline, 'Test proxy or upstream did not start')
                     time.sleep(0.2)
 
