@@ -2,6 +2,7 @@
 score-it.example.com {
     import private-access-log
     encode zstd gzip
-    header >Referrer-Policy no-referrer
+    # Preserve the real Origin on native POST forms without leaking token paths.
+    header >Referrer-Policy strict-origin
     reverse_proxy score-it-web:8000
 }

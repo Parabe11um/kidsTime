@@ -182,7 +182,7 @@ def main():
                     status, headers, body = request(host, path)
                     check(status == 200 and body == expected, 'Upstream route changed')
                     if host == 'score-it.example.test':
-                        check(headers.get('Referrer-Policy') == 'no-referrer',
+                        check(headers.get('Referrer-Policy') == 'strict-origin',
                               'Score-it referrer policy is missing')
             status, _, body = request('kidstime.example.test', '/media/probe.txt')
             check(status == 200 and body == b'MEDIA_OK', 'KidsTime media route changed')
