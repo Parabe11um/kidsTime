@@ -4,12 +4,14 @@ from math import isfinite
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db.models import Prefetch, Q
-from django.http import JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.formats import date_format
+from django.views.decorators.http import require_safe
 
 from .models import ActivityFormat, Category, Event, EventImage, EventSession
+from .services.calendar import build_event_calendar
 
 WALK_POINT_LIMIT = 9
 
@@ -149,6 +151,21 @@ def event_map(request):
         "catalog/event_map.html",
         {"active_filters": request.GET.urlencode()},
     )
+
+
+@require_safe
+def event_calendar(request, slug):
+    event = get_object_or_404(_base_events(), slug=slug)
+    session = event.next_session
+    if session is None:
+        raise Http404("Нет предстоящего сеанса с точным временем.")
+    response = HttpResponse(
+        build_event_calendar(event, session, request.build_absolute_uri(event.get_absolute_url()), timezone.now()),
+        content_type="text/calendar; charset=utf-8",
+    )
+    response["Content-Disposition"] = f'attachment; filename="kidstime-event-{event.pk}.ics"'
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 def walk_builder(request):

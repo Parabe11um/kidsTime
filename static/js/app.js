@@ -107,12 +107,16 @@
     const noResults = document.querySelector("[data-favorites-no-results]");
     if (noResults) noResults.hidden = !query || visible > 0;
   };
+  let favoriteLoadSequence = 0;
   const loadFavoriteCards = async () => {
     if (!favoriteContainer) return;
+    const sequence = ++favoriteLoadSequence;
     await favoritesReady;
+    if (sequence !== favoriteLoadSequence) return;
     const emptyTemplate = document.querySelector("[data-favorites-empty]");
     if (!favorites.size) {
       favoriteContainer.innerHTML = emptyTemplate?.innerHTML || "";
+      filterFavorites();
       return;
     }
     try {
@@ -120,17 +124,19 @@
       const response = await fetch(`${favoriteContainer.dataset.endpoint}?ids=${encodeURIComponent(ids)}`, { headers: { Accept: "text/html" } });
       if (!response.ok) throw new Error("favorites unavailable");
       const html = await response.text();
+      if (sequence !== favoriteLoadSequence) return;
       favoriteContainer.innerHTML = html.trim() || emptyTemplate?.innerHTML || "";
       bindFavoriteButtons(favoriteContainer);
       filterFavorites();
     } catch (_error) {
+      if (sequence !== favoriteLoadSequence) return;
       favoriteContainer.innerHTML = '<div class="empty-state">Не удалось загрузить избранное. Обновите страницу.</div>';
     }
   };
   loadFavoriteCards();
   favoriteSearch?.addEventListener("submit", (event) => { event.preventDefault(); filterFavorites(); });
   favoriteSearch?.querySelector("input")?.addEventListener("input", filterFavorites);
-  document.addEventListener("kidstime:favorites-changed", filterFavorites);
+  document.addEventListener("kidstime:favorites-changed", loadFavoriteCards);
 
   const walkRoot = document.querySelector("[data-walk-root]");
   const configuredWalkLimit = Number.parseInt(walkRoot?.dataset.limit || "", 10);
@@ -245,7 +251,7 @@
       favorites.clear();
       readFavorites().forEach((id) => favorites.add(id));
       document.querySelectorAll("[data-favorite-button]").forEach((button) => refreshFavoriteButton(button, favorites));
-      filterFavorites();
+      loadFavoriteCards();
     }
     if (event.key !== walkStorageKey && event.key !== null) return;
     walkIds = readWalkIds();
@@ -661,7 +667,7 @@
     });
   });
 
-  document.querySelector("[data-share]")?.addEventListener("click", async () => {
+  document.querySelectorAll("[data-share]").forEach(button => button.addEventListener("click", async () => {
     try {
       if (navigator.share) await navigator.share({ title: document.title, url: window.location.href });
       else {
@@ -671,5 +677,5 @@
     } catch (error) {
       if (error.name !== "AbortError") showWalkNotice("Не удалось поделиться. Скопируйте адрес из строки браузера.");
     }
-  });
+  }));
 })();
