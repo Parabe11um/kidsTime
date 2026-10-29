@@ -9,13 +9,21 @@
         {% include "includes/filters.html" %}
         <section class="catalog-results" aria-labelledby="catalog-title">
             <h1 id="catalog-title" class="sr-only">Поиск событий</h1>
+            {% if has_filters %}
             <div class="catalog-toolbar{% if not events %} catalog-toolbar--empty{% endif %}">
                 <p>Найдено {{ events|length }} событий</p>
                 {% if events %}<a class="map-button" href="{% url 'catalog:event_map' %}?{{ request.GET.urlencode }}">На карте</a>{% endif %}
             </div>
+            {% else %}
+                <div class="search-intro">
+                    <h2>Найдите своё событие</h2>
+                    <p>Выберите в фильтре параметры для поиска подходящего события или откройте карту</p>
+                    <a class="map-button" href="{% url 'catalog:event_map' %}">На карте</a>
+                </div>
+            {% endif %}
             {% if not has_filters %}
                 {% if spotlight_event %}
-                    <div class="search-spotlight">{% include "includes/feature_card.html" with event=spotlight_event %}</div>
+                    {% include "includes/search_discovery_card.html" with event=spotlight_event %}
                 {% endif %}
             {% endif %}
             {% if events %}

@@ -1,0 +1,30 @@
+<div class="search-stack">
+    <span class="search-stack__back" aria-hidden="true"></span>
+    <div class="search-stack__middle" aria-hidden="true">
+        {% if story_events.1.display_cover_url %}<img src="{{ story_events.1.display_cover_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% endif %}
+    </div>
+    <article class="search-discovery" data-event-id="{{ event.pk }}">
+        <div class="search-discovery__media">
+            <a href="{{ event.get_absolute_url }}" aria-label="Открыть {{ event.title }}">
+                {% if event.display_cover_url %}<img src="{{ event.display_cover_url }}" alt="" referrerpolicy="no-referrer">{% else %}<span class="event-card__image--empty" aria-hidden="true"></span>{% endif %}
+            </a>
+            <span class="event-card__age">{{ event.age_from }}+</span>
+            {% include "includes/favorite_button.html" %}
+        </div>
+        <div class="search-discovery__body">
+            <h3><a href="{{ event.get_absolute_url }}">{{ event.title }}</a></h3>
+            <div class="search-discovery__facts">
+                <div>{% include "includes/place_meta.html" %}</div>
+                {% if event.next_session %}
+                    <time class="search-discovery__date" datetime="{{ event.next_session.starts_at|date:'c' }}"><span>{{ event.next_session.starts_at|date:'F' }}</span><strong>{{ event.next_session.starts_at|date:'j' }}</strong></time>
+                {% elif event.available_until %}
+                    <p class="search-discovery__period">до {{ event.available_until|date:'j E' }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="search-discovery__actions">
+            <a class="map-button" href="{{ event.get_absolute_url }}">{{ event.display_price }}</a>
+            {% if event.venue.location %}<button class="secondary-button" type="button" data-walk-button="{{ event.pk }}" data-walk-default-label="Добавить в прогулку" data-walk-active-label="Уже в прогулке" aria-pressed="false">Добавить в прогулку</button>{% endif %}
+        </div>
+    </article>
+</div>
