@@ -20,8 +20,8 @@
             <nav aria-label="Личный кабинет">
                 <h2>Личный кабинет</h2>
                 <a href="{% url 'favorites:list' %}">Избранное</a>
-                <a href="{% url 'catalog:walk_builder' %}">Маршрут на день</a>
-                <a href="{% url 'core:profile' %}">Профиль</a>
+                <a href="{% url 'catalog:saved_walks' %}">Мои маршруты</a>
+                <a href="{% url 'core:profile' %}">Настройки</a>
             </nav>
         </div>
         <p class="site-footer__copyright">© {% now "Y" %} КидсТайм. Все права защищены.</p>

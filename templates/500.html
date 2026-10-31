@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Не удалось загрузить страницу — КидсТайм{% endblock %}
+{% block content %}<section class="page-shell error-page"><h1>Страница временно недоступна</h1><p>Попробуйте открыть её немного позже.</p><a class="primary-button" href="{% url 'core:home' %}">На главную</a></section>{% endblock %}

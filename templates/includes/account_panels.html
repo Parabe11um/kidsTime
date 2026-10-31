@@ -1,0 +1,20 @@
+<dialog class="account-drawer" id="profile-panel" aria-labelledby="profile-panel-title">
+    <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть профиль">{% include "includes/icon.html" with name="close" %}</button>
+    <div class="drawer-identity"><span class="header-avatar" aria-hidden="true">{% if request.user.is_authenticated %}{{ request.user.first_name|default:request.user.email|default:request.user.username|first|upper }}{% else %}<span class="ui-icon ui-icon--profile"></span>{% endif %}</span><h2 id="profile-panel-title">{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.email|default:request.user.username }}{% else %}Ваш профиль{% endif %}</h2></div>
+    {% if not request.user.is_authenticated %}<div class="drawer-auth"><a class="primary-button" href="{% url 'accounts:login' %}">Войти</a><a class="secondary-button route-button" href="{% url 'accounts:register' %}">Зарегистрироваться</a></div>{% endif %}
+    <div class="profile-collections">
+        <a href="{% url 'favorites:list' %}"><span class="ui-icon ui-icon--heart" aria-hidden="true"></span><span>Избранное</span><b data-favorite-count>{{ account_favorite_ids|length }}</b></a>
+        <a href="{% url 'catalog:saved_walks' %}"><span class="ui-icon ui-icon--route" aria-hidden="true"></span><span>Маршруты</span><b data-saved-walk-count>0</b></a>
+    </div>
+    <nav class="drawer-links" aria-label="Личный кабинет">
+        <a href="{% url 'catalog:walk_builder' %}">{% include "includes/icon.html" with name="route" %}Маршрут на день</a>
+        <a href="mailto:info@kidstime.devtestenv.ru">{% include "includes/icon.html" with name="share" %}Связаться с поддержкой</a>
+        <a href="{% url 'core:profile' %}">{% if request.user.is_authenticated %}Настройки{% else %}Профиль{% endif %}</a>
+        {% if request.user.is_authenticated %}<form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="drawer-logout" type="submit">Выйти</button></form>{% endif %}
+    </nav>
+</dialog>
+<dialog class="notifications-panel" id="notifications-panel" aria-labelledby="notifications-title">
+    <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть уведомления">{% include "includes/icon.html" with name="close" %}</button>
+    <h2 id="notifications-title">Уведомления</h2>
+    <p>Новых уведомлений пока нет.</p>
+</dialog>

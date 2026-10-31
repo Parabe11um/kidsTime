@@ -14,13 +14,14 @@
           action="{% url 'catalog:event_list' %}">
         {% if filters.collection %}<input type="hidden" name="collection" value="{{ filters.collection }}">{% endif %}
         <input type="hidden" name="q" value="{{ filters.q }}">
-        <section class="filter-section"><label><span>Дата</span><input type="date" name="date" value="{{ filters.date }}"></label><div class="filter-location"><button type="button" data-filter-location>{% include "includes/icon.html" with name="location" %} Рядом со мной</button><span data-location-status role="status">{% if filters.lat and filters.lng %}Местоположение выбрано{% endif %}</span></div><input type="hidden" name="lat" value="{{ filters.lat }}"><input type="hidden" name="lng" value="{{ filters.lng }}"><label class="filter-inline"><span>Радиус поиска, км</span><input type="number"
+        <section class="filter-section"><div class="filter-location"><button type="button" data-filter-location>{% include "includes/icon.html" with name="location" %} Рядом со мной</button><span data-location-status role="status">{% if filters.lat and filters.lng %}Местоположение выбрано{% endif %}</span></div><input type="hidden" name="lat" value="{{ filters.lat }}"><input type="hidden" name="lng" value="{{ filters.lng }}"><label class="filter-inline"><span>Радиус поиска, км</span><input type="number"
        name="radius"
        min="1"
        max="50"
        value="{{ filters.radius }}"
        placeholder="5"
        aria-label="Радиус поиска в километрах"></label></section>
+        <section class="filter-section filter-dates"><h3>Дата</h3><label><span>От</span><input type="date" name="date_from" value="{% if filters.date_from %}{{ filters.date_from }}{% else %}{{ filters.date }}{% endif %}"></label><label><span>До</span><input type="date" name="date_until" value="{% if filters.date_until %}{{ filters.date_until }}{% else %}{{ filters.date }}{% endif %}"></label></section>
         <fieldset class="filter-section">
             <legend class="sr-only">Возраст</legend><h3 aria-hidden="true">Возраст</h3>
             <label class="choice-row"><span>Любой</span><input type="radio"
@@ -44,7 +45,8 @@
        value="12+"
        {% if filters.age_group == '12+' %} checked{% endif %}></label>
         </fieldset>
-        <section class="filter-section"><h3>События и места</h3><label><span>Категория</span><select name="category"><option value="">Любая</option>{% for category in categories %}<option value="{{ category.slug }}"
+        <section class="filter-section filter-times" data-time-filter><h3>Время начала</h3><div class="time-scale" aria-hidden="true"><span>8.00</span><span>12.00</span><span>18.00</span><span>22.00</span></div><div class="time-range"><input type="range" min="480" max="1320" step="30" value="480" data-time-min aria-label="Время начала, от"><input type="range" min="480" max="1320" step="30" value="1320" data-time-max aria-label="Время начала, до"></div><div class="filter-time-fields"><label><span>От</span><input type="time" name="time_from" value="{{ filters.time_from }}"></label><label><span>До</span><input type="time" name="time_until" value="{{ filters.time_until }}"></label></div></section>
+        <section class="filter-section"><h3>Категория</h3><label><span class="sr-only">Категория</span><select name="category"><option value="">Любая</option>{% for category in categories %}<option value="{{ category.slug }}"
         {% if filters.category == category.slug %} selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label><label><span>Где проходит</span><select name="format"><option value="">Неважно</option>{% for value, label in formats %}<option value="{{ value }}"
         {% if filters.format == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label></section>
         <fieldset class="filter-section"><legend class="sr-only">Доступность</legend><h3 aria-hidden="true">Доступность</h3><label class="choice-row"><span>Маломобильность</span><input type="checkbox"
