@@ -3,6 +3,7 @@
 {% block body_class %}page-favorites{% endblock %}
 {% block content %}
     <div class="page-shell favorites-page">
+        <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>→</span><a href="{% url 'core:profile' %}">Профиль</a><span>→</span><span>Избранное</span></nav>
         <header class="screen-header">
             <a class="round-button" href="{% url 'core:profile' %}" aria-label="В профиль">{% include "includes/icon.html" with name="arrow-left" %}</a>
             <h1>Избранное</h1>

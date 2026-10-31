@@ -6,9 +6,10 @@
          data-walk-root
          data-endpoint="{% url 'catalog:walk_events_api' %}"
          data-limit="{{ walk_point_limit }}">
+        <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>→</span><span data-walk-title>Маршрут на день</span></nav>
         <header class="section-page-header"><a class="round-button"
    href="{% url 'core:home' %}"
-   aria-label="На главную">{% include "includes/icon.html" with name="arrow-left" %}</a><h1>Маршрут на день</h1><a href="{% url 'catalog:event_list' %}" aria-label="К событиям">{% include "includes/icon.html" with name="close" %}</a></header>
+   aria-label="На главную">{% include "includes/icon.html" with name="arrow-left" %}</a><h1 data-walk-title>Маршрут на день</h1><a href="{% url 'catalog:saved_walks' %}" aria-label="Мои маршруты">{% include "includes/icon.html" with name="route" %}</a></header>
         <div class="walk-layout">
             <section class="walk-list-card" aria-labelledby="walk-list-title">
                 <div class="walk-list-card__heading">
@@ -39,12 +40,27 @@
                 <h2>Ваша прогулка</h2>
                 <p><strong data-walk-count data-walk-count-always>0</strong> из {{ walk_point_limit }} мест выбрано</p>
                 <p>Меняйте порядок стрелками. Яндекс Карты откроют все точки в указанной последовательности.</p>
-                <a class="primary-button is-disabled"
+                <a class="primary-button" href="{% url 'catalog:event_list' %}">+ Добавить место</a>
+                <a class="secondary-button route-button is-disabled"
                    data-walk-route
                    target="_blank"
                    rel="noopener"
-                   aria-disabled="true">Построить маршрут</a><small>Маршрут сохраняется в этом браузере.</small>
+                   aria-disabled="true">Построить маршрут</a>
+                <button class="secondary-button" type="button" data-save-walk disabled>Сохранить</button>
+                <button class="walk-delete" type="button" data-delete-walk hidden>Удалить маршрут</button>
+                <a class="text-link" href="{% url 'catalog:saved_walks' %}">Мои маршруты</a>
+                <small>Маршрут сохраняется в этом браузере.</small>
             </aside>
         </div>
+        <dialog class="route-name-dialog" data-route-dialog aria-labelledby="route-dialog-title">
+            <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть">{% include "includes/icon.html" with name="close" %}</button>
+            <form data-save-walk-form>
+                <h2 id="route-dialog-title">Сохранить маршрут?</h2>
+                <p>Маршрут будет сохранён в этом браузере. Вы сможете открыть его в любое время.</p>
+                <label><span class="sr-only">Название маршрута</span><input name="name" type="text" maxlength="80" required placeholder="Название маршрута" autocomplete="off"></label>
+                <div><button type="submit" class="primary-button">Сохранить</button><button type="button" class="secondary-button" data-panel-close>Отмена</button></div>
+                <p class="account-error" data-save-walk-error role="alert" hidden></p>
+            </form>
+        </dialog>
     </div>
 {% endblock %}

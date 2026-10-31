@@ -1,6 +1,7 @@
 (() => {
   const favoriteStorageKey = "kidstime:favorites";
   const walkStorageKey = "kidstime:walk";
+  let loadedWalkEvents = [];
   const defaultWalkLimit = 9;
 
   const readFavorites = () => {
@@ -36,7 +37,7 @@
     favorites.clear();
     ids.forEach((id) => favorites.add(String(id)));
     document.querySelectorAll("[data-favorite-button]").forEach((button) => refreshFavoriteButton(button, favorites));
-    document.dispatchEvent(new CustomEvent("kidstime:favorites-changed"));
+    document.dispatchEvent(new CustomEvent("kidstime:favorites-changed", { detail: { count: favorites.size } }));
   };
   const saveAccountFavorites = async (url, payload) => {
     const response = await fetch(url, {
@@ -231,8 +232,12 @@
     showWalkNotice("Точка добавлена в прогулку");
   };
 
+  window.KidsTimeFavorites = { getCount: () => favorites.size };
   window.KidsTimeWalk = {
     getIds: () => [...walkIds],
+    getEvents: () => [...loadedWalkEvents],
+    replaceIds: replaceWalkIds,
+    notice: showWalkNotice,
     refreshButton: refreshWalkButton,
   };
 
@@ -306,7 +311,6 @@
       const number = document.createElement("span");
       number.className = "walk-item__number";
       number.textContent = String(index + 2);
-      media.append(number);
 
       const content = document.createElement("div");
       content.className = "walk-item__content";
@@ -358,7 +362,24 @@
       reorder.append(moveUp, moveDown, remove);
       actions.append(directRoute, reorder);
       content.append(title, venue, address, facts, actions);
-      item.append(media, content);
+      if (event.description) {
+        const description = document.createElement("p");
+        description.className = "walk-item__description";
+        description.textContent = event.description;
+        content.insertBefore(description, actions);
+      }
+      const toolbar = document.createElement("div");
+      toolbar.className = "walk-item__toolbar";
+      toolbar.append(number, reorder);
+      const favorite = makeButton("", "favorite-button", `В избранное: ${event.title}`);
+      favorite.dataset.favoriteButton = String(event.id);
+      const heart = document.createElement("span");
+      heart.className = "ui-icon ui-icon--heart";
+      heart.setAttribute("aria-hidden", "true");
+      favorite.append(heart);
+      media.append(favorite);
+      item.append(toolbar, media, content);
+      bindFavoriteButtons(item);
       return item;
     };
 
@@ -374,6 +395,9 @@
     };
 
     const renderWalk = (events) => {
+      loadedWalkEvents = events;
+      walkRoot.classList.toggle("is-empty", !events.length);
+      document.dispatchEvent(new CustomEvent("kidstime:walk-loaded", { detail: { events } }));
       list.replaceChildren();
       clearButton.hidden = events.length === 0;
       updateRouteLink(events);
@@ -402,6 +426,8 @@
 
     const loadWalk = async () => {
       const sequence = ++loadSequence;
+      loadedWalkEvents = [];
+      document.dispatchEvent(new Event("kidstime:walk-loading"));
       if (!walkIds.length) {
         renderWalk([]);
         return;

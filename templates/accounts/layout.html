@@ -3,7 +3,7 @@
 {% block body_class %}page-account{% endblock %}
 {% block content %}
 <section class="account-shell">
-    <div class="account-art" aria-hidden="true"><span class="account-wordmark">{% include "includes/brand_mark.html" %}</span></div>
+    {% include "accounts/art.html" %}
     <div class="account-panel">
         <header class="account-heading">
             <a class="round-button" href="{% block back_url %}{% url 'core:profile' %}{% endblock %}" aria-label="Назад">{% include "includes/icon.html" with name="arrow-left" %}</a>

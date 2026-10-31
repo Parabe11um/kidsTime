@@ -1,12 +1,16 @@
 from datetime import timedelta
 
 from django.conf import settings
+from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 
+from apps.accounts.models import Account
 from apps.catalog.models import Category
 from apps.catalog.views import _base_events
+from .forms import ProfileSettingsForm
 
 
 WEEKDAYS = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")
@@ -53,8 +57,31 @@ def home(request):
     return render(request, "core/home.html", context)
 
 
+@require_http_methods(["GET", "POST"])
 def profile(request):
-    return render(request, "core/profile.html", {"today": timezone.localdate()})
+    if not request.user.is_authenticated:
+        if request.method == "POST":
+            return redirect("accounts:login")
+        return render(request, "core/profile.html", {"today": timezone.localdate()})
+    account = Account.objects.filter(user=request.user).first()
+    form = ProfileSettingsForm(request.POST if request.method == "POST" else None, initial={
+        "first_name": request.user.first_name,
+        "last_name": request.user.last_name,
+        "newsletter": bool(account and account.newsletter_accepted_at),
+    })
+    if request.method == "POST" and form.is_valid():
+        request.user.first_name = form.cleaned_data["first_name"]
+        request.user.last_name = form.cleaned_data["last_name"]
+        request.user.save(update_fields=["first_name", "last_name"])
+        if account:
+            if not form.cleaned_data["newsletter"]:
+                account.newsletter_accepted_at = None
+            elif not account.newsletter_accepted_at:
+                account.newsletter_accepted_at = timezone.now()
+            account.save(update_fields=["newsletter_accepted_at"])
+        messages.success(request, "Настройки сохранены")
+        return redirect("core:profile")
+    return render(request, "core/profile.html", {"today": timezone.localdate(), "settings_form": form, "profile_account": account})
 
 
 def privacy(request):
