@@ -229,7 +229,7 @@ h3 { font-size: 16px; font-weight: 700; }
 .filter-section legend { padding: 0; }
 .filter-section label { display: grid; gap: 6px; margin-bottom: 14px; font-size: 13px; }
 .filter-section label:last-child { margin-bottom: 0; }
-.filter-section input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),.filter-section select { width: 100%; min-width: 0; padding: 10px 12px; border: 0; border-radius: 7px; background: #f4f4f4; font-size: 14px; min-height: 42px; }
+.filter-section input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]),.filter-section select { width: 100%; min-width: 0; padding: 10px 12px; border: 0; border-radius: 7px; background: #f4f4f4; font-size: 14px; min-height: 42px; }
 .filter-section .filter-inline { grid-template-columns: 1.2fr 1fr; align-items: center; }
 .filter-section .choice-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 34px; margin-bottom: 4px; }
 .choice-row input { appearance: none; width: 20px; height: 20px; flex-shrink: 0; border: 1px solid #a5aac5; border-radius: 50%; background: #fff; display: grid; place-items: center; }
@@ -1091,3 +1091,6 @@ body:has(dialog[open]) { overflow: hidden; }
   .walk-item__content > .walk-item__description { font-size: 14px; line-height: 20px; }
   .walk-origin::after,.walk-item:not(:last-child)::after { border-left-width: 3px; }
 }
+
+@media (min-width:1024px) { body > main { display: flow-root; } }
+[data-walk-title] { min-width: 0; overflow-wrap: anywhere; }
