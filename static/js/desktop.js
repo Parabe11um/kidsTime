@@ -1,16 +1,67 @@
 (() => {
   // Native dialogs keep focus inside overlays and restore it on dismissal.
+  const panelOpeners = new WeakMap();
   document.querySelectorAll("[data-panel-open]").forEach((button) => {
     const panel = document.getElementById(button.dataset.panelOpen);
     if (!panel) return;
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+      if (button.tagName === "A") event.preventDefault();
+      const parentPanel = button.closest("dialog");
+      panelOpeners.set(panel, parentPanel ? panelOpeners.get(parentPanel) || button : button);
       document.querySelectorAll("dialog[open]").forEach((open) => open.close());
       panel.showModal();
       button.setAttribute("aria-expanded", "true");
     });
     panel.addEventListener("close", () => button.setAttribute("aria-expanded", "false"));
   });
+
+  const tabletViewport = matchMedia("(min-width: 640px) and (max-width: 1023px)");
+  const collectionPages = (list, nav, selector, matches = () => true) => {
+    if (!list || !nav) return { refresh() {} };
+    let page = 1;
+    const refresh = (reset = false) => {
+      if (reset) page = 1;
+      const all = [...list.querySelectorAll(selector)];
+      const eligible = all.filter(matches);
+      const pages = Math.max(1, Math.ceil(eligible.length / 6));
+      page = Math.min(page, pages);
+      const visible = new Set(tabletViewport.matches ? eligible.slice((page - 1) * 6, page * 6) : eligible);
+      all.forEach((item) => { item.hidden = !visible.has(item); });
+      nav.hidden = !tabletViewport.matches || pages < 2;
+      nav.replaceChildren();
+      if (nav.hidden) return;
+      const button = (label, value, step = false) => {
+        const node = document.createElement("button"); node.type = "button"; node.textContent = label;
+        node.dataset.collectionPage = String(value); node.className = step ? "pagination__step" : "pagination__number";
+        node.disabled = value < 1 || value > pages;
+        if (!step) node.setAttribute("aria-label", `Страница ${value}`);
+        if (!step && value === page) { node.classList.add("is-current"); node.setAttribute("aria-current", "page"); }
+        return node;
+      };
+      nav.append(button("Назад", page - 1, true));
+      for (let number = 1; number <= pages; number++) nav.append(button(String(number), number));
+      nav.append(button("Далее", page + 1, true));
+      const count = document.createElement("small"); count.textContent = `Страница ${page} из ${pages}`; nav.append(count);
+    };
+    nav.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-collection-page]");
+      if (!button || button.disabled) return;
+      page = Number(button.dataset.collectionPage); refresh();
+      nav.querySelector('[aria-current="page"]')?.focus({preventScroll: true});
+      list.scrollIntoView({block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+    });
+    tabletViewport.addEventListener("change", () => refresh());
+    return { refresh };
+  };
+  const favoritePages = collectionPages(document.querySelector("[data-device-favorites]"), document.querySelector("[data-favorite-pages]"), ".event-card", (card) => card.dataset.favoriteMatch !== "false");
+  document.addEventListener("kidstime:favorite-cards-filtered", () => favoritePages.refresh(true));
+  favoritePages.refresh();
   document.querySelectorAll("dialog").forEach((dialog) => {
+    dialog.addEventListener("close", () => {
+      if (document.querySelector("dialog[open]")) return;
+      const opener = panelOpeners.get(dialog);
+      if (opener?.getClientRects().length && !opener.closest("dialog:not([open])")) opener.focus({preventScroll: true});
+    });
     dialog.querySelectorAll("[data-panel-close]").forEach((button) => button.addEventListener("click", () => dialog.close()));
     dialog.addEventListener("click", (event) => {
       const rect = dialog.getBoundingClientRect();
@@ -150,6 +201,7 @@
   }
 
   const savedRoot = document.querySelector("[data-saved-walks]");
+  const savedPages = collectionPages(savedRoot?.querySelector("[data-saved-walks-list]"), savedRoot?.querySelector("[data-saved-walk-pages]"), ".saved-route");
   let sequence = 0;
   const renderRoutes = async () => {
     if (!savedRoot) return;
@@ -157,7 +209,7 @@
     const list = savedRoot.querySelector("[data-saved-walks-list]");
     list.replaceChildren();
     const routes = readRoutes();
-    if (!routes.length) { list.append(savedRoot.querySelector("[data-saved-walks-empty]").content.cloneNode(true)); return; }
+    if (!routes.length) { list.append(savedRoot.querySelector("[data-saved-walks-empty]").content.cloneNode(true)); savedPages.refresh(); return; }
     for (const route of routes) {
       const card = document.createElement("article"); card.className = "saved-route";
       const link = document.createElement("a"); link.href = `${savedRoot.dataset.walkUrl}?route=${encodeURIComponent(route.id)}`;
@@ -184,7 +236,7 @@
       let touch = null;
       let suppressClick = false;
       card.addEventListener("pointerdown", (event) => {
-        if (event.pointerType !== "mouse" && matchMedia("(max-width: 767px)").matches) touch = { x: event.clientX, y: event.clientY };
+        if (event.pointerType !== "mouse" && matchMedia("(max-width: 639px)").matches) touch = { x: event.clientX, y: event.clientY };
       });
       card.addEventListener("pointercancel", () => { touch = null; });
       card.addEventListener("pointerup", (event) => {
@@ -207,6 +259,7 @@
         if (photo) { const image = document.createElement("img"); image.src = photo; image.alt = ""; image.loading = "lazy"; image.referrerPolicy = "no-referrer"; cover.append(image); }
       }).catch(() => { if (current === sequence) count.textContent = "Не удалось проверить доступность мест. Откройте маршрут ещё раз."; });
     }
+    savedPages.refresh();
   };
   document.addEventListener("kidstime:saved-walks-changed", () => { refreshCounts(); renderRoutes(); });
   window.addEventListener("storage", (event) => {

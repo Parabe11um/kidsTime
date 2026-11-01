@@ -5,11 +5,28 @@
     {% include "includes/profile_collections.html" %}
     <nav class="drawer-links" aria-label="Личный кабинет">
         <a href="{% url 'catalog:walk_builder' %}">{% include "includes/icon.html" with name="route" %}Маршрут на день</a>
+        <button type="button" data-panel-open="notifications-panel" aria-controls="notifications-panel" aria-expanded="false">Уведомления</button>
         <a href="mailto:info@kidstime.devtestenv.ru">{% include "includes/icon.html" with name="share" %}Связаться с поддержкой</a>
-        <a href="{% url 'core:profile' %}">{% if request.user.is_authenticated %}Настройки{% else %}Профиль{% endif %}</a>
+        <a href="{% url 'core:profile' %}"{% if request.user.is_authenticated %} data-panel-open="settings-panel" aria-controls="settings-panel" aria-expanded="false"{% endif %}>{% if request.user.is_authenticated %}Настройки{% else %}Профиль{% endif %}</a>
         {% if request.user.is_authenticated %}<form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="drawer-logout" type="submit">Выйти</button></form>{% endif %}
     </nav>
 </dialog>
+{% if request.user.is_authenticated %}
+<dialog class="settings-panel" id="settings-panel" aria-labelledby="settings-panel-title">
+    <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть настройки">{% include "includes/icon.html" with name="close" %}</button>
+    <h2 id="settings-panel-title">Настройки</h2>
+    <form method="post" action="{% url 'core:profile' %}" class="account-form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <label>Имя {{ account_settings_form.first_name }}</label>
+        <label>Фамилия {{ account_settings_form.last_name }}</label>
+        <div class="settings-email"><span>Email</span><p>{{ request.user.email|default:request.user.username }}</p></div>
+        {% if account_has_profile %}<label class="choice-row"><span>Получать рассылку с акциями</span>{{ account_settings_form.newsletter }}</label>{% endif %}
+        <a class="text-link" href="{% url 'core:privacy' %}">Политика конфиденциальности (черновик)</a>
+        <button class="primary-button" type="submit">Сохранить</button>
+    </form>
+</dialog>
+{% endif %}
 <dialog class="notifications-panel" id="notifications-panel" aria-labelledby="notifications-title">
     <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть уведомления">{% include "includes/icon.html" with name="close" %}</button>
     <h2 id="notifications-title">Уведомления</h2>

@@ -21,7 +21,7 @@
                 <h2>Личный кабинет</h2>
                 <a href="{% url 'favorites:list' %}">Избранное</a>
                 <a href="{% url 'catalog:saved_walks' %}">Мои маршруты</a>
-                <a href="{% url 'core:profile' %}">Настройки</a>
+                <a href="{% url 'core:profile' %}"{% if request.user.is_authenticated %} data-panel-open="settings-panel" aria-controls="settings-panel" aria-expanded="false"{% endif %}>Настройки</a>
             </nav>
         </div>
         <p class="site-footer__copyright">© {% now "Y" %} КидсТайм. Все права защищены.</p>

@@ -103,10 +103,12 @@
     let visible = 0;
     favoriteContainer.querySelectorAll("[data-event-id]").forEach((card) => {
       card.hidden = !favorites.has(card.dataset.eventId) || !card.textContent.toLocaleLowerCase("ru").includes(query);
+      card.dataset.favoriteMatch = String(!card.hidden);
       if (!card.hidden) visible += 1;
     });
     const noResults = document.querySelector("[data-favorites-no-results]");
     if (noResults) noResults.hidden = !query || visible > 0;
+    document.dispatchEvent(new Event("kidstime:favorite-cards-filtered"));
   };
   let favoriteLoadSequence = 0;
   const loadFavoriteCards = async () => {
@@ -132,6 +134,7 @@
     } catch (_error) {
       if (sequence !== favoriteLoadSequence) return;
       favoriteContainer.innerHTML = '<div class="empty-state">Не удалось загрузить избранное. Обновите страницу.</div>';
+      document.dispatchEvent(new Event("kidstime:favorite-cards-filtered"));
     }
   };
   loadFavoriteCards();

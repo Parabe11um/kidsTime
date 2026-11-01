@@ -6,7 +6,7 @@
     <section class="mobile-hero">
         {% include "includes/search_form.html" with search_id="catalog-search" %}
     </section>
-    <div class="page-shell catalog-layout">
+    <div class="page-shell catalog-layout{% if not has_filters %} catalog-layout--discovery{% endif %}">
         {% include "includes/filters.html" %}
         <section class="catalog-results" aria-labelledby="catalog-title">
             <h1 id="catalog-title" class="catalog-title{% if not has_filters %} sr-only{% endif %}">{% if has_filters %}Результаты поиска{% else %}Поиск событий{% endif %}</h1>

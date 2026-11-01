@@ -17,7 +17,10 @@
     {% include "includes/favorite_button.html" %}
     <div class="event-card__body">
         <a class="event-card__title" href="{{ event.get_absolute_url }}">{{ event.title }}</a>
-        <div class="event-card__location">{% include "includes/place_meta.html" %}</div>
+        <div class="event-card__meta">
+            <div class="event-card__location">{% include "includes/place_meta.html" %}</div>
+            {% if event.next_session %}<time class="event-card__date-badge" datetime="{{ event.next_session.starts_at|date:'c' }}"><span>{{ event.next_session.starts_at|date:'F' }}</span><b>{{ event.next_session.starts_at|date:'j' }}</b></time>{% elif event.available_until %}<time class="event-card__date-badge" datetime="{{ event.available_until|date:'Y-m-d' }}"><span>до {{ event.available_until|date:'E' }}</span><b>{{ event.available_until|date:'j' }}</b></time>{% endif %}
+        </div>
         {% if not compact %}
             <div class="event-card__facts">
                 <span class="event-card__date"><span class="sr-only">Дата: </span>{% include "includes/icon.html" with name="calendar" %}{% if event.next_session %}{{ event.next_session.starts_at|date:'j E' }}{% elif event.available_until %}до {{ event.available_until|date:'j E' }}{% else %}Расписание уточняется{% endif %}</span>

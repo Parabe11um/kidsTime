@@ -84,7 +84,7 @@
                 <div class="section-heading"><div><h2 id="nearby-title">Рядом с вами</h2><p class="desktop-only">Места и события для семейных открытий</p></div><a href="{% url 'catalog:event_map' %}" aria-label="Все места на карте">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div>
                 {% if nearby_events %}
                     <div class="home-feature home-feature--nearby">
-                        <div class="home-feature__widgets">{% include "includes/weather_card.html" %}</div>
+                        <div class="home-feature__widgets"><a class="nearby-count" href="{% url 'catalog:event_map' %}"><strong>{{ nearby_events|length }}</strong><span>в подборке</span></a>{% include "includes/weather_card.html" %}</div>
                         {% include "includes/feature_card.html" with event=nearby_events.0 %}
                     </div>
                     <div class="event-row">
@@ -105,11 +105,13 @@
    aria-label="Все популярные события">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div>
         {% if popular_events %}<div class="home-feature home-feature--popular">{% include "includes/feature_card.html" with event=popular_events.0 %}<blockquote class="home-family-note"><p>Время с детьми — самая ценная инвестиция в счастье семьи</p></blockquote></div>{% endif %}
         <div class="event-row">{% for event in popular_events %}{% include "includes/event_card.html" with compact=True %}{% empty %}<div class="empty-state">Подборка скоро появится.</div>{% endfor %}</div>
+        {% if popular_events.3 %}<div class="home-feature__secondary">{% include "includes/feature_card.html" with event=popular_events.3 %}</div>{% endif %}
     </section>
     <section class="event-section home-editorial"
              aria-labelledby="editorial-title">
-        <div class="section-heading"><div><h2 id="editorial-title">Выбор редакции</h2><p>Идеи для вашего следующего выходного</p></div><a href="{% url 'catalog:event_list' %}?collection=recommended"
+        <div class="section-heading"><div><h2 id="editorial-title"><span class="wide-label">Выбор редакции</span><span class="tablet-label">Топ 10</span></h2><p>Идеи для вашего следующего выходного</p></div><a href="{% url 'catalog:event_list' %}?collection=recommended"
    aria-label="Все идеи для прогулки">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div>
+        {% if recommended_events %}<div class="home-feature__editorial-tablet">{% include "includes/feature_card.html" with event=recommended_events.0 %}</div>{% endif %}
         <div class="editorial-grid">
             {% for event in recommended_events %}
                 {% include "includes/event_card.html" with compact=True %}

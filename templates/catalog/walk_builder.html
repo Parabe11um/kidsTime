@@ -58,7 +58,7 @@
         <dialog class="route-name-dialog" data-route-dialog aria-labelledby="route-dialog-title">
             <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть">{% include "includes/icon.html" with name="close" %}</button>
             <form data-save-walk-form>
-                <h2 id="route-dialog-title">Название маршрута</h2>
+                <h2 id="route-dialog-title"><span class="wide-label">Название маршрута</span><span class="tablet-label">Сохранить маршрут?</span></h2>
                 <p>Маршрут будет сохранён в этом браузере. Вы сможете открыть его в любое время.</p>
                 <label><span class="sr-only">Название маршрута</span><input name="name" type="text" maxlength="80" required placeholder="Название маршрута" autocomplete="off"></label>
                 <div><button type="submit" class="primary-button">Сохранить</button><button type="button" class="secondary-button" data-panel-close>Отмена</button></div>
