@@ -18,6 +18,22 @@
     });
   });
 
+  document.querySelectorAll("[data-avatar-form]").forEach((form) => {
+    const input = form.querySelector("[data-avatar-input]");
+    const submit = form.querySelector("[data-avatar-submit]");
+    submit.hidden = true;
+    input.addEventListener("change", () => {
+      if (!input.files.length) return;
+      if (input.files[0].size > 5 * 1024 * 1024) {
+        window.KidsTimeWalk?.notice("Выберите фото размером до 5 МБ.");
+        input.value = "";
+        return;
+      }
+      form.requestSubmit();
+    });
+    form.addEventListener("submit", () => { form.setAttribute("aria-busy", "true"); });
+  });
+
   document.querySelectorAll("[data-time-filter]").forEach((filter) => {
     const lower = filter.querySelector("[data-time-min]");
     const upper = filter.querySelector("[data-time-max]");
@@ -45,7 +61,11 @@
         if (!route || typeof route !== "object" || typeof route.id !== "string" || !/^[\w-]{1,80}$/.test(route.id) || unique.has(route.id)) return false;
         unique.add(route.id);
         return typeof route.name === "string" && route.name.trim() && normalizeIds(route.ids).length;
-      }).slice(0, maximumRoutes).map((route) => ({ id: route.id, name: route.name.trim().slice(0, 80), ids: normalizeIds(route.ids) }));
+      }).slice(0, maximumRoutes).map((route) => {
+        const record = { id: route.id, name: route.name.trim().slice(0, 80), ids: normalizeIds(route.ids) };
+        if (typeof route.created_at === "string" && /^\d{4}-\d{2}-\d{2}T/.test(route.created_at) && Number.isFinite(Date.parse(route.created_at))) record.created_at = route.created_at;
+        return record;
+      });
     } catch (_) { return []; }
   };
   const writeRoutes = (routes) => {
@@ -82,6 +102,7 @@
     const update = () => {
       const route = readRoutes().find((item) => item.id === activeRouteId);
       root.querySelectorAll("[data-walk-title]").forEach((node) => { node.textContent = route?.name || "Маршрут на день"; });
+      root.classList.toggle("is-saved", Boolean(route));
       saveButton.disabled = !walk.getEvents().length;
       deleteButton.hidden = !route;
     };
@@ -105,6 +126,8 @@
       }
       const id = index >= 0 ? activeRouteId : crypto.randomUUID();
       const record = { id, name: name.slice(0, 80), ids };
+      const createdAt = index >= 0 ? routes[index].created_at : new Date().toISOString();
+      if (createdAt) record.created_at = createdAt;
       if (index >= 0) routes[index] = record; else routes.unshift(record);
       if (!writeRoutes(routes)) {
         error.textContent = "Не удалось записать маршрут в браузере."; error.hidden = false; return;
@@ -139,19 +162,47 @@
       const card = document.createElement("article"); card.className = "saved-route";
       const link = document.createElement("a"); link.href = `${savedRoot.dataset.walkUrl}?route=${encodeURIComponent(route.id)}`;
       const cover = document.createElement("div"); cover.className = "saved-route__cover";
+      const badge = document.createElement("span"); badge.className = "saved-route__badge"; badge.textContent = String(route.ids.length); badge.setAttribute("aria-hidden", "true");
+      const body = document.createElement("div"); body.className = "saved-route__body";
       const heading = document.createElement("h2"); heading.textContent = route.name;
-      const count = document.createElement("p"); count.textContent = `Мест в маршруте: ${route.ids.length}`;
-      link.append(cover, heading, count);
+      const meta = document.createElement("p"); meta.className = "saved-route__meta";
+      const count = document.createElement("span"); count.textContent = `Мест: ${route.ids.length}`;
+      if (route.created_at) {
+        const date = document.createElement("time"); date.dateTime = route.created_at;
+        date.textContent = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(route.created_at));
+        meta.append(date);
+      }
+      meta.append(count); body.append(heading, meta); link.append(cover, badge, body);
       const remove = document.createElement("button"); remove.className = "saved-route__remove"; remove.type = "button"; remove.textContent = "Удалить";
       remove.setAttribute("aria-label", `Удалить маршрут «${route.name}»`);
       remove.addEventListener("click", () => { if (window.confirm(`Удалить маршрут «${route.name}»?`)) writeRoutes(readRoutes().filter((item) => item.id !== route.id)); });
-      card.append(link, remove); list.append(card);
+      const actions = document.createElement("button"); actions.className = "saved-route__actions"; actions.type = "button"; actions.textContent = "⋯";
+      actions.setAttribute("aria-label", `Действия с маршрутом «${route.name}»`); actions.setAttribute("aria-expanded", "false");
+      const reveal = (open) => { card.classList.toggle("is-revealed", open); actions.setAttribute("aria-expanded", String(open)); };
+      actions.addEventListener("click", () => reveal(!card.classList.contains("is-revealed")));
+      card.addEventListener("keydown", (event) => { if (event.key === "Escape") { reveal(false); actions.focus(); } });
+      let touch = null;
+      let suppressClick = false;
+      card.addEventListener("pointerdown", (event) => {
+        if (event.pointerType !== "mouse" && matchMedia("(max-width: 767px)").matches) touch = { x: event.clientX, y: event.clientY };
+      });
+      card.addEventListener("pointercancel", () => { touch = null; });
+      card.addEventListener("pointerup", (event) => {
+        if (!touch) return;
+        const dx = event.clientX - touch.x; const dy = event.clientY - touch.y; touch = null;
+        if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+          reveal(dx < 0); suppressClick = true;
+          setTimeout(() => { suppressClick = false; }, 500);
+        }
+      });
+      link.addEventListener("click", (event) => { if (suppressClick) { event.preventDefault(); suppressClick = false; } });
+      card.append(link, actions, remove); list.append(card);
       fetch(`${savedRoot.dataset.endpoint}?ids=${encodeURIComponent(route.ids.join(","))}`, { headers: { Accept: "application/json" } }).then((response) => {
         if (!response.ok) throw new Error("unavailable"); return response.json();
       }).then((payload) => {
         if (current !== sequence) return;
         const events = Array.isArray(payload.results) ? payload.results : [];
-        count.textContent = events.length === route.ids.length ? `Мест в маршруте: ${events.length}` : `Доступно мест: ${events.length} из ${route.ids.length}`;
+        count.textContent = events.length === route.ids.length ? `Мест: ${events.length}` : `Доступно: ${events.length} из ${route.ids.length}`;
         const photo = events.find((item) => item.cover)?.cover;
         if (photo) { const image = document.createElement("img"); image.src = photo; image.alt = ""; image.loading = "lazy"; image.referrerPolicy = "no-referrer"; cover.append(image); }
       }).catch(() => { if (current === sequence) count.textContent = "Не удалось проверить доступность мест. Откройте маршрут ещё раз."; });

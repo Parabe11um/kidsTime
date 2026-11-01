@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Маршрут на день — КидсТайм{% endblock %}
 {% block body_class %}page-walk{% endblock %}
 {% block content %}
@@ -19,22 +20,24 @@
                 <div class="walk-origin">
                     <span class="walk-origin__number">1</span>
                     <div>
-                        <strong>Моё местоположение</strong>
-                        <p>Начальная точка в Яндекс Картах</p>
+                        <strong>Ваше текущее местоположение</strong>
+                        <p data-walk-origin-label>Определить моё местоположение</p>
                     </div>
-                    <span class="walk-origin__marker" aria-hidden="true">{% include "includes/icon.html" with name="location" %}</span>
+                    <button class="walk-origin__marker" type="button" data-walk-locate aria-label="Определить начальную точку">{% include "includes/icon.html" with name="location" %}</button>
                 </div>
                 <div class="walk-list" data-walk-list aria-live="polite">
                     <div class="empty-state">Загружаем выбранные места…</div>
                 </div>
                 <template data-walk-empty>
                     <div class="empty-state walk-empty">
+                        <span class="empty-route-art"><img src="{% static 'illustrations/empty-route.png' %}" alt=""></span>
                         <h2>Куда отправимся?</h2>
                         <p>Добавьте места из карточек событий. Их можно будет расставить в удобном порядке.</p>
                     </div>
                 </template>
                 <a class="walk-add"
-                   href="{% url 'catalog:event_list' %}"><span aria-hidden="true">+</span> Добавить место</a>
+                   href="{% url 'catalog:event_list' %}"><span class="ui-icon ui-icon--plus" aria-hidden="true"></span> Добавить место</a>
+                <a class="secondary-button route-button walk-empty-route is-disabled" aria-disabled="true">Построить маршрут</a>
             </section>
             <aside class="walk-summary">
                 <h2>Ваша прогулка</h2>
@@ -55,7 +58,7 @@
         <dialog class="route-name-dialog" data-route-dialog aria-labelledby="route-dialog-title">
             <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть">{% include "includes/icon.html" with name="close" %}</button>
             <form data-save-walk-form>
-                <h2 id="route-dialog-title">Сохранить маршрут?</h2>
+                <h2 id="route-dialog-title">Название маршрута</h2>
                 <p>Маршрут будет сохранён в этом браузере. Вы сможете открыть его в любое время.</p>
                 <label><span class="sr-only">Название маршрута</span><input name="name" type="text" maxlength="80" required placeholder="Название маршрута" autocomplete="off"></label>
                 <div><button type="submit" class="primary-button">Сохранить</button><button type="button" class="secondary-button" data-panel-close>Отмена</button></div>

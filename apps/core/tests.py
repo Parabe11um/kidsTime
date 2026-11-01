@@ -1,7 +1,13 @@
+import io
+import tempfile
+from pathlib import Path
+
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
 
 from apps.accounts.models import Account
 
@@ -71,6 +77,82 @@ class ProfileSettingsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.account.refresh_from_db()
         self.assertIsNone(self.account.newsletter_accepted_at)
+
+
+class ProfileAvatarTests(TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.media_root = Path(directory.name)
+        media_settings = override_settings(MEDIA_ROOT=directory.name)
+        media_settings.enable()
+        self.addCleanup(media_settings.disable)
+        self.user = get_user_model().objects.create_user(username="photo-parent", email="photo@example.org")
+        self.account = Account.objects.create(user=self.user, email=self.user.email, privacy_accepted_at=timezone.now(), privacy_policy_url="/privacy/")
+        self.client.force_login(self.user)
+
+    def photo(self, *, size=(900, 600), suffix=b""):
+        output = io.BytesIO()
+        metadata = Image.Exif()
+        metadata[305] = "private-photo-metadata"
+        Image.new("RGB", size, "#abd8cf").save(output, format="JPEG", exif=metadata)
+        return SimpleUploadedFile("original-private-name.jpg", output.getvalue() + suffix, content_type="image/jpeg")
+
+    def test_photo_updates_only_current_account_and_is_reencoded(self):
+        other = get_user_model().objects.create_user(username="other-photo-parent", email="other-photo@example.org")
+        other_account = Account.objects.create(user=other, email=other.email, privacy_accepted_at=timezone.now(), privacy_policy_url="/privacy/")
+        response = self.client.post(reverse("core:profile_avatar"), {"avatar": self.photo(suffix=b"<script>trailing payload</script>"), "user_id": other.pk})
+        self.assertRedirects(response, reverse("core:profile"))
+        self.account.refresh_from_db()
+        other_account.refresh_from_db()
+        self.assertFalse(other_account.avatar)
+        self.assertRegex(self.account.avatar.name, r"^avatars/[0-9a-f]{32}\.jpg$")
+        saved = self.media_root / self.account.avatar.name
+        with Image.open(saved) as image:
+            self.assertEqual(image.format, "JPEG")
+            self.assertLessEqual(max(image.size), 512)
+            self.assertFalse(image.getexif())
+        self.assertNotIn(b"trailing payload", saved.read_bytes())
+        self.assertContains(self.client.get(reverse("core:profile")), self.account.avatar.url)
+
+    def test_invalid_or_unsupported_upload_does_not_create_a_file(self):
+        for name, content, content_type in (
+            ("icon.svg", b'<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>', "image/svg+xml"),
+            ("broken.jpg", b"not an image", "image/jpeg"),
+        ):
+            with self.subTest(name=name):
+                response = self.client.post(reverse("core:profile_avatar"), {"avatar": SimpleUploadedFile(name, content, content_type=content_type)})
+                self.assertRedirects(response, reverse("core:profile"))
+                self.account.refresh_from_db()
+                self.assertFalse(self.account.avatar)
+        self.assertEqual(list(self.media_root.rglob("*")), [])
+
+    def test_oversize_or_high_resolution_photo_is_rejected(self):
+        for photo in (self.photo(suffix=b"x" * (5 * 1024 * 1024)), self.photo(size=(4097, 4096))):
+            with self.subTest(size=photo.size):
+                self.client.post(reverse("core:profile_avatar"), {"avatar": photo})
+                self.account.refresh_from_db()
+                self.assertFalse(self.account.avatar)
+        self.assertEqual(list(self.media_root.rglob("*")), [])
+
+    def test_animated_photo_is_rejected(self):
+        output = io.BytesIO()
+        Image.new("RGB", (20, 20), "red").save(output, format="PNG", save_all=True, append_images=[Image.new("RGB", (20, 20), "blue")], duration=100, loop=0)
+        self.client.post(reverse("core:profile_avatar"), {"avatar": SimpleUploadedFile("animated.png", output.getvalue(), content_type="image/png")})
+        self.account.refresh_from_db()
+        self.assertFalse(self.account.avatar)
+
+    def test_photo_requires_login_post_and_csrf(self):
+        self.assertEqual(self.client.get(reverse("core:profile_avatar")).status_code, 405)
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.user)
+        self.assertEqual(client.post(reverse("core:profile_avatar"), {"avatar": self.photo()}).status_code, 403)
+        self.client.logout()
+        response = self.client.post(reverse("core:profile_avatar"), {"avatar": self.photo()})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith(reverse("accounts:login")))
+        self.account.refresh_from_db()
+        self.assertFalse(self.account.avatar)
 
 
 @override_settings(TEST_REGISTRATION_ENABLED=False, PRIVACY_POLICY_URL="")

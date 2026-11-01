@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load l10n %}
 {% block title %}{{ event.title }} — КидсТайм{% endblock %}
-{% block body_class %}page-detail{% endblock %}
+{% block body_class %}page-detail{% if event.next_session or event.available_until %} page-detail--scheduled{% endif %}{% endblock %}
 {% block content %}
     <article class="detail-shell">
         <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>›</span><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}">{{ event.category.name }}</a><span>›</span><span>{{ event.title }}</span></nav>
