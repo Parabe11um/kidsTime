@@ -2,15 +2,16 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.models import Account
 from apps.catalog.models import Category
 from apps.catalog.views import _base_events
-from .forms import ProfileSettingsForm
+from .forms import ProfileAvatarForm, ProfileSettingsForm
 
 
 WEEKDAYS = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")
@@ -63,7 +64,7 @@ def profile(request):
         if request.method == "POST":
             return redirect("accounts:login")
         return render(request, "core/profile.html", {"today": timezone.localdate()})
-    account = Account.objects.filter(user=request.user).first()
+    account = getattr(request.user, "account", None)
     form = ProfileSettingsForm(request.POST if request.method == "POST" else None, initial={
         "first_name": request.user.first_name,
         "last_name": request.user.last_name,
@@ -82,6 +83,21 @@ def profile(request):
         messages.success(request, "Настройки сохранены")
         return redirect("core:profile")
     return render(request, "core/profile.html", {"today": timezone.localdate(), "settings_form": form, "profile_account": account})
+
+
+@login_required
+@require_POST
+def profile_avatar(request):
+    account = get_object_or_404(Account, user=request.user)
+    form = ProfileAvatarForm(request.POST, request.FILES)
+    if form.is_valid():
+        account.avatar = form.cleaned_data["avatar"]
+        account.save(update_fields=["avatar"])
+        messages.success(request, "Фото профиля обновлено")
+    else:
+        for error in form.errors.get("avatar", []):
+            messages.error(request, error)
+    return redirect("core:profile")
 
 
 def privacy(request):

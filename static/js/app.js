@@ -270,6 +270,24 @@
     const routeLink = walkRoot.querySelector("[data-walk-route]");
     const clearButton = walkRoot.querySelector("[data-walk-clear]");
     let loadSequence = 0;
+    // Keep the explicit origin in memory, never in saved routes or localStorage.
+    let origin = "";
+    const locateButton = walkRoot.querySelector("[data-walk-locate]");
+    locateButton?.addEventListener("click", () => {
+      if (!navigator.geolocation) { showWalkNotice("Выберите начальную точку в Яндекс Картах."); return; }
+      locateButton.disabled = true;
+      locateButton.setAttribute("aria-busy", "true");
+      const done = () => { locateButton.disabled = false; locateButton.removeAttribute("aria-busy"); };
+      navigator.geolocation.getCurrentPosition((position) => {
+        done();
+        const { latitude, longitude } = position.coords;
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+        origin = `${latitude.toFixed(5)},${longitude.toFixed(5)}`;
+        walkRoot.querySelector("[data-walk-origin-label]").textContent = `Моя точка: ${origin}`;
+        updateRouteLink(loadedWalkEvents);
+        showWalkNotice("Начальная точка определена");
+      }, () => { done(); showWalkNotice("Не удалось определить местоположение. Начальную точку можно выбрать в Яндекс Картах."); }, { timeout: 10000, maximumAge: 60000 });
+    });
 
     const directRouteUrl = (event) => (
       `https://yandex.ru/maps/?rtext=~${encodeURIComponent(`${event.lat},${event.lng}`)}&rtt=auto`
@@ -277,7 +295,7 @@
 
     const walkRouteUrl = (events) => {
       const points = events.map((event) => encodeURIComponent(`${event.lat},${event.lng}`));
-      return `https://yandex.ru/maps/?rtext=~${points.join("~")}&rtt=auto`;
+      return `https://yandex.ru/maps/?rtext=${encodeURIComponent(origin)}~${points.join("~")}&rtt=auto`;
     };
 
     const makeButton = (label, className, ariaLabel) => {
@@ -324,9 +342,12 @@
       address.textContent = event.address;
       const facts = document.createElement("div");
       facts.className = "walk-item__facts";
-      [event.date, event.age, event.price].filter(Boolean).forEach((value) => {
+      [[event.date, "calendar"], [event.age, "child"], [event.price, "wallet"]].forEach(([value, iconName]) => {
+        if (!value) return;
         const fact = document.createElement("span");
-        fact.textContent = value;
+        if (iconName === "calendar") fact.className = "walk-item__date";
+        const icon = document.createElement("span"); icon.className = `ui-icon ui-icon--${iconName}`; icon.setAttribute("aria-hidden", "true");
+        fact.append(icon, document.createTextNode(value));
         facts.append(fact);
       });
 

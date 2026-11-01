@@ -102,6 +102,18 @@ class PublicPagesTests(TestCase):
         self.assertEqual([day["date"] for day in days if day["is_today"]], ["2026-11-01"])
         self.assertEqual(days[7]["date"], "2026-11-02")
 
+    def test_permanent_place_shows_price_without_an_invented_schedule(self):
+        event = Event.objects.first()
+        event.sessions.all().delete()
+        event.available_from = event.available_until = None
+        event.save(update_fields=["available_from", "available_until"])
+        response = self.client.get(event.get_absolute_url())
+        html = response.content.decode()
+        schedule = html.split('<div class="detail-mobile-schedule">', 1)[1].split("</section>", 1)[0]
+        self.assertIn("Стоимость", schedule)
+        self.assertNotIn("Расписание", schedule)
+        self.assertNotIn("Уточняется", schedule)
+
     def test_home_feed_has_distinct_new_and_free_collections(self):
         event = Event.objects.first()
         Event.objects.update(is_free=False)

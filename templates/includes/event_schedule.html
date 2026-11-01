@@ -1,5 +1,6 @@
-<section class="detail-schedule" aria-label="Расписание и стоимость">
+<section class="detail-schedule" aria-label="{% if event.next_session or event.available_from and event.available_until %}Расписание и стоимость{% else %}Стоимость{% endif %}">
     <dl>
+        {% if event.next_session or event.available_from and event.available_until %}
         <div>
             <dt>{% if event.available_from and not event.upcoming_sessions %}Период посещения{% else %}Расписание{% endif %}</dt>
             <dd>
@@ -10,6 +11,7 @@
                 {% else %}Уточняется у организатора{% endif %}
             </dd>
         </div>
+        {% endif %}
         <div><dt>Стоимость</dt><dd>{{ event.display_price }}</dd></div>
     </dl>
     {% if event.upcoming_sessions|length > 1 %}
