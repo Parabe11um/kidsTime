@@ -78,7 +78,7 @@ in place.
 
 - Search hero, result count/map row and 108px compact image cards; title/address
   ellipses and calendar/age/price facts are shared with favorites.
-- Profile hero, floating avatar, live collection tiles and expandable name/email
+- Profile hero, floating avatar, live collection tiles and expandable name and
   marketing-consent settings. The photo picker uploads to the current account with
   CSRF protection. JPEG/PNG/WebP uploads are limited to 5 MiB and 16 megapixels;
   animations are rejected, metadata is stripped, and the stored JPEG has a random

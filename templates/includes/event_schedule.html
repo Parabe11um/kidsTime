@@ -1,4 +1,4 @@
-<section class="detail-schedule" aria-label="Расписание и стоимость">
+<section class="detail-schedule" aria-label="{% if event.next_session or event.available_from and event.available_until %}Расписание и стоимость{% else %}Стоимость{% endif %}">
     <dl>
         {% if event.next_session or event.available_from and event.available_until %}
         <div>

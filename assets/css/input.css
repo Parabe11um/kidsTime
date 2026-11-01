@@ -1250,9 +1250,9 @@ body:has(dialog[open]) { overflow: hidden; }
   .saved-route .saved-route__meta { margin: 0; gap: 4px 12px; color: var(--ink); font-size: 12px; line-height: 16px; }
   .saved-route__actions { position: absolute; z-index: 2; top: 20px; right: 8px; display: grid; place-items: center; width: 36px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 24px; }
   .saved-route__remove { top: 20px; right: 8px; bottom: auto; width: 68px; height: 44px; padding: 4px; border-radius: 16px; background: #da515a; color: white; opacity: 0; pointer-events: none; }
-  .saved-route.is-revealed > a,.saved-route:has(.saved-route__remove:focus-visible) > a { transform: translateX(-80px); }
-  .saved-route.is-revealed .saved-route__actions,.saved-route:has(.saved-route__remove:focus-visible) .saved-route__actions { right: 88px; }
-  .saved-route.is-revealed .saved-route__remove,.saved-route__remove:focus-visible { opacity: 1; pointer-events: auto; }
+  .saved-route.is-revealed > a,.saved-route:has(.saved-route__remove:focus) > a { transform: translateX(-80px); }
+  .saved-route.is-revealed .saved-route__actions,.saved-route:has(.saved-route__remove:focus) .saved-route__actions { right: 88px; }
+  .saved-route.is-revealed .saved-route__remove,.saved-route__remove:focus { opacity: 1; pointer-events: auto; }
 
   .detail-gallery__track { aspect-ratio: 402/332; }
   .detail-heading { padding-top: 24px; }
