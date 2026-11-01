@@ -72,9 +72,8 @@ Django filter/pagination/settings tests run in CI. No schema migration is added.
 
 ## Mobile export, 1 November 2026
 
-Reference: `KidsTime(2).zip`, 29 native PNG exports. The mobile overrides apply
-below 768px; the desktop search, gallery, authentication and sidebar layouts stay
-in place.
+Reference: `KidsTime(2).zip`, 29 native PNG exports. The mobile overrides originally
+applied below 768px; the tablet export below now gives 640–1023px its own layout.
 
 - Search hero, result count/map row and 108px compact image cards; title/address
   ellipses and calendar/age/price facts are shared with favorites.
@@ -113,3 +112,46 @@ delivered notifications require their actual data/behavior and are not simulated
 Validation includes browser route/favorite lifecycles, mobile geometry, native
 dialogs, legacy saved records and photo selection; server tests cover upload
 authorization, CSRF, image validation/re-encoding and undated place presentation.
+
+## Tablet export, 2 November 2026
+
+Reference: `KidsTime(3).zip`, 22 PNG exports, with tablet artboards at 744px.
+The tablet rules apply from 640 through 1023px. Phones retain the mobile layout
+below 640px and the desktop layout starts at 1024px.
+
+- Tablet header with search and menu, full-height profile/notifications/settings
+  drawers, rounded main surface and a three-column footer. The mobile bottom
+  navigation is hidden at tablet widths.
+- Main-page active event with its description on the right, fourteen calendar
+  dates, two-column collections, wide photo features and the editorial feature.
+  Collection size, dates, weather and photographs use the existing catalog data.
+  Carousel arrows remain available; tablet playback is manual.
+- Initial search guidance and card stack; filtered results use wide text cards.
+  Filters open in a right-hand drawer with the existing working date/time controls.
+- Event gallery with thumbnails and tools below the main image, a two-column
+  schedule/price panel, full-width description, paired actions and two-column
+  related cards. Periods and permanent places do not acquire invented sessions.
+- Favorites and saved-browser routes use two-column grids with six records per
+  page and actual page counts. Resizing restores the appropriate layout without
+  dropping records; deletion clamps the current page to the remaining collection.
+- Day routes use one wide column, larger point controls and images, paired
+  add/map actions and the centered naming dialog. Email login and registration
+  use the tablet's centered single-column form.
+- The settings drawer edits the same first name, last name and newsletter consent
+  as the profile page. Successful saves return to the originating local page;
+  external return URLs are rejected. Dialog switching retains the original opener
+  for keyboard focus restoration.
+
+The archive contains reference screenshots rather than separate vector/artwork
+assets. The menu uses a text control until the original header icon is supplied;
+existing authentication artwork and empty-state illustrations are retained.
+Reviews, event subscriptions, personal notifications and account-synced routes
+still require their actual data and behavior. Telegram/VK login remain excluded.
+
+Validation: browser geometry and route/favorite lifecycles at 320, 402, 639, 640,
+744, 834, 1024 and 1440px; focused tablet checks also cover 1023px, drawer focus,
+filter keyboard controls, gallery, collection pagination, resize and deletion.
+Tests for settings persistence and return-URL validation are included. The full
+Django test run still needs CI: the local visual-preview runtime does not have
+the application's server dependencies or PostGIS. Compiled CSS is regenerated
+from Tailwind. No schema migration is added by this tablet patch.

@@ -6,7 +6,7 @@
         <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>→</span><a href="{% url 'core:profile' %}">Профиль</a><span>→</span><span>Избранное</span></nav>
         <header class="screen-header">
             <a class="round-button" href="{% url 'core:profile' %}" aria-label="В профиль">{% include "includes/icon.html" with name="arrow-left" %}</a>
-            <h1>Избранное</h1>
+            <h1><span class="wide-label">Избранное</span><span class="tablet-label">Избранные события</span></h1>
         </header>
         <form class="hero-search favorites-search" role="search" data-favorites-search>
             <label class="sr-only" for="favorite-search">Поиск по избранным событиям</label>
@@ -14,6 +14,7 @@
             <button type="submit" class="search-filter-button" aria-label="Найти в избранном">{% include "includes/filter_icon.html" %}</button>
         </form>
         <div class="event-grid event-grid--results" data-device-favorites data-endpoint="{% url 'favorites:cards' %}" aria-live="polite"><div class="empty-state">Загружаем избранное…</div></div>
+        <nav class="pagination collection-pagination" data-favorite-pages aria-label="Страницы избранного" hidden></nav>
         <p class="empty-state" data-favorites-no-results hidden>Среди сохранённых событий ничего не найдено.</p>
         <template data-favorites-empty>
             <div class="empty-state empty-state--large favorites-empty">

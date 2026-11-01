@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.models import Account
@@ -81,6 +82,9 @@ def profile(request):
                 account.newsletter_accepted_at = timezone.now()
             account.save(update_fields=["newsletter_accepted_at"])
         messages.success(request, "Настройки сохранены")
+        return_to = request.POST.get("next", "")
+        if url_has_allowed_host_and_scheme(return_to, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+            return redirect(return_to)
         return redirect("core:profile")
     return render(request, "core/profile.html", {"today": timezone.localdate(), "settings_form": form, "profile_account": account})
 

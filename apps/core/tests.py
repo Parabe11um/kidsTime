@@ -78,6 +78,20 @@ class ProfileSettingsTests(TestCase):
         self.account.refresh_from_db()
         self.assertIsNone(self.account.newsletter_accepted_at)
 
+    def test_drawer_settings_return_to_the_original_local_page(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("core:profile"), {"first_name": "Роман", "next": "/events/?q=семья"})
+        self.assertRedirects(response, "/events/?q=семья", fetch_redirect_response=False)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Роман")
+
+    def test_settings_return_url_cannot_redirect_outside_the_application(self):
+        self.client.force_login(self.user)
+        for target in ("https://outside.example/", "//outside.example/", "javascript:alert(1)", "\\\\outside.example/", "http://testserver/events/"):
+            with self.subTest(target=target):
+                response = self.client.post(reverse("core:profile"), {"first_name": "Роман", "next": target}, secure=True)
+                self.assertRedirects(response, reverse("core:profile"), fetch_redirect_response=False)
+
 
 class ProfileAvatarTests(TestCase):
     def setUp(self):

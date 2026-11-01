@@ -42,6 +42,7 @@
                             aria-label="Открыть фильтры">{% include "includes/filter_icon.html" %}</button>
                 </form>
                 <nav class="desktop-nav" aria-label="Основная навигация">
+                    <button type="button" class="tablet-menu-button" data-panel-open="profile-panel" aria-controls="profile-panel" aria-expanded="false">Меню</button>
                     <a href="{% url 'catalog:walk_builder' %}"
                        aria-label="Маршрут на день"
                        title="Маршрут на день">{% include "includes/icon.html" with name="route" %}<span class="nav-count" data-walk-count hidden>0</span></a>
