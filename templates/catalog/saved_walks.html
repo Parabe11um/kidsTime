@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Мои маршруты — КидсТайм{% endblock %}
+{% block body_class %}page-saved-walks{% endblock %}
+{% block content %}
+<div class="page-shell saved-walks-page" data-saved-walks data-endpoint="{% url 'catalog:walk_events_api' %}" data-walk-url="{% url 'catalog:walk_builder' %}">
+    <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>→</span><a href="{% url 'core:profile' %}">Профиль</a><span>→</span><span>Мои маршруты</span></nav>
+    <header class="screen-header"><a class="round-button" href="{% url 'core:profile' %}" aria-label="В профиль">{% include "includes/icon.html" with name="arrow-left" %}</a><h1>Мои маршруты</h1></header>
+    <p class="saved-walks-note">Сохранённые маршруты доступны в этом браузере.</p>
+    <div class="saved-walks-grid" data-saved-walks-list aria-live="polite"></div>
+    <template data-saved-walks-empty><div class="empty-state saved-walks-empty"><h2>Мои маршруты</h2><p>Сохраняйте маршруты, которые вам понравились, чтобы вернуться к ним позже.</p><a class="primary-button" href="{% url 'catalog:walk_builder' %}">Собрать маршрут</a></div></template>
+</div>
+{% endblock %}

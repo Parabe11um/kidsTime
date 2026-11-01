@@ -22,10 +22,6 @@
                 <a class="detail-back round-button"
                    href="{% url 'catalog:event_list' %}"
                    aria-label="К списку событий">{% include "includes/icon.html" with name="arrow-left" %}</a>
-                <div class="detail-hero__tools"><button class="share-button"
-        type="button"
-        data-share
-        aria-label="Поделиться событием">{% include "includes/icon.html" with name="share" %}</button>{% include "includes/favorite_button.html" %}</div>
                 {% if gallery|length > 1 %}
                     <div class="gallery-dots">
                         {% for image in gallery %}
@@ -37,6 +33,7 @@
                     </div>
                 {% endif %}
             </div>
+            <div class="detail-gallery__bar">
             {% if gallery|length > 1 %}
                 <div class="gallery-thumbnails">
                     {% for image in gallery %}
@@ -52,12 +49,14 @@
                     {% endfor %}
                 </div>
             {% endif %}
+                <div class="detail-hero__tools"><button class="share-button" type="button" data-share aria-label="Поделиться событием">{% include "includes/icon.html" with name="share" %}</button>{% include "includes/favorite_button.html" %}</div>
+            </div>
         </section>
         <div class="detail-grid">
             <div class="detail-main">
                 <header class="detail-heading"><h1>{{ event.title }}</h1>{% include "includes/place_meta.html" %}</header>
                 <div class="detail-tags"><span class="age-tag">{{ event.age_from }}+</span><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}">{{ event.category.name }}</a><span>{{ event.get_activity_format_display }}</span>{% if event.venue.accessible %}<span>Маломобильность</span>{% endif %}{% if event.venue.stroller_access %}<span>Можно с коляской</span>{% endif %}{% if event.venue.parking_notes %}<span>Парковка</span>{% endif %}</div>
-                {% include "includes/event_schedule.html" %}
+                <div class="detail-mobile-schedule">{% include "includes/event_schedule.html" %}</div>
                 <section class="detail-section detail-description"
                          aria-label="Описание события">
                     {% if event.short_description %}<p class="detail-lead">{{ event.short_description }}</p>{% endif %}
@@ -70,6 +69,7 @@
 
             </div>
             <aside class="detail-aside">
+                <div class="detail-desktop-schedule">{% include "includes/event_schedule.html" %}</div>
                 <div class="booking-card">
                     <div class="booking-card__actions">
                         {% if event.venue.location %}

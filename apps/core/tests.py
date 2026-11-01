@@ -1,6 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.test import SimpleTestCase, TestCase, override_settings
+from django.test import Client, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
+
+from apps.accounts.models import Account
 
 
 class RobotsPolicyTests(SimpleTestCase):
@@ -26,6 +29,48 @@ class RobotsPolicyTests(SimpleTestCase):
         response = self.client.get(reverse("core:robots_txt"))
 
         self.assertContains(response, "Allow: /")
+
+
+class ProfileSettingsTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(username="profile-parent", email="parent@example.org", password="FamilyCalendar!8537")
+        self.account = Account.objects.create(user=self.user, email=self.user.email, privacy_accepted_at=timezone.now(), privacy_policy_url="/privacy/")
+
+    def test_settings_update_only_signed_in_user_and_preserve_privacy_consent(self):
+        other = get_user_model().objects.create_user(username="other-parent", first_name="Other")
+        self.client.force_login(self.user)
+        accepted = self.account.privacy_accepted_at
+        response = self.client.post(reverse("core:profile"), {"first_name": "Роман", "last_name": "Сергеев", "newsletter": "on", "user_id": other.pk, "is_staff": "on"})
+        self.assertRedirects(response, reverse("core:profile"))
+        self.user.refresh_from_db()
+        self.account.refresh_from_db()
+        other.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Роман")
+        self.assertFalse(self.user.is_staff)
+        self.assertEqual(other.first_name, "Other")
+        self.assertEqual(self.account.privacy_accepted_at, accepted)
+        self.assertIsNotNone(self.account.newsletter_accepted_at)
+        self.client.post(reverse("core:profile"), {"first_name": "Роман"})
+        self.account.refresh_from_db()
+        self.assertIsNone(self.account.newsletter_accepted_at)
+
+    def test_guest_cannot_change_settings(self):
+        response = self.client.post(reverse("core:profile"), {"first_name": "Wrong"})
+        self.assertRedirects(response, reverse("accounts:login"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "")
+
+    def test_settings_require_csrf_token(self):
+        client = Client(enforce_csrf_checks=True)
+        client.force_login(self.user)
+        self.assertEqual(client.post(reverse("core:profile"), {"first_name": "Wrong"}).status_code, 403)
+
+    def test_invalid_name_does_not_save_any_settings(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("core:profile"), {"first_name": "A" * 151, "newsletter": "on"})
+        self.assertEqual(response.status_code, 200)
+        self.account.refresh_from_db()
+        self.assertIsNone(self.account.newsletter_accepted_at)
 
 
 @override_settings(TEST_REGISTRATION_ENABLED=False, PRIVACY_POLICY_URL="")

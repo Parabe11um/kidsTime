@@ -45,18 +45,8 @@
                     <a href="{% url 'catalog:walk_builder' %}"
                        aria-label="Маршрут на день"
                        title="Маршрут на день">{% include "includes/icon.html" with name="route" %}<span class="nav-count" data-walk-count hidden>0</span></a>
-                    <a href="{% url 'favorites:list' %}"
-                       aria-label="Избранное"
-                       title="Избранное"><span class="ui-icon ui-icon--heart"
-      aria-hidden="true"></span></a>
-                    <a href="{% url 'catalog:event_list' %}"
-                       aria-label="События"
-                       title="События"><span class="ui-icon ui-icon--dashboard"
-      aria-hidden="true"></span></a>
-                    <a href="{% url 'core:profile' %}"
-                       class="desktop-profile"
-                       aria-label="Профиль"
-                       title="Профиль"><span class="ui-icon ui-icon--profile" aria-hidden="true"></span></a>
+                    <button type="button" class="header-notifications" data-panel-open="notifications-panel" aria-controls="notifications-panel" aria-expanded="false" aria-label="Уведомления"><span class="header-notifications__label">Уведомления</span></button>
+                    <button type="button" class="desktop-profile" data-panel-open="profile-panel" aria-controls="profile-panel" aria-expanded="false" aria-label="Профиль"><span class="header-avatar" aria-hidden="true">{% if request.user.is_authenticated %}{{ request.user.first_name|default:request.user.email|default:request.user.username|first|upper }}{% else %}<span class="ui-icon ui-icon--profile"></span>{% endif %}</span></button>
                 </nav>
             </div>
         </header>
@@ -70,11 +60,13 @@
         </main>
         {% include "includes/site_footer.html" %}
         {% include "includes/bottom_nav.html" %}
+        {% include "includes/account_panels.html" %}
         {% if request.user.is_authenticated %}
             {{ account_favorite_ids|json_script:"account-favorites" }}
             <div hidden data-account-favorites data-save-url="{% url 'favorites:set' 0 %}" data-merge-url="{% url 'favorites:merge' %}">{% csrf_token %}</div>
         {% endif %}
         <script src="{% static 'js/app.js' %}" defer></script>
+        <script src="{% static 'js/desktop.js' %}" defer></script>
         {% block scripts %}{% endblock %}
     </body>
 </html>

@@ -25,5 +25,6 @@
                 <span><span class="sr-only">Стоимость: </span>{% include "includes/icon.html" with name="wallet" %}{{ event.display_price }}</span>
             </div>
         {% endif %}
+        {% if search_result and event.short_description %}<p class="event-card__summary">{{ event.short_description|truncatechars:220 }}</p>{% endif %}
     </div>
 </article>

@@ -4,6 +4,7 @@ from math import isfinite
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db.models import Prefetch, Q
+from django.core.paginator import Paginator
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -80,23 +81,37 @@ def _apply_filters(queryset, params):
     elif params.get("collection") == "popular":
         queryset = queryset.filter(is_featured=True)
 
-    date_value = params.get("date")
-    if date_value:
+    def parse_date(value):
         try:
-            selected_date = datetime.strptime(date_value, "%Y-%m-%d").date()
-        except ValueError:
-            selected_date = None
-        if selected_date:
-            start = timezone.make_aware(datetime.combine(selected_date, time.min))
-            end = timezone.make_aware(datetime.combine(selected_date, time.max))
-            queryset = queryset.filter(
-                Q(sessions__starts_at__range=(start, end))
-                | Q(
-                    sessions__isnull=True,
-                    available_from__lte=selected_date,
-                    available_until__gte=selected_date,
-                )
-            )
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            return None
+
+    selected_date = parse_date(params.get("date"))
+    first_day = selected_date or parse_date(params.get("date_from"))
+    last_day = selected_date or parse_date(params.get("date_until"))
+    session_dates, period_dates = Q(), Q(sessions__isnull=True)
+    if first_day:
+        session_dates &= Q(sessions__starts_at__gte=timezone.make_aware(datetime.combine(first_day, time.min)))
+        period_dates &= Q(available_until__gte=first_day)
+    if last_day:
+        session_dates &= Q(sessions__starts_at__lte=timezone.make_aware(datetime.combine(last_day, time.max)))
+        period_dates &= Q(available_from__lte=last_day)
+
+    clock_filters = Q()
+    has_clock = False
+    for key, lookup in (("time_from", "gte"), ("time_until", "lte")):
+        try:
+            clock = datetime.strptime(params.get(key, ""), "%H:%M").time()
+        except (ValueError, TypeError):
+            continue
+        clock_filters &= Q(**{f"sessions__starts_at__time__{lookup}": clock})
+        has_clock = True
+    if has_clock:
+        # Date and clock must match the same real session, never two different rows.
+        queryset = queryset.filter(session_dates & clock_filters & Q(sessions__starts_at__gte=timezone.now()))
+    elif first_day or last_day:
+        queryset = queryset.filter(session_dates | period_dates)
 
     latitude = params.get("lat")
     longitude = params.get("lng")
@@ -115,13 +130,21 @@ def _apply_filters(queryset, params):
 
 def event_list(request):
     order = ("-created_at", "title") if request.GET.get("collection") == "new" else ("-is_featured", "title")
-    events = _apply_filters(_base_events(), request.GET).order_by(*order)
-    has_filters = any(value for key, value in request.GET.items() if key != "filters")
+    queryset = _apply_filters(_base_events(), request.GET).order_by(*order, "pk")
+    page = Paginator(queryset, 12).get_page(request.GET.get("page"))
+    events = page.object_list
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+    has_filters = any(value for key, value in request.GET.items() if key not in ("filters", "page"))
     return render(
         request,
         "catalog/event_list.html",
         {
             "events": events,
+            "result_count": page.paginator.count,
+            "page_obj": page,
+            "page_numbers": page.paginator.get_elided_page_range(page.number, on_each_side=2, on_ends=1),
+            "pagination_query": query_params.urlencode(),
             "categories": Category.objects.filter(is_active=True).order_by("sort_order", "name"),
             "formats": ActivityFormat.choices,
             "filters": request.GET,
@@ -176,6 +199,11 @@ def walk_builder(request):
     )
 
 
+@require_safe
+def saved_walks(request):
+    return render(request, "catalog/saved_walks.html", {"walk_point_limit": WALK_POINT_LIMIT})
+
+
 def _event_ids_from_query(raw_ids, *, limit):
     event_ids = []
     for raw_value in raw_ids.split(","):
@@ -218,6 +246,7 @@ def walk_events_api(request):
                 "title": event.title,
                 "venue": event.venue.name,
                 "address": event.venue.address,
+                "description": event.short_description,
                 "lat": point.y,
                 "lng": point.x,
                 "url": event.get_absolute_url(),

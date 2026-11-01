@@ -4,7 +4,7 @@
 {% block content %}
 {% if not request.user.is_authenticated %}
 <section class="account-shell account-shell--guest">
-    <div class="account-art" aria-hidden="true"><span class="account-wordmark">{% include "includes/brand_mark.html" %}</span></div>
+    {% include "accounts/art.html" %}
     <div class="account-panel">
         <h1 class="sr-only">Ваш профиль</h1>
         <a class="account-button account-button--outline" href="{% url 'accounts:login' %}">Войти</a>
@@ -22,17 +22,28 @@
    href="{% url 'core:home' %}"
    aria-label="На главную">{% include "includes/icon.html" with name="arrow-left" %}</a><h1>Профиль</h1></header>
         <div class="profile-layout">
-            <div class="profile-identity"><div class="profile-avatar" aria-hidden="true"></div><h2>{{ request.user.get_full_name|default:request.user.email|default:request.user.username }}</h2><p>Избранное сохраняется в аккаунте, маршрут на день — в этом браузере.</p></div>
+            <div class="profile-identity"><div class="profile-avatar" aria-hidden="true">{{ request.user.first_name|default:request.user.email|default:request.user.username|first|upper }}</div><h2>{{ request.user.get_full_name|default:request.user.email|default:request.user.username }}</h2><p>Избранное сохраняется в аккаунте, маршрут на день — в этом браузере.</p></div>
             <nav class="profile-links" aria-label="Мои подборки">
                 <a href="{% url 'catalog:walk_builder' %}">{% include "includes/icon.html" with name="route" %}Маршрут на день <b data-walk-count hidden>0</b></a>
                 <a href="{% url 'favorites:list' %}"><span class="ui-icon ui-icon--heart"
       aria-hidden="true"></span>Избранное</a>
+                <a href="{% url 'catalog:saved_walks' %}">{% include "includes/icon.html" with name="route" %}Мои маршруты <b data-saved-walk-count>0</b></a>
                 <a href="{% url 'catalog:event_list' %}?date={{ today|date:'Y-m-d' }}"><span class="ui-icon ui-icon--dashboard" aria-hidden="true"></span>События на сегодня</a>
                 <a href="{% url 'catalog:event_map' %}"><span class="ui-icon ui-icon--point"
       aria-hidden="true"></span>Карта</a>
                 {% if request.user.is_staff %}<a href="{% url 'admin:catalog_event_add' %}">+ Добавить событие</a>{% endif %}
             </nav>
         </div>
+        <section class="profile-settings" aria-labelledby="settings-title">
+            <h2 id="settings-title">Настройки</h2>
+            <form method="post" class="account-form">{% csrf_token %}
+                {{ settings_form.non_field_errors }}
+                <label>Имя {{ settings_form.first_name }}{{ settings_form.first_name.errors }}</label>
+                <label>Фамилия {{ settings_form.last_name }}{{ settings_form.last_name.errors }}</label>
+                {% if profile_account %}<label class="choice-row"><span>Получать рассылку с акциями</span>{{ settings_form.newsletter }}</label>{% endif %}
+                <button type="submit" class="primary-button">Сохранить</button>
+            </form>
+        </section>
         <form method="post" action="{% url 'accounts:logout' %}" class="profile-logout">{% csrf_token %}<button class="secondary-button" type="submit">Выйти из аккаунта</button></form>
         <p class="profile-privacy"><a href="{% url 'core:privacy' %}">Политика конфиденциальности (черновик)</a></p>
     </div>
