@@ -76,6 +76,12 @@ def _apply_filters(queryset, params):
         queryset = queryset.exclude(venue__parking_notes="")
     if params.get("metro") == "1":
         queryset = queryset.exclude(venue__metro="")
+    if params.get("children_room") == "1":
+        queryset = queryset.filter(venue__has_children_room=True)
+    if params.get("cafe") == "1":
+        queryset = queryset.filter(venue__has_cafe=True)
+    if params.get("pushkin_card") == "1":
+        queryset = queryset.filter(accepts_pushkin_card=True)
     if params.get("collection") == "recommended":
         queryset = queryset.filter(is_recommended=True)
     elif params.get("collection") == "popular":
