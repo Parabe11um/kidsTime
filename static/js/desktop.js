@@ -85,6 +85,23 @@
     form.addEventListener("submit", () => { form.setAttribute("aria-busy", "true"); });
   });
 
+  const desktopFilters = matchMedia("(min-width: 1024px)");
+  document.querySelectorAll(".filters-form").forEach((form) => {
+    const native = form.querySelector("[data-format-select]");
+    const choices = form.querySelector("[data-format-choices]");
+    if (!native || !choices) return;
+    const select = native.querySelector("select");
+    const radios = [...choices.querySelectorAll("input")];
+    const sync = () => {
+      const desktop = desktopFilters.matches;
+      native.hidden = desktop; select.disabled = desktop; choices.hidden = !desktop;
+      radios.forEach((radio) => { radio.disabled = !desktop; radio.checked = radio.value === select.value; });
+    };
+    radios.forEach((radio) => radio.addEventListener("change", () => { if (radio.checked) select.value = radio.value; }));
+    select.addEventListener("change", sync);
+    desktopFilters.addEventListener("change", sync); sync();
+  });
+
   document.querySelectorAll("[data-time-filter]").forEach((filter) => {
     const lower = filter.querySelector("[data-time-min]");
     const upper = filter.querySelector("[data-time-max]");
@@ -92,10 +109,17 @@
     const until = filter.querySelector("[name=time_until]");
     const minutes = (value, fallback) => /^\d{2}:\d{2}$/.test(value) ? Number(value.slice(0,2)) * 60 + Number(value.slice(3)) : fallback;
     const clock = (value) => `${String(Math.floor(value / 60)).padStart(2,"0")}:${String(value % 60).padStart(2,"0")}`;
-    const sync = () => { lower.value = minutes(from.value, 480); upper.value = minutes(until.value, 1320); };
-    lower.addEventListener("input", () => { lower.value = Math.min(Number(lower.value), Number(upper.value)); from.value = clock(Number(lower.value)); until.value = clock(Number(upper.value)); });
-    upper.addEventListener("input", () => { upper.value = Math.max(Number(upper.value), Number(lower.value)); from.value = clock(Number(lower.value)); until.value = clock(Number(upper.value)); });
+    const selection = filter.querySelector("[data-time-selection]");
+    const describe = () => {
+      lower.setAttribute("aria-valuetext", clock(Number(lower.value)));
+      upper.setAttribute("aria-valuetext", clock(Number(upper.value)));
+      if (selection) { selection.hidden = !from.value && !until.value; selection.textContent = `${from.value || "08:00"} — ${until.value || "22:00"}`; }
+    };
+    const sync = () => { lower.value = minutes(from.value, 480); upper.value = minutes(until.value, 1320); describe(); };
+    lower.addEventListener("input", () => { lower.value = Math.min(Number(lower.value), Number(upper.value)); from.value = clock(Number(lower.value)); until.value = clock(Number(upper.value)); describe(); });
+    upper.addEventListener("input", () => { upper.value = Math.max(Number(upper.value), Number(lower.value)); from.value = clock(Number(lower.value)); until.value = clock(Number(upper.value)); describe(); });
     from.addEventListener("change", sync); until.addEventListener("change", sync); sync();
+    filter.classList.add("has-time-slider");
   });
 
   const storageKey = "kidstime:saved-walks";

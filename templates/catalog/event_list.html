@@ -20,6 +20,7 @@
                     <h2>Найдите своё событие</h2>
                     <p>Выберите в фильтре параметры для поиска подходящего события или откройте карту</p>
                     <a class="map-button" href="{% url 'catalog:event_map' %}">На карте</a>
+                    <span class="empty-illustration search-intro__illustration" aria-hidden="true"><img src="{% static 'illustrations/empty-search.png' %}" alt=""></span>
                 </div>
             {% endif %}
             {% if not has_filters %}
@@ -27,6 +28,7 @@
                     {% include "includes/search_discovery_card.html" with event=spotlight_event %}
                 {% endif %}
             {% endif %}
+            <div class="catalog-listing">
             {% if events %}
                 <div class="event-grid event-grid--results">
                     {% for event in events %}
@@ -46,6 +48,7 @@
                 </nav>
                 {% endif %}
 {% else %}<div class="search-empty"><h2>Пока ничего не найдено</h2><p>Попробуйте ввести другую дату, возраст или категорию</p><a class="primary-button" href="{% url 'catalog:event_list' %}">Сбросить фильтры</a><span class="empty-illustration"><img src="{% static 'illustrations/empty-search.png' %}" alt=""></span></div>{% endif %}
+            </div>
     </section>
     </div>
     <div class="filters-backdrop" data-filters-close></div>

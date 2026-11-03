@@ -86,7 +86,7 @@ class VenueAdmin(admin.ModelAdmin):
     form = VenueAdminForm
     change_form_template = "admin/catalog/venue/change_form.html"
     list_display = ("name", "district", "metro", "has_coordinates", "is_published", "last_verified_at")
-    list_filter = ("district", "stroller_access", "accessible", "is_published")
+    list_filter = ("district", "stroller_access", "accessible", "has_children_room", "has_cafe", "is_published")
     search_fields = ("name", "address", "metro")
     prepopulated_fields = {"slug": ("name",)}
     fieldsets = (
@@ -102,6 +102,7 @@ class VenueAdmin(admin.ModelAdmin):
                 )
             },
         ),
+        ("Удобства", {"fields": ("has_children_room", "has_cafe")}),
         ("Публикация", {"fields": ("is_published", "last_verified_at")}),
     )
 
@@ -140,7 +141,7 @@ class EventAdmin(admin.ModelAdmin):
         "status",
         "last_verified_at",
     )
-    list_filter = ("status", "category", "activity_format", "is_free", "is_featured", "is_recommended")
+    list_filter = ("status", "category", "activity_format", "is_free", "accepts_pushkin_card", "is_featured", "is_recommended")
     search_fields = ("title", "short_description", "venue__name", "venue__address")
     prepopulated_fields = {"slug": ("title",)}
     autocomplete_fields = ("venue", "organizer", "source")
@@ -156,6 +157,7 @@ class EventAdmin(admin.ModelAdmin):
                 "fields": (
                     ("age_from", "age_to"),
                     ("price_from", "price_to", "is_free"),
+                    "accepts_pushkin_card",
                     "duration_minutes",
                 )
             },

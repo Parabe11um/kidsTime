@@ -301,6 +301,44 @@ class PublicPagesTests(TestCase):
         response = self.client.get(reverse("catalog:event_list"), {"age": "²", "max_price": "9" * 100, "lat": "nan", "lng": "inf"})
         self.assertEqual(response.status_code, 200)
 
+    def test_additional_filters_require_explicit_confirmed_values(self):
+        events = list(Event.objects.select_related("venue").order_by("pk")[:3])
+        for event, value in zip(events, (True, False, None)):
+            Venue.objects.filter(pk=event.venue_id).update(has_children_room=value, has_cafe=value)
+            Event.objects.filter(pk=event.pk).update(accepts_pushkin_card=value)
+        for key in ("children_room", "cafe", "pushkin_card"):
+            with self.subTest(filter=key):
+                response = self.client.get(reverse("catalog:event_list"), {key: "1"})
+                self.assertEqual(list(response.context["events"]), [events[0]])
+                self.assertTrue(response.context["has_filters"])
+                map_response = self.client.get(reverse("catalog:map_events_api"), {key: "1"})
+                self.assertEqual([item["id"] for item in map_response.json()["results"]], [events[0].pk])
+
+    def test_additional_filters_combine_with_category_and_age(self):
+        events = list(Event.objects.select_related("venue").order_by("pk")[:2])
+        for event in events:
+            Venue.objects.filter(pk=event.venue_id).update(has_children_room=True, has_cafe=True)
+            Event.objects.filter(pk=event.pk).update(accepts_pushkin_card=True, age_from=4, age_to=7)
+        Event.objects.filter(pk=events[1].pk).update(accepts_pushkin_card=False, category_id=events[0].category_id)
+        params = {"children_room": "1", "cafe": "1", "pushkin_card": "1", "age_group": "4-7", "category": events[0].category.slug}
+        response = self.client.get(reverse("catalog:event_list"), params)
+        self.assertEqual(list(response.context["events"]), [events[0]])
+        for key, value in params.items():
+            self.assertEqual(response.context["filters"][key], value)
+
+    def test_new_catalog_flags_default_to_unknown(self):
+        event = Event.objects.select_related("venue").first()
+        self.assertIsNone(event.venue.has_children_room)
+        self.assertIsNone(event.venue.has_cafe)
+        self.assertIsNone(event.accepts_pushkin_card)
+
+    def test_disabled_or_invalid_additional_filters_do_not_narrow_the_catalog(self):
+        expected = list(self.client.get(reverse("catalog:event_list")).context["events"])
+        for value in ("", "0", "true", "unexpected"):
+            with self.subTest(value=value):
+                response = self.client.get(reverse("catalog:event_list"), {key: value for key in ("children_room", "cafe", "pushkin_card")})
+                self.assertEqual(list(response.context["events"]), expected)
+
     def test_detail_gallery_and_recommendations_use_published_data(self):
         event = Event.objects.first()
         EventImage.objects.create(event=event, image="events/second.jpg", sort_order=20)

@@ -155,3 +155,36 @@ Tests for settings persistence and return-URL validation are included. The full
 Django test run still needs CI: the local visual-preview runtime does not have
 the application's server dependencies or PostGIS. Compiled CSS is regenerated
 from Tailwind. No schema migration is added by this tablet patch.
+
+## Desktop initial search, 3 November 2026
+
+Reference: `KidsTime(4).zip`, `Main wrapper.png` (1440 × 87) and
+`Frame 461.png` (1004 × 1736). This change targets the catalog's initial
+«Найдите своё событие» state rather than an individual event detail page.
+
+- Desktop initial search shows the guidance, a 372px map action and the existing
+  original magnifier illustration. Event cards, pagination and the phone/tablet
+  discovery stack appear in their appropriate result/layout states.
+- The 300px filter column has separate rounded groups, date inputs, radio choices
+  for venue format, a keyboard-operable time range and apply/reset actions. The
+  native format select remains available on smaller screens and without JavaScript;
+  resizing preserves its value and submits exactly one format field.
+- The time handles expose clock values to assistive technology. Untouched handles
+  do not introduce time constraints; chosen times are displayed and retained.
+- Additional working filters: children's room and cafe/restaurant at a venue,
+  and Pushkin Card acceptance for an event. `catalog.0004_catalog_additional_filters`
+  adds nullable flags; existing records remain unknown until verified in admin.
+  Only explicit true values match. The list and map share the same filter logic.
+  Existing imports do not overwrite these editor-maintained flags.
+- Accessibility and stroller access remain separate. No sample address, preset
+  age restriction, avatar or route count from the reference is inserted as data.
+
+The wordmark, route vector and account avatar use the existing shared header.
+The notification control remains textual: the PNG archive has no standalone bell
+vector, and the attempt to retrieve the original design assets reached the Figma
+MCP Starter-plan limit. No screenshot is embedded as a product background or icon.
+
+Validation covers initial/results/empty search, combined filters, form persistence,
+unknown flags, geolocation, time keyboard controls, format changes across widths
+and Tailwind output. Browser checks use 320, 402, 744, 834, 1024, 1440 and 1920px;
+the full Django suite and migration consistency are checked in CI.

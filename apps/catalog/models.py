@@ -130,6 +130,8 @@ class Venue(models.Model):
     parking_notes = models.CharField("Парковка", max_length=255, blank=True)
     stroller_access = models.BooleanField("Можно с коляской", default=False)
     accessible = models.BooleanField("Безбарьерный доступ", default=False)
+    has_children_room = models.BooleanField("Детская комната", null=True, blank=True, default=None)
+    has_cafe = models.BooleanField("Ресторан или кафе", null=True, blank=True, default=None)
     is_published = models.BooleanField("Опубликовано", default=True)
     last_verified_at = models.DateTimeField("Проверено", null=True, blank=True)
 
@@ -188,6 +190,7 @@ class Event(models.Model):
     price_from = models.DecimalField("Цена от", max_digits=10, decimal_places=2, default=0)
     price_to = models.DecimalField("Цена до", max_digits=10, decimal_places=2, null=True, blank=True)
     is_free = models.BooleanField("Бесплатно", default=False)
+    accepts_pushkin_card = models.BooleanField("Принимает Пушкинскую карту", null=True, blank=True, default=None)
     duration_minutes = models.PositiveIntegerField("Продолжительность, минут", null=True, blank=True)
     activity_format = models.CharField(
         "Формат",
