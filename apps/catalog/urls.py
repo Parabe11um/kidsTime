@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from . import routing_views
 
 app_name = "catalog"
 
@@ -11,6 +12,8 @@ urlpatterns = [
     path("walks/", views.saved_walks, name="saved_walks"),
     path("api/map/", views.map_events_api, name="map_events_api"),
     path("api/walk/", views.walk_events_api, name="walk_events_api"),
+    path("api/walk/times/", routing_views.walk_route_times, name="walk_route_times"),
+    path("api/walk/geocode/", routing_views.walk_geocode, name="walk_geocode"),
     path("<slug:slug>/calendar.ics", views.event_calendar, name="event_calendar"),
     path("<slug:slug>/", views.event_detail, name="event_detail"),
 ]

@@ -1,6 +1,7 @@
 from datetime import datetime, time
 from math import isfinite
 
+from django.conf import settings
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db.models import Prefetch, Q
@@ -201,7 +202,11 @@ def walk_builder(request):
     return render(
         request,
         "catalog/walk_builder.html",
-        {"walk_point_limit": WALK_POINT_LIMIT},
+        {
+            "walk_point_limit": WALK_POINT_LIMIT,
+            "walk_routing_enabled": bool(settings.YANDEX_ROUTER_API_KEY),
+            "walk_geocoder_enabled": bool(settings.YANDEX_GEOCODER_API_KEY),
+        },
     )
 
 

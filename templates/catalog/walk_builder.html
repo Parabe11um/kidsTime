@@ -6,7 +6,13 @@
     <div class="walk-page"
          data-walk-root
          data-endpoint="{% url 'catalog:walk_events_api' %}"
+         data-times-endpoint="{% url 'catalog:walk_route_times' %}"
+         data-routing-enabled="{{ walk_routing_enabled|yesno:'true,false' }}"
+         data-geocode-endpoint="{% url 'catalog:walk_geocode' %}"
+         data-geocoder-enabled="{{ walk_geocoder_enabled|yesno:'true,false' }}"
+         data-map-key="{{ YANDEX_MAPS_API_KEY }}"
          data-limit="{{ walk_point_limit }}">
+        <div data-walk-csrf hidden>{% csrf_token %}</div>
         <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>→</span><span data-walk-title>Маршрут на день</span></nav>
         <header class="section-page-header"><a class="round-button"
    href="{% url 'core:home' %}"
@@ -15,16 +21,18 @@
             <section class="walk-list-card" aria-labelledby="walk-list-title">
                 <div class="walk-list-card__heading">
                     <h2 id="walk-list-title">Точки маршрута</h2>
+                    <label class="walk-mode"><span class="sr-only">Способ передвижения</span><select data-walk-mode><option value="walking">Пешком</option><option value="transit">Транспорт</option><option value="driving">На авто</option></select></label>
                     <button class="walk-clear" type="button" data-walk-clear hidden>Очистить</button>
                 </div>
                 <div class="walk-origin">
                     <span class="walk-origin__number">1</span>
-                    <div>
-                        <strong>Ваше текущее местоположение</strong>
-                        <p data-walk-origin-label>Определить моё местоположение</p>
+                    <div class="walk-origin__copy">
+                        <strong data-walk-origin-title>Начальная точка</strong>
+                        <button class="walk-origin__choice" type="button" data-walk-origin-open aria-controls="walk-origin-dialog" aria-expanded="false"><span data-walk-origin-label>Выбрать на карте</span></button>
                     </div>
-                    <button class="walk-origin__marker" type="button" data-walk-locate aria-label="Определить начальную точку">{% include "includes/icon.html" with name="location" %}</button>
+                    <button class="walk-origin__locate" type="button" data-walk-locate>{% include "includes/icon.html" with name="location" %}<span>Моё местоположение</span></button>
                 </div>
+                <p class="walk-origin-status" data-walk-origin-status role="status" hidden></p>
                 <div class="walk-list" data-walk-list aria-live="polite">
                     <div class="empty-state">Загружаем выбранные места…</div>
                 </div>
@@ -39,9 +47,10 @@
                    href="{% url 'catalog:event_list' %}"><span class="ui-icon ui-icon--plus" aria-hidden="true"></span> Добавить место</a>
                 <button class="secondary-button route-button walk-empty-route" type="button" disabled>Построить маршрут</button>
             </section>
-            <aside class="walk-summary">
+            <div class="walk-sidebar">
+              <aside class="walk-summary">
                 <h2>Ваша прогулка</h2>
-                <p><strong data-walk-count data-walk-count-always>0</strong> из {{ walk_point_limit }} мест выбрано</p>
+                <p class="walk-summary__count"><strong data-walk-count data-walk-count-always>0</strong> из {{ walk_point_limit }} мест выбрано</p>
                 <p>Меняйте порядок стрелками. Яндекс Карты откроют все точки в указанной последовательности.</p>
                 <a class="primary-button" href="{% url 'catalog:event_list' %}">+ Добавить место</a>
                 <a class="secondary-button route-button is-disabled"
@@ -51,10 +60,45 @@
                    aria-disabled="true">Построить маршрут</a>
                 <button class="secondary-button" type="button" data-save-walk disabled>Сохранить</button>
                 <button class="walk-delete" type="button" data-delete-walk hidden>Удалить маршрут</button>
-                <a class="text-link" href="{% url 'catalog:saved_walks' %}">Мои маршруты</a>
-                <small>Маршрут сохраняется в этом браузере.</small>
-            </aside>
+              </aside>
+              <p class="walk-storage-note">Маршрут сохраняется в этом браузере.</p>
+              <div class="walk-time-controls">
+                <p class="walk-time-note" data-walk-time-note role="status"></p>
+                <button class="text-link walk-times-retry" type="button" data-walk-times-retry hidden>Обновить время</button>
+              </div>
+              <a class="text-link walk-saved-link" href="{% url 'catalog:saved_walks' %}">Мои маршруты</a>
+            </div>
         </div>
+        <dialog class="walk-origin-dialog" id="walk-origin-dialog" data-walk-origin-dialog aria-labelledby="walk-origin-dialog-title">
+            <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть">{% include "includes/icon.html" with name="close" %}</button>
+            <h2 id="walk-origin-dialog-title">Откуда начнём прогулку?</h2>
+            <p>Выберите точку на карте или определите своё местоположение.</p>
+            <button class="secondary-button walk-origin-dialog__locate" type="button" data-walk-locate>{% include "includes/icon.html" with name="location" %}<span>Моё местоположение</span></button>
+            {% if walk_geocoder_enabled %}
+            <form class="walk-address-search" data-origin-search>
+                <label class="sr-only" for="walk-address">Адрес начальной точки</label>
+                <input id="walk-address" name="query" type="search" minlength="2" maxlength="200" placeholder="Введите адрес" autocomplete="off" required>
+                <button class="primary-button" type="submit">Найти</button>
+            </form>
+            <div class="walk-address-results" data-origin-results></div>
+            {% endif %}
+            <p class="walk-origin-dialog__status" data-origin-dialog-status role="status"></p>
+            <div class="walk-origin-map" data-origin-map aria-label="Карта выбора начальной точки"></div>
+            <button class="text-link" type="button" data-origin-map-retry hidden>Повторить загрузку карты</button>
+            <details class="walk-coordinates" data-origin-coordinates>
+                <summary>Указать координаты</summary>
+                <form data-origin-coordinate-form>
+                    <label>Широта<input name="lat" type="number" step="any" min="-90" max="90" inputmode="decimal" required></label>
+                    <label>Долгота<input name="lng" type="number" step="any" min="-180" max="180" inputmode="decimal" required></label>
+                    <button class="secondary-button" type="submit">Показать точку</button>
+                </form>
+            </details>
+            <p class="walk-origin-selection" data-origin-selection>Точка пока не выбрана.</p>
+            <div class="walk-origin-dialog__actions">
+                <button class="primary-button" type="button" data-origin-confirm disabled>Начать отсюда</button>
+                <button class="secondary-button" type="button" data-origin-clear hidden>Убрать начальную точку</button>
+            </div>
+        </dialog>
         <dialog class="route-name-dialog" data-route-dialog aria-labelledby="route-dialog-title">
             <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть">{% include "includes/icon.html" with name="close" %}</button>
             <form data-save-walk-form>
@@ -67,3 +111,4 @@
         </dialog>
     </div>
 {% endblock %}
+{% block scripts %}<script src="{% static 'js/walk.js' %}" defer></script>{% endblock %}

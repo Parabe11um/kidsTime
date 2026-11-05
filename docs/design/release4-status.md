@@ -208,3 +208,20 @@ cover image loading, overflow, search, home navigation, notification keyboard
 focus and the separate 500 template. At 1440px the main surface ends at 629px,
 the illustration is 547 × 290px and the footer is 395px tall, matching the design.
 A server regression test exercises the real unknown-URL handler with DEBUG off.
+
+## Day route, 6 November 2026
+
+The supplied `Route.png` adds travel-time badges between stops and an explicit
+origin. The implementation supports browser location, confirmed map selection,
+optional address lookup, and walking/driving/transit estimates from Yandex Route
+Details. Existing route ordering, browser saves and actual favorite state are kept.
+The storage note is separate from the summary card as in the reference.
+
+Travel times require `YANDEX_ROUTER_API_KEY`; address lookup uses the optional
+`YANDEX_GEOCODER_API_KEY`. Neither key is exposed in HTML. Missing configuration
+or provider failures leave working external links and never substitute sample
+minutes or straight-line estimates. The day-route header reuses the original bell
+vector and geometry already supplied for the 404 reference.
+
+See `docs/features/day-route.md` for setup, temporary-location handling, limits and
+verification. No schema or production Compose change is added.
