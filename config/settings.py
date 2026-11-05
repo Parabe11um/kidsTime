@@ -119,6 +119,9 @@ EMAIL_TIMEOUT = 10
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="")
 
 YANDEX_MAPS_API_KEY = env("YANDEX_MAPS_API_KEY", default="")
+# Separate server-side products; these keys are never rendered in HTML.
+YANDEX_ROUTER_API_KEY = env("YANDEX_ROUTER_API_KEY", default="")
+YANDEX_GEOCODER_API_KEY = env("YANDEX_GEOCODER_API_KEY", default="")
 
 # Usually discovered automatically from the system packages installed in Docker.
 # The explicit variables are useful for constrained local verification environments.

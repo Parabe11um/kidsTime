@@ -274,31 +274,32 @@
     const clearButton = walkRoot.querySelector("[data-walk-clear]");
     let loadSequence = 0;
     // Keep the explicit origin in memory, never in saved routes or localStorage.
-    let origin = "";
-    const locateButton = walkRoot.querySelector("[data-walk-locate]");
-    locateButton?.addEventListener("click", () => {
-      if (!navigator.geolocation) { showWalkNotice("Выберите начальную точку в Яндекс Картах."); return; }
-      locateButton.disabled = true;
-      locateButton.setAttribute("aria-busy", "true");
-      const done = () => { locateButton.disabled = false; locateButton.removeAttribute("aria-busy"); };
-      navigator.geolocation.getCurrentPosition((position) => {
-        done();
-        const { latitude, longitude } = position.coords;
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
-        origin = `${latitude.toFixed(5)},${longitude.toFixed(5)}`;
-        walkRoot.querySelector("[data-walk-origin-label]").textContent = `Моя точка: ${origin}`;
-        updateRouteLink(loadedWalkEvents);
-        showWalkNotice("Начальная точка определена");
-      }, () => { done(); showWalkNotice("Не удалось определить местоположение. Начальную точку можно выбрать в Яндекс Картах."); }, { timeout: 10000, maximumAge: 60000 });
-    });
+    let origin = null;
+    let travelMode = "walking";
+    const routeType = () => ({ walking: "pd", transit: "mt", driving: "auto" })[travelMode];
+    window.KidsTimeWalk.getOrigin = () => origin ? { ...origin } : null;
+    window.KidsTimeWalk.setOrigin = (point) => {
+      const changed = origin?.lat !== point?.lat || origin?.lng !== point?.lng;
+      origin = point ? { ...point } : null;
+      updateRouteLink(loadedWalkEvents);
+      document.dispatchEvent(new CustomEvent("kidstime:walk-origin-changed", { detail: { coordinatesChanged: changed } }));
+    };
+    window.KidsTimeWalk.getMode = () => travelMode;
+    window.KidsTimeWalk.setMode = (mode) => {
+      if (!["walking", "transit", "driving"].includes(mode)) return;
+      travelMode = mode;
+      updateRouteLink(loadedWalkEvents);
+      document.dispatchEvent(new Event("kidstime:walk-mode-changed"));
+    };
 
     const directRouteUrl = (event) => (
-      `https://yandex.ru/maps/?rtext=~${encodeURIComponent(`${event.lat},${event.lng}`)}&rtt=auto`
+      `https://yandex.ru/maps/?rtext=~${encodeURIComponent(`${event.lat},${event.lng}`)}&rtt=${routeType()}`
     );
 
     const walkRouteUrl = (events) => {
       const points = events.map((event) => encodeURIComponent(`${event.lat},${event.lng}`));
-      return `https://yandex.ru/maps/?rtext=${encodeURIComponent(origin)}~${points.join("~")}&rtt=auto`;
+      const start = origin ? `${origin.lat},${origin.lng}` : "";
+      return `https://yandex.ru/maps/?rtext=${encodeURIComponent(start)}~${points.join("~")}&rtt=${routeType()}`;
     };
 
     const makeButton = (label, className, ariaLabel) => {
@@ -313,6 +314,7 @@
     const createWalkItem = (event, index, events) => {
       const item = document.createElement("article");
       item.className = "walk-item";
+      item.dataset.walkEventId = String(event.id);
 
       const media = document.createElement("div");
       media.className = "walk-item__media";
@@ -383,7 +385,7 @@
       moveDown.disabled = index === events.length - 1;
       const remove = makeButton("Удалить", "walk-item__remove", `Удалить «${event.title}» из прогулки`);
       remove.dataset.walkRemove = String(event.id);
-      reorder.append(moveUp, moveDown, remove);
+      reorder.append(moveDown, moveUp, remove);
       actions.append(directRoute, reorder);
       content.append(title, venue, address, facts, actions);
       if (event.description) {
@@ -421,17 +423,19 @@
     const renderWalk = (events) => {
       loadedWalkEvents = events;
       walkRoot.classList.toggle("is-empty", !events.length);
-      document.dispatchEvent(new CustomEvent("kidstime:walk-loaded", { detail: { events } }));
+      walkRoot.removeAttribute("aria-busy");
       list.replaceChildren();
       clearButton.hidden = events.length === 0;
       updateRouteLink(events);
       if (!events.length) {
         list.append(emptyTemplate.content.cloneNode(true));
+        document.dispatchEvent(new CustomEvent("kidstime:walk-loaded", { detail: { events } }));
         return;
       }
       const fragment = document.createDocumentFragment();
       events.forEach((event, index) => fragment.append(createWalkItem(event, index, events)));
       list.append(fragment);
+      document.dispatchEvent(new CustomEvent("kidstime:walk-loaded", { detail: { events } }));
     };
 
     const renderLoadError = () => {
@@ -446,11 +450,15 @@
       error.append(text, retry);
       list.append(error);
       updateRouteLink([]);
+      walkRoot.removeAttribute("aria-busy");
+      document.dispatchEvent(new Event("kidstime:walk-load-error"));
     };
 
     const loadWalk = async () => {
       const sequence = ++loadSequence;
       loadedWalkEvents = [];
+      walkRoot.setAttribute("aria-busy", "true");
+      updateRouteLink([]);
       document.dispatchEvent(new Event("kidstime:walk-loading"));
       if (!walkIds.length) {
         renderWalk([]);
@@ -499,6 +507,7 @@
 
       if (event.target.closest("[data-walk-clear]")) {
         replaceWalkIds([]);
+        window.KidsTimeWalk.setOrigin(null);
         showWalkNotice("Прогулка очищена");
         return;
       }
@@ -506,6 +515,7 @@
       if (event.target.closest("[data-walk-retry]")) loadWalk();
     });
 
+    window.KidsTimeWalk.reload = loadWalk;
     document.addEventListener("kidstime:walk-changed", loadWalk);
     loadWalk();
   }
