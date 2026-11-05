@@ -1,3 +1,19 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Страница не найдена — КидсТайм{% endblock %}
-{% block content %}<section class="page-shell error-page"><h1>Хммм!</h1><p>Такой страницы нет. Возможно, адрес изменился.</p><a class="primary-button" href="{% url 'core:home' %}">На главную</a></section>{% endblock %}
+{% block body_class %}page-not-found{% endblock %}
+{% block content %}
+    <section class="page-shell not-found" aria-labelledby="not-found-title">
+        <div class="not-found__copy">
+            <h1 id="not-found-title">Хммм!</h1>
+            <p>Здесь ничего нет....</p>
+        </div>
+        <div class="not-found__illustration" aria-hidden="true">
+            <img class="not-found__signpost" src="{% static 'illustrations/not-found-signpost.png' %}" width="1553" height="768" alt="">
+            <span class="not-found__star">
+                <img src="{% static 'illustrations/not-found-star.png' %}" width="1376" height="768" alt="">
+            </span>
+        </div>
+        <a class="primary-button not-found__home" href="{% url 'core:home' %}">На главную</a>
+    </section>
+{% endblock %}

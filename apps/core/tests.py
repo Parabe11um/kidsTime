@@ -12,6 +12,19 @@ from PIL import Image
 from apps.accounts.models import Account
 
 
+@override_settings(DEBUG=False)
+class NotFoundPageTests(SimpleTestCase):
+    def test_unknown_url_keeps_404_status_and_provides_navigation(self):
+        response = self.client.get("/this-page-does-not-exist/")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, "404.html")
+        self.assertContains(response, 'href="/"', status_code=404)
+        self.assertContains(response, 'action="/events/"', status_code=404)
+        self.assertContains(response, 'aria-labelledby="not-found-title"', status_code=404)
+        self.assertNotContains(response, "Using the URLconf", status_code=404)
+
+
 class RobotsPolicyTests(SimpleTestCase):
     @override_settings(ROBOTS_NOINDEX=True)
     def test_noindex_environment_sets_header(self):

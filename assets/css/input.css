@@ -1066,6 +1066,16 @@ body:has(dialog[open]) { overflow: hidden; }
 
 .error-page { display: grid; justify-items: center; align-content: center; min-height: 520px; gap: 20px; text-align: center; }
 .error-page p { color: var(--muted); }
+.not-found { display: flex; flex-direction: column; align-items: center; min-height: 520px; gap: 32px; padding: 56px 0 64px; text-align: center; }
+.not-found__copy { display: grid; width: 100%; gap: 8px; padding-inline: 16px; }
+.not-found__copy h1 { font-size: 24px; line-height: 32px; font-weight: 600; }
+.not-found__copy p { color: var(--muted); font-size: 16px; line-height: 24px; font-weight: 500; }
+/* Original image fills keep the crop and mirrored star from Figma node 494:9880. */
+.not-found__illustration { position: relative; flex-shrink: 0; width: min(547px,100%); aspect-ratio: 547/290; overflow: hidden; }
+.not-found__signpost { position: absolute; left: -.03%; top: 11.81%; width: 94.21%; height: 88.04%; max-width: none; }
+.not-found__star { position: absolute; left: 38.483%; top: 62.414%; width: 13.711%; height: 25.172%; overflow: hidden; transform: scaleX(-1); }
+.not-found__star img { position: absolute; left: -207.52%; top: -53.59%; width: 335.31%; height: 185.76%; max-width: none; }
+.not-found__home { min-width: 178px; }
 @media (min-width:768px) {
   .desktop-search .search-filter-button { width: 42px; height: 42px; flex-basis: 42px; }
   .page-account > main { border-radius: 0; }
@@ -1568,6 +1578,35 @@ body:has(dialog[open]) { overflow: hidden; }
   .page-map > #main-content { min-height: 0; padding: 0; border-radius: 0; }
   .page-map .map-shell { min-height: calc(100dvh - 86px); }
   .page-map .site-footer { display: none; }
+}
+
+/* 404 desktop export: node 773:13869. Keep these changes local to this page. */
+@media (min-width: 640px) {
+  .page-not-found > #main-content { min-height: 0; padding-bottom: 100px; border-radius: 0 0 56px 56px; }
+  .not-found { height: 442px; min-height: 0; padding: 56px 0 0; }
+  .not-found__home { display: none; }
+}
+@media (min-width: 1024px) {
+  .page-not-found .desktop-header { border-width: 2px; border-color: #ffd2ba; border-top-color: white; }
+  .page-not-found .desktop-header__inner { min-height: 83px; }
+  .page-not-found .desktop-header .brand-mark { width: 122px; height: 25px; }
+  .page-not-found .desktop-search { height: 47px; padding: 2px; }
+  .page-not-found .desktop-search .search-filter-button { width: 40px; height: 40px; flex-basis: 40px; }
+  .page-not-found .desktop-nav > .header-notifications { width: 24px; min-width: 24px; }
+  .page-not-found .header-notifications__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .page-not-found .header-notifications::before { content: ""; width: 14px; height: 17.9892px; transform: scaleX(-1); background: url("../icons/ui/notification.svg") center/contain no-repeat; }
+  .page-not-found .desktop-nav > .desktop-profile,.page-not-found .desktop-profile .header-avatar { width: 44px; height: 44px; }
+  .not-found__copy h1 { font-size: 32px; line-height: 40px; }
+  .page-not-found .site-footer { padding: 100px 0; border-radius: 0 0 56px 56px; }
+  .page-not-found .site-footer::before { inset: auto 50% -146px auto; width: 1715px; height: 252.263px; transform: translateX(50%); background: url("../illustrations/not-found-glow.svg") center/100% 100% no-repeat; filter: none; opacity: 1; }
+  .page-not-found .site-footer__columns { grid-template-columns: minmax(0,1fr) repeat(3,minmax(0,180px)); gap: 48px; min-height: 147px; }
+  .page-not-found .site-footer__about { max-width: 340px; }
+  .page-not-found .site-footer__about .brand { display: flex; width: fit-content; }
+  .page-not-found .site-footer__about .brand-mark { width: 132px; height: 27px; }
+  .page-not-found .site-footer__about p,.page-not-found .site-footer nav,.page-not-found .site-footer__copyright { font-weight: 500; }
+  .page-not-found .site-footer nav h2 { font-weight: 700; }
+  .page-not-found .site-footer nav a { white-space: nowrap; }
+  .page-not-found .site-footer__copyright { display: flex; align-items: center; min-height: 48px; border-color: var(--line); }
 }
 
 /* Desktop initial search: KidsTime(4).zip, Main wrapper and Frame 461. */
