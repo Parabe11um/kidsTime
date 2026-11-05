@@ -188,3 +188,23 @@ Validation covers initial/results/empty search, combined filters, form persisten
 unknown flags, geolocation, time keyboard controls, format changes across widths
 and Tailwind output. Browser checks use 320, 402, 744, 834, 1024, 1440 and 1920px;
 the full Django suite and migration consistency are checked in CI.
+
+## Desktop 404, 5 November 2026
+
+Reference: Figma node `773:13869` and `KidsTime(5).zip` (`Event page.png`,
+`Footer.png`, `Vector 3.png`). The page uses the design's title, caption,
+547 × 290 illustration, rounded main surface and desktop footer spacing.
+The signpost, mirrored star, notification vector and footer glow are original
+assets downloaded from the design context, stored locally with the application.
+
+The existing shared header/footer links and real account state are retained;
+unavailable publications, social destinations and sample counters are not added.
+The phone layout keeps a home action. Styles are scoped to the 404 body or its
+content, leaving the 500 page and other pages unchanged. The standard Django
+404 handler continues to return HTTP 404. No migration is required.
+
+Validation: browser checks at 320, 402, 639, 640, 744, 834, 1024, 1440 and 1920px
+cover image loading, overflow, search, home navigation, notification keyboard
+focus and the separate 500 template. At 1440px the main surface ends at 629px,
+the illustration is 547 × 290px and the footer is 395px tall, matching the design.
+A server regression test exercises the real unknown-URL handler with DEBUG off.
