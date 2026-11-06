@@ -7,7 +7,6 @@
   const selection = root.querySelector("[data-origin-selection]");
   const dialogStatus = root.querySelector("[data-origin-dialog-status]");
   const originStatus = root.querySelector("[data-walk-origin-status]");
-  const modeInput = root.querySelector("[data-walk-mode]");
   const geocoder = root.dataset.geocoderEnabled === "true";
   const csrf = root.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
   const validPoint = p => p && Number.isFinite(p.lat) && Number.isFinite(p.lng) && Math.abs(p.lat) <= 90 && Math.abs(p.lng) <= 180;
@@ -197,7 +196,6 @@
     } catch (_) { if (revision === searchRevision) dialogStatus.textContent = "Поиск адреса временно недоступен. Выберите точку на карте."; }
     finally { if (revision === searchRevision) button.disabled = false; }
   });
-  modeInput.addEventListener("change", () => walk.setMode(modeInput.value));
   document.addEventListener("kidstime:walk-origin-changed", paintOrigin);
   paintOrigin();
 })();

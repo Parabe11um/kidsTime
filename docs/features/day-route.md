@@ -8,8 +8,9 @@ phone and tablet layouts remain responsive.
 
 ## User flow
 
-- Walking is the default. The selector also offers driving and public transport;
-  the external Yandex Maps link uses the selected mode and point order.
+- Routes are always pedestrian. There is no transport-mode selector. The external
+  Yandex Maps link uses walking directions and the selected point order, as do
+  directions opened from an event card or a map marker.
 - The visible location button requests browser geolocation only when clicked.
   Permission denial, unavailable position and approximate coordinates have explicit
   feedback. An existing origin is retained if a later location attempt fails.
@@ -19,7 +20,7 @@ phone and tablet layouts remain responsive.
   camera position is never silently accepted as the origin.
 - Up to nine catalog places can be selected, plus an optional origin. The count is
   the actual number of selected catalog places, excluding the origin.
-- Changing the origin, mode or place order updates the external directions link.
+- Changing the origin or place order updates the external directions link.
   Opening, editing, saving or clearing a route never requests travel-time estimates.
   This also applies when a router API key is configured on the server.
 - The page has no duration totals, per-leg time placeholders or refresh button.
@@ -77,7 +78,7 @@ Service tests cover response units, point order, partial failures, malformed dat
 timeouts and key redaction. Endpoint tests cover publication/coordinate validation,
 CSRF, rate limits, missing configuration and server-only keys. Browser tests cover
 nine widths from 320 to 1920px, map/address/geolocation selection, denial and cancel,
-mode changes, reordered stops and persistence of IDs. They also check that no time
+walking directions, reordered stops and persistence of IDs. They also check that no time
 badges or totals appear and no routing requests are made during these interactions,
 including with router configuration present. External services are simulated in
 these tests; no production key or billed request is used.

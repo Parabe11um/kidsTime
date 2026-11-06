@@ -233,7 +233,7 @@ class PublicPagesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            "https://yandex.ru/maps/?rtext=~55.7558%2C37.6176&amp;rtt=auto",
+            "https://yandex.ru/maps/?rtext=~55.7558%2C37.6176&amp;rtt=pd",
         )
         self.assertNotContains(response, "rtext=~55,7558,37,6176")
         self.assertContains(response, f'data-walk-button="{event.pk}"')
