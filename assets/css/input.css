@@ -835,6 +835,7 @@ h3 { font-size: 16px; font-weight: 700; }
 .favorites-empty { margin: 48px auto 0; max-width: 760px; min-height: 0; padding: 0 16px; background: transparent; }
 .favorites-empty h2 { font-size: 18px; line-height: 24px; }
 .favorites-empty p { margin: 12px 0 0; font-size: 14px; line-height: 20px; }
+.favorites-empty__illustration { display: block; width: min(320px,100%); height: auto; margin: 24px auto 0; }
 .favorites-page.is-empty > .event-grid--results { display: block; }
 @media (min-width: 1024px) {
   .search-intro { max-width: 540px; margin-inline: auto; }
@@ -1570,7 +1571,7 @@ body:has(dialog[open]) { overflow: hidden; }
   .page-map .site-footer { display: none; }
 }
 
-/* Favorites: nine desktop cards and a text-only empty state. */
+/* Favorites: nine desktop cards and the original empty-state illustration. */
 .favorites-page .breadcrumbs [aria-current="page"] { color: var(--ink); font-weight: 700; }
 @media (min-width: 640px) {
   .favorites-page.is-empty .screen-header { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
