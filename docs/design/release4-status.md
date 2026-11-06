@@ -240,3 +240,17 @@ is retained separately; it is not invoked by the day-route page.
 Removed the transport-mode selector and its client-side state. KidsTime directions
 always open a pedestrian route (`rtt=pd`), including individual stops, event details
 and map-marker cards. Origin selection, point order and browser saves are retained.
+
+## Favorite events, 6 November 2026
+
+References: `Route(1).png` (populated desktop list) and `Route2.png` (empty list).
+Removed the extra collection search; the shared header search remains. The desktop
+layout uses three columns and nine saved events per page, with real page counts and
+elided page links. Tablet pagination stays at six events; phone cards retain their
+compact layout. Saved-walk pagination keeps its existing behavior.
+
+The title and breadcrumbs use "Избранные события". Cards show the actual venue name,
+metro and available event date. Empty favorites show only the supplied text, without
+an illustration or reserved image area, as explicitly requested. Empty, populated
+and load-error states remain distinct, including after removing the last favorite.
+Anonymous browser storage and account favorites retain their existing data flow.

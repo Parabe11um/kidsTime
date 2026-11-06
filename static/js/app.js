@@ -96,18 +96,14 @@
   bindFavoriteButtons();
 
   const favoriteContainer = document.querySelector("[data-device-favorites]");
-  const favoriteSearch = document.querySelector("[data-favorites-search]");
+  const favoritePage = favoriteContainer?.closest(".favorites-page");
   const filterFavorites = () => {
     if (!favoriteContainer) return;
-    const query = (favoriteSearch?.querySelector("input")?.value || "").trim().toLocaleLowerCase("ru");
-    let visible = 0;
     favoriteContainer.querySelectorAll("[data-event-id]").forEach((card) => {
-      card.hidden = !favorites.has(card.dataset.eventId) || !card.textContent.toLocaleLowerCase("ru").includes(query);
+      card.hidden = !favorites.has(card.dataset.eventId);
       card.dataset.favoriteMatch = String(!card.hidden);
-      if (!card.hidden) visible += 1;
     });
-    const noResults = document.querySelector("[data-favorites-no-results]");
-    if (noResults) noResults.hidden = !query || visible > 0;
+    favoritePage?.classList.toggle("is-empty", Boolean(favoriteContainer.querySelector(".favorites-empty")));
     document.dispatchEvent(new Event("kidstime:favorite-cards-filtered"));
   };
   let favoriteLoadSequence = 0;
@@ -134,12 +130,11 @@
     } catch (_error) {
       if (sequence !== favoriteLoadSequence) return;
       favoriteContainer.innerHTML = '<div class="empty-state">Не удалось загрузить избранное. Обновите страницу.</div>';
+      favoritePage?.classList.remove("is-empty");
       document.dispatchEvent(new Event("kidstime:favorite-cards-filtered"));
     }
   };
   loadFavoriteCards();
-  favoriteSearch?.addEventListener("submit", (event) => { event.preventDefault(); filterFavorites(); });
-  favoriteSearch?.querySelector("input")?.addEventListener("input", filterFavorites);
   document.addEventListener("kidstime:favorites-changed", loadFavoriteCards);
 
   const walkRoot = document.querySelector("[data-walk-root]");

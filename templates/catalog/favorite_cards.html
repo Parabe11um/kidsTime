@@ -1,7 +1,7 @@
 {% if events %}
     <div class="event-grid">
         {% for event in events %}
-            {% include "includes/event_card.html" with event=event %}
+            {% include "includes/event_card.html" with event=event use_venue_name=True %}
         {% endfor %}
     </div>
 {% endif %}

@@ -704,8 +704,6 @@ h3 { font-size: 16px; font-weight: 700; }
   .catalog-results .story { flex-basis: 80px; height: 100px; }
   .favorites-page { margin-top: 40px; }
   .favorites-page .event-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
-  .page-favorites > main > .mobile-hero { display: block; max-width: 1000px; margin: 32px auto 0; padding: 0; border: 0; background: none; }
-  .page-favorites .hero-search { width: 500px; }
   .section-page-header { margin-top: 30px; min-height: 100px; border-radius: 32px; }
   .walk-layout { grid-template-columns: minmax(0,1.7fr) minmax(0,1fr); gap: 30px; padding: 30px 0; }
   .walk-summary { position: sticky; top: 30px; }
@@ -829,21 +827,19 @@ h3 { font-size: 16px; font-weight: 700; }
 .screen-header h1 { text-align: center; font-size: 18px; line-height: 24px; font-weight: 600; }
 .screen-header .ui-icon { width: 24px; height: 24px; }
 .favorites-page { margin-top: 24px; }
-.favorites-search { margin-bottom: 24px; }
 .favorites-page .event-grid--results .event-card { padding: 0; }
 .favorites-page .event-grid--results .event-card__body { padding: 8px; }
 .event-grid--results .place-metro,.event-grid--results .place-address > .ui-icon { display: none; }
 .event-grid--results .place-address { margin-top: 0; }
 .detail-description a { overflow-wrap: anywhere; }
-.favorites-empty { margin: 80px auto 0; max-width: 370px; padding: 0 16px; }
+.favorites-empty { margin: 48px auto 0; max-width: 760px; min-height: 0; padding: 0 16px; background: transparent; }
 .favorites-empty h2 { font-size: 18px; line-height: 24px; }
-.favorites-empty p { margin: 20px 0; font-size: 16px; line-height: 24px; }
-.favorites-empty .primary-button { width: 100%; min-height: 44px; }
+.favorites-empty p { margin: 12px 0 0; font-size: 14px; line-height: 20px; }
+.favorites-page.is-empty > .event-grid--results { display: block; }
 @media (min-width: 1024px) {
   .search-intro { max-width: 540px; margin-inline: auto; }
   .search-stack { max-width: 420px; margin-inline: auto; }
   .favorites-page { margin-top: 36px; }
-  .favorites-search { max-width: 100%; margin-inline: auto; }
   .favorites-page > .event-grid--results { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 
@@ -1019,13 +1015,11 @@ body:has(dialog[open]) { overflow: hidden; }
   .favorites-page .screen-header,.saved-walks-page .screen-header { display: block; margin: 40px 0 32px; }
   .favorites-page .screen-header > a,.saved-walks-page .screen-header > a { display: none; }
   .favorites-page .screen-header h1,.saved-walks-page .screen-header h1 { text-align: left; font-size: 36px; line-height: 44px; }
-  .favorites-search { max-width: 360px; margin: -76px 0 32px auto; height: 44px; }
   .favorites-page .event-grid--results { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
   .favorites-page .event-grid--results .event-card { display: block; padding: 4px; border-radius: 24px; }
   .favorites-page .event-grid--results .event-card__image-wrap { height: auto; aspect-ratio: 1.65; border-radius: 20px; }
   .favorites-page .event-grid--results .event-card__body { padding: 12px; }
   .favorites-page .event-grid--results .place-metro { display: block; }
-  .favorites-empty { min-height: 310px; background: transparent; }
   .saved-walks-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
   .walk-page { width: min(1000px,calc(100% - 64px)); margin-top: 30px; }
   .section-page-header { margin: 0; min-height: 0; padding: 0; background: transparent; color: var(--ink); justify-content: flex-start; }
@@ -1164,8 +1158,6 @@ body:has(dialog[open]) { overflow: hidden; }
   .event-grid--results .event-card__facts .ui-icon { flex-shrink: 0; }
   .favorites-page { margin-top: 24px; }
   .favorites-page .screen-header { padding-inline: 16px; margin-bottom: 16px; }
-  .favorites-search { margin-bottom: 24px; }
-  .favorites-empty { margin-top: 80px; background: transparent; }
   .search-stack { margin-top: 34px; }
   .search-empty { min-height: 580px; }
 
@@ -1493,7 +1485,6 @@ body:has(dialog[open]) { overflow: hidden; }
   .favorites-page .screen-header,.saved-walks-page .screen-header { display: block; margin: 32px 0; padding: 0; }
   .favorites-page .screen-header > a,.saved-walks-page .screen-header > a { display: none; }
   .favorites-page .screen-header h1,.saved-walks-page .screen-header h1 { text-align: left; font-size: 32px; line-height: 40px; }
-  .favorites-search { display: none; }
   .favorites-page .event-grid--results { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 32px 24px; }
   .favorites-page .event-grid--results .event-card { display: block; padding: 4px; border-radius: 24px; background: white; }
   .favorites-page .event-grid--results .event-card__image-wrap { height: auto; min-height: 0; aspect-ratio: 1.65; border-radius: 20px; }
@@ -1503,7 +1494,6 @@ body:has(dialog[open]) { overflow: hidden; }
   .favorites-page .event-grid--results .place-address,.favorites-page .event-grid--results .place-metro { display: block; font-size: 12px; line-height: 16px; }
   .favorites-page .event-grid--results .place-address .ui-icon { display: inline-block; }
   .favorites-page .event-grid--results .event-card__facts { display: none; }
-  .favorites-empty { min-height: 340px; margin: 50px auto 0; background: transparent; }
   .saved-walks-note { margin: -16px 0 28px; }
   .saved-walks-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 32px 24px; }
   .saved-route { border-radius: 24px; }
@@ -1578,6 +1568,36 @@ body:has(dialog[open]) { overflow: hidden; }
   .page-map > #main-content { min-height: 0; padding: 0; border-radius: 0; }
   .page-map .map-shell { min-height: calc(100dvh - 86px); }
   .page-map .site-footer { display: none; }
+}
+
+/* Favorites: nine desktop cards and a text-only empty state. */
+.favorites-page .breadcrumbs [aria-current="page"] { color: var(--ink); font-weight: 700; }
+@media (min-width: 640px) {
+  .favorites-page.is-empty .screen-header { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .favorites-empty { margin-top: 56px; }
+  .favorites-empty h2 { font-size: 20px; line-height: 28px; }
+}
+@media (min-width: 1024px) {
+  .favorites-page { margin-top: 24px; }
+  .favorites-page .screen-header { margin: 32px 0; }
+  .favorites-page .screen-header h1 { font-size: 32px; line-height: 40px; }
+  .favorites-page .event-grid--results { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 32px 24px; align-items: start; }
+  .favorites-page .event-grid--results .event-card__image-wrap { aspect-ratio: 1.7; }
+  .favorites-page .event-grid--results .event-card__age { display: flex; font-size: 12px; }
+  .favorites-page .event-grid--results .event-card > .favorite-button { top: 6px; right: 12px; }
+  .favorites-page .event-grid--results .event-card__body { padding: 8px 12px 12px; }
+  .favorites-page .event-card__title { font-size: 16px; line-height: 20px; }
+  .favorites-page .event-card__meta { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-top: 10px; }
+  .favorites-page .event-card__location { display: flex; flex-wrap: wrap; align-items: start; gap: 4px 10px; min-width: 0; margin: 0; }
+  .favorites-page .place-address,.favorites-page .place-metro { margin: 0; max-width: 100%; color: var(--ink); font-size: 12px; line-height: 16px; }
+  .favorites-page .place-address .ui-icon { display: inline-block; color: var(--coral); }
+  .favorites-page .metro-dot { width: 6px; height: 6px; margin-top: 5px; margin-right: 5px; background: #54ad8b; }
+  .favorites-page .event-card__date-badge { display: grid; flex-shrink: 0; gap: 2px; font-size: 12px; line-height: 16px; text-align: right; }
+  .favorites-page .event-card__date-badge b { font-size: 20px; line-height: 24px; }
+  .favorites-page .event-card__facts { display: none; }
+  .favorites-page .collection-pagination { margin: 64px 0 0; }
+  .favorites-page .pagination__number { min-width: 44px; height: 44px; font-size: 14px; }
+  .favorites-page .collection-pagination > span { padding: 0 8px; }
 }
 
 /* Day route: connected stops, an explicit origin and a map/address picker. */
@@ -1666,15 +1686,15 @@ body:has(dialog[open]) { overflow: hidden; }
   .not-found__home { display: none; }
 }
 @media (min-width: 1024px) {
-  :is(.page-not-found,.page-walk) .desktop-header { border-width: 2px; border-color: #ffd2ba; border-top-color: white; }
-  :is(.page-not-found,.page-walk) .desktop-header__inner { min-height: 83px; }
-  :is(.page-not-found,.page-walk) .desktop-header .brand-mark { width: 122px; height: 25px; }
-  :is(.page-not-found,.page-walk) .desktop-search { height: 47px; padding: 2px; }
-  :is(.page-not-found,.page-walk) .desktop-search .search-filter-button { width: 40px; height: 40px; flex-basis: 40px; }
-  :is(.page-not-found,.page-walk) .desktop-nav > .header-notifications { width: 24px; min-width: 24px; }
-  :is(.page-not-found,.page-walk) .header-notifications__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  :is(.page-not-found,.page-walk) .header-notifications::before { content: ""; width: 14px; height: 17.9892px; transform: scaleX(-1); background: url("../icons/ui/notification.svg") center/contain no-repeat; }
-  :is(.page-not-found,.page-walk) .desktop-nav > .desktop-profile,:is(.page-not-found,.page-walk) .desktop-profile .header-avatar { width: 44px; height: 44px; }
+  :is(.page-not-found,.page-walk,.page-favorites) .desktop-header { border-width: 2px; border-color: #ffd2ba; border-top-color: white; }
+  :is(.page-not-found,.page-walk,.page-favorites) .desktop-header__inner { min-height: 83px; }
+  :is(.page-not-found,.page-walk,.page-favorites) .desktop-header .brand-mark { width: 122px; height: 25px; }
+  :is(.page-not-found,.page-walk,.page-favorites) .desktop-search { height: 47px; padding: 2px; }
+  :is(.page-not-found,.page-walk,.page-favorites) .desktop-search .search-filter-button { width: 40px; height: 40px; flex-basis: 40px; }
+  :is(.page-not-found,.page-walk,.page-favorites) .desktop-nav > .header-notifications { width: 24px; min-width: 24px; }
+  :is(.page-not-found,.page-walk,.page-favorites) .header-notifications__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  :is(.page-not-found,.page-walk,.page-favorites) .header-notifications::before { content: ""; width: 14px; height: 17.9892px; transform: scaleX(-1); background: url("../icons/ui/notification.svg") center/contain no-repeat; }
+  :is(.page-not-found,.page-walk,.page-favorites) .desktop-nav > .desktop-profile,:is(.page-not-found,.page-walk,.page-favorites) .desktop-profile .header-avatar { width: 44px; height: 44px; }
   .not-found__copy h1 { font-size: 32px; line-height: 40px; }
   .page-not-found .site-footer { padding: 100px 0; border-radius: 0 0 56px 56px; }
   .page-not-found .site-footer::before { inset: auto 50% -146px auto; width: 1715px; height: 252.263px; transform: translateX(50%); background: url("../illustrations/not-found-glow.svg") center/100% 100% no-repeat; filter: none; opacity: 1; }
