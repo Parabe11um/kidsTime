@@ -225,3 +225,12 @@ vector and geometry already supplied for the 404 reference.
 
 See `docs/features/day-route.md` for setup, temporary-location handling, limits and
 verification. No schema or production Compose change is added.
+
+### Day route follow-up, 6 November 2026
+
+Removed the travel-time badges, fallback time links, total estimate and refresh
+controls by product request. Stops retain compact dashed connections. The page no
+longer exposes the routing endpoint or requests estimates, even with a configured
+router key. Browser geolocation, confirmed map/address selection, reordering,
+saving and external Yandex Maps directions remain available. The existing backend
+is retained separately; it is not invoked by the day-route page.

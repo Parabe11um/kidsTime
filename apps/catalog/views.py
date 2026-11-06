@@ -204,7 +204,6 @@ def walk_builder(request):
         "catalog/walk_builder.html",
         {
             "walk_point_limit": WALK_POINT_LIMIT,
-            "walk_routing_enabled": bool(settings.YANDEX_ROUTER_API_KEY),
             "walk_geocoder_enabled": bool(settings.YANDEX_GEOCODER_API_KEY),
         },
     )

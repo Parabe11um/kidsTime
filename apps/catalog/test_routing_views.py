@@ -28,10 +28,18 @@ class WalkRoutingTests(TestCase):
             body = {"ids": [event.pk for event in self.events], "mode": "walking"}
         return (client or self.client).post(reverse("catalog:walk_route_times"), data=json.dumps(body), content_type="application/json")
 
-    def test_page_exposes_capabilities_but_never_private_keys(self):
+    def test_page_keeps_origin_controls_without_travel_time_ui_or_private_keys(self):
         response = self.client.get(reverse("catalog:walk_builder"))
-        self.assertContains(response, 'data-routing-enabled="true"')
         self.assertContains(response, 'data-origin-search')
+        self.assertContains(response, 'data-walk-locate')
+        self.assertContains(response, 'data-walk-origin-open')
+        for removed in (
+            'data-times-endpoint', 'data-routing-enabled',
+            'data-walk-time-note', 'data-walk-times-retry',
+            'Уточнить время', 'Обновить время',
+        ):
+            with self.subTest(removed=removed):
+                self.assertNotContains(response, removed)
         self.assertNotContains(response, "private-routing-key")
         self.assertNotContains(response, "private-geocoder-key")
 
@@ -105,7 +113,7 @@ class WalkRoutingTests(TestCase):
     def test_unconfigured_provider_keeps_origin_controls_available(self, calculate):
         self.assertEqual(self.request().status_code, 503)
         response = self.client.get(reverse("catalog:walk_builder"))
-        self.assertContains(response, 'data-routing-enabled="false"')
+        self.assertNotContains(response, 'data-times-endpoint')
         self.assertContains(response, 'data-walk-locate')
         self.assertContains(response, 'data-walk-origin-open')
         self.assertNotContains(response, 'data-origin-search')
