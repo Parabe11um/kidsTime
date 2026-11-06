@@ -234,3 +234,9 @@ longer exposes the routing endpoint or requests estimates, even with a configure
 router key. Browser geolocation, confirmed map/address selection, reordering,
 saving and external Yandex Maps directions remain available. The existing backend
 is retained separately; it is not invoked by the day-route page.
+
+### Walking-only directions, 6 November 2026
+
+Removed the transport-mode selector and its client-side state. KidsTime directions
+always open a pedestrian route (`rtt=pd`), including individual stops, event details
+and map-marker cards. Origin selection, point order and browser saves are retained.

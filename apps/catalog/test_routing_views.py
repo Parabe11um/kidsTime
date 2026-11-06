@@ -37,6 +37,7 @@ class WalkRoutingTests(TestCase):
             'data-times-endpoint', 'data-routing-enabled',
             'data-walk-time-note', 'data-walk-times-retry',
             'Уточнить время', 'Обновить время',
+            'data-walk-mode', 'Способ передвижения',
         ):
             with self.subTest(removed=removed):
                 self.assertNotContains(response, removed)

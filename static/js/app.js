@@ -275,8 +275,6 @@
     let loadSequence = 0;
     // Keep the explicit origin in memory, never in saved routes or localStorage.
     let origin = null;
-    let travelMode = "walking";
-    const routeType = () => ({ walking: "pd", transit: "mt", driving: "auto" })[travelMode];
     window.KidsTimeWalk.getOrigin = () => origin ? { ...origin } : null;
     window.KidsTimeWalk.setOrigin = (point) => {
       const changed = origin?.lat !== point?.lat || origin?.lng !== point?.lng;
@@ -284,22 +282,14 @@
       updateRouteLink(loadedWalkEvents);
       document.dispatchEvent(new CustomEvent("kidstime:walk-origin-changed", { detail: { coordinatesChanged: changed } }));
     };
-    window.KidsTimeWalk.getMode = () => travelMode;
-    window.KidsTimeWalk.setMode = (mode) => {
-      if (!["walking", "transit", "driving"].includes(mode)) return;
-      travelMode = mode;
-      updateRouteLink(loadedWalkEvents);
-      document.dispatchEvent(new Event("kidstime:walk-mode-changed"));
-    };
-
     const directRouteUrl = (event) => (
-      `https://yandex.ru/maps/?rtext=~${encodeURIComponent(`${event.lat},${event.lng}`)}&rtt=${routeType()}`
+      `https://yandex.ru/maps/?rtext=~${encodeURIComponent(`${event.lat},${event.lng}`)}&rtt=pd`
     );
 
     const walkRouteUrl = (events) => {
       const points = events.map((event) => encodeURIComponent(`${event.lat},${event.lng}`));
       const start = origin ? `${origin.lat},${origin.lng}` : "";
-      return `https://yandex.ru/maps/?rtext=${encodeURIComponent(start)}~${points.join("~")}&rtt=${routeType()}`;
+      return `https://yandex.ru/maps/?rtext=${encodeURIComponent(start)}~${points.join("~")}&rtt=pd`;
     };
 
     const makeButton = (label, className, ariaLabel) => {
