@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Избранные события — КидсТайм{% endblock %}
 {% block body_class %}page-favorites{% endblock %}
 {% block content %}
@@ -14,6 +15,9 @@
             <div class="empty-state favorites-empty">
                 <h2>Сохраните то, что нравится</h2>
                 <p>Нажмите на сердечко в карточке события, чтобы вернуться к нему позже.</p>
+                <img class="favorites-empty__illustration"
+                     src="{% static 'illustrations/favorites-empty.png' %}"
+                     width="320" height="260" alt="" decoding="async">
             </div>
         </template>
     </div>

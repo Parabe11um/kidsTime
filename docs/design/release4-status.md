@@ -250,7 +250,10 @@ elided page links. Tablet pagination stays at six events; phone cards retain the
 compact layout. Saved-walk pagination keeps its existing behavior.
 
 The title and breadcrumbs use "Избранные события". Cards show the actual venue name,
-metro and available event date. Empty favorites show only the supplied text, without
-an illustration or reserved image area, as explicitly requested. Empty, populated
-and load-error states remain distinct, including after removing the last favorite.
+metro and available event date. Empty favorites show the supplied text and the
+original heart-and-tickets illustration from `KidsTime(6).zip` (`Frame 559.png`).
+The 320 × 260px transparent asset is extracted at (340, 180, 660, 440), retaining
+the original pixels and alignment padding while excluding the baked-in text.
+It is rendered only when the empty template is inserted; populated and load-error
+states remain distinct, including after removing the last favorite.
 Anonymous browser storage and account favorites retain their existing data flow.
