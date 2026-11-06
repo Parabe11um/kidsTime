@@ -16,18 +16,20 @@
   });
 
   const tabletViewport = matchMedia("(min-width: 640px) and (max-width: 1023px)");
-  const collectionPages = (list, nav, selector, matches = () => true) => {
+  const desktopCollections = matchMedia("(min-width: 1024px)");
+  const collectionPages = (list, nav, selector, matches = () => true, desktopPageSize = 0) => {
     if (!list || !nav) return { refresh() {} };
     let page = 1;
     const refresh = (reset = false) => {
       if (reset) page = 1;
       const all = [...list.querySelectorAll(selector)];
       const eligible = all.filter(matches);
-      const pages = Math.max(1, Math.ceil(eligible.length / 6));
+      const pageSize = tabletViewport.matches ? 6 : (desktopCollections.matches ? desktopPageSize : 0);
+      const pages = pageSize ? Math.max(1, Math.ceil(eligible.length / pageSize)) : 1;
       page = Math.min(page, pages);
-      const visible = new Set(tabletViewport.matches ? eligible.slice((page - 1) * 6, page * 6) : eligible);
+      const visible = new Set(pageSize ? eligible.slice((page - 1) * pageSize, page * pageSize) : eligible);
       all.forEach((item) => { item.hidden = !visible.has(item); });
-      nav.hidden = !tabletViewport.matches || pages < 2;
+      nav.hidden = !pageSize || pages < 2;
       nav.replaceChildren();
       if (nav.hidden) return;
       const button = (label, value, step = false) => {
@@ -39,7 +41,16 @@
         return node;
       };
       nav.append(button("Назад", page - 1, true));
-      for (let number = 1; number <= pages; number++) nav.append(button(String(number), number));
+      const start = Math.max(1, Math.min(page - 2, pages - 4));
+      const numbers = new Set([1, pages]);
+      for (let number = start; number <= Math.min(pages, start + 4); number++) numbers.add(number);
+      let previous = 0;
+      [...numbers].sort((a, b) => a - b).forEach(number => {
+        if (number > previous + 1) {
+          const ellipsis = document.createElement("span"); ellipsis.textContent = "…"; ellipsis.setAttribute("aria-hidden", "true"); nav.append(ellipsis);
+        }
+        nav.append(button(String(number), number)); previous = number;
+      });
       nav.append(button("Далее", page + 1, true));
       const count = document.createElement("small"); count.textContent = `Страница ${page} из ${pages}`; nav.append(count);
     };
@@ -51,10 +62,11 @@
       list.scrollIntoView({block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
     });
     tabletViewport.addEventListener("change", () => refresh());
+    desktopCollections.addEventListener("change", () => refresh());
     return { refresh };
   };
-  const favoritePages = collectionPages(document.querySelector("[data-device-favorites]"), document.querySelector("[data-favorite-pages]"), ".event-card", (card) => card.dataset.favoriteMatch !== "false");
-  document.addEventListener("kidstime:favorite-cards-filtered", () => favoritePages.refresh(true));
+  const favoritePages = collectionPages(document.querySelector("[data-device-favorites]"), document.querySelector("[data-favorite-pages]"), ".event-card", (card) => card.dataset.favoriteMatch !== "false", 9);
+  document.addEventListener("kidstime:favorite-cards-filtered", () => favoritePages.refresh());
   favoritePages.refresh();
   document.querySelectorAll("dialog").forEach((dialog) => {
     dialog.addEventListener("close", () => {

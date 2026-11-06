@@ -1,1 +1,1 @@
-<p class="place-address"><span class="ui-icon ui-icon--point" aria-hidden="true"></span>{{ event.venue.address }}</p>{% if event.venue.metro %}<p class="place-metro"><span class="metro-dot" aria-hidden="true"></span>{{ event.venue.metro }}</p>{% endif %}
+<p class="place-address"><span class="ui-icon ui-icon--point" aria-hidden="true"></span>{% if use_venue_name %}{{ event.venue.name }}{% else %}{{ event.venue.address }}{% endif %}</p>{% if event.venue.metro %}<p class="place-metro"><span class="metro-dot" aria-hidden="true"></span>{{ event.venue.metro }}</p>{% endif %}
