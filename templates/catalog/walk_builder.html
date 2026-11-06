@@ -6,8 +6,6 @@
     <div class="walk-page"
          data-walk-root
          data-endpoint="{% url 'catalog:walk_events_api' %}"
-         data-times-endpoint="{% url 'catalog:walk_route_times' %}"
-         data-routing-enabled="{{ walk_routing_enabled|yesno:'true,false' }}"
          data-geocode-endpoint="{% url 'catalog:walk_geocode' %}"
          data-geocoder-enabled="{{ walk_geocoder_enabled|yesno:'true,false' }}"
          data-map-key="{{ YANDEX_MAPS_API_KEY }}"
@@ -62,10 +60,6 @@
                 <button class="walk-delete" type="button" data-delete-walk hidden>Удалить маршрут</button>
               </aside>
               <p class="walk-storage-note">Маршрут сохраняется в этом браузере.</p>
-              <div class="walk-time-controls">
-                <p class="walk-time-note" data-walk-time-note role="status"></p>
-                <button class="text-link walk-times-retry" type="button" data-walk-times-retry hidden>Обновить время</button>
-              </div>
               <a class="text-link walk-saved-link" href="{% url 'catalog:saved_walks' %}">Мои маршруты</a>
             </div>
         </div>

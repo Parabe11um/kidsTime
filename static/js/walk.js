@@ -2,34 +2,17 @@
   const root = document.querySelector("[data-walk-root]");
   const walk = window.KidsTimeWalk;
   if (!root || !walk) return;
-  const list = root.querySelector("[data-walk-list]");
   const dialog = root.querySelector("[data-walk-origin-dialog]");
   const confirm = root.querySelector("[data-origin-confirm]");
   const selection = root.querySelector("[data-origin-selection]");
   const dialogStatus = root.querySelector("[data-origin-dialog-status]");
   const originStatus = root.querySelector("[data-walk-origin-status]");
-  const retry = root.querySelector("[data-walk-times-retry]");
-  const timeNote = root.querySelector("[data-walk-time-note]");
   const modeInput = root.querySelector("[data-walk-mode]");
-  const modeNames = { walking: "пешком", driving: "на авто", transit: "на транспорте" };
-  const types = { walking: "pd", driving: "auto", transit: "mt" };
-  const enabled = root.dataset.routingEnabled === "true";
   const geocoder = root.dataset.geocoderEnabled === "true";
   const csrf = root.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
   const validPoint = p => p && Number.isFinite(p.lat) && Number.isFinite(p.lng) && Math.abs(p.lat) <= 90 && Math.abs(p.lng) <= 180;
   const samePoint = (a, b) => validPoint(a) && validPoint(b) && a.lat === b.lat && a.lng === b.lng;
   const pointText = p => `${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;
-  const duration = seconds => {
-    const minutes = Math.ceil(seconds / 60);
-    if (!minutes) return "Менее 1 мин";
-    return minutes < 60 ? `${minutes} мин` : `${Math.floor(minutes / 60)} ч${minutes % 60 ? ` ${minutes % 60} мин` : ""}`;
-  };
-  const routeUrl = (from, to) => {
-    const url = new URL("https://yandex.ru/maps/");
-    url.searchParams.set("rtext", `${from.lat},${from.lng}~${to.lat},${to.lng}`);
-    url.searchParams.set("rtt", types[walk.getMode()]);
-    return url.href;
-  };
   async function post(endpoint, payload, signal) {
     const controller = new AbortController();
     const abort = () => controller.abort();
@@ -46,101 +29,6 @@
     } finally {
       clearTimeout(timer);
       signal?.removeEventListener("abort", abort);
-    }
-  }
-
-  let estimateSequence = 0;
-  let estimatesController;
-  let bindings = [];
-  const cache = new Map(); // Page-memory only; origin coordinates never enter browser storage.
-  function cancelEstimates() {
-    estimateSequence++;
-    estimatesController?.abort();
-    retry.disabled = false;
-    retry.removeAttribute("aria-busy");
-  }
-  function addLegs(events) {
-    list.querySelectorAll(".walk-leg").forEach(node => node.remove());
-    bindings = [];
-    const origin = walk.getOrigin();
-    events.forEach((event, i) => {
-      const item = list.querySelector(`[data-walk-event-id="${event.id}"]`);
-      if (!item) return;
-      const from = i ? events[i - 1] : origin;
-      const leg = document.createElement("div"); leg.className = "walk-leg";
-      const label = document.createElement(from ? "a" : "button");
-      label.className = "walk-leg__label";
-      if (from) {
-        label.href = routeUrl(from, event); label.target = "_blank"; label.rel = "noopener";
-        label.textContent = enabled ? "Рассчитываем…" : "Уточнить время ↗";
-        const binding = { from: i ? String(events[i - 1].id) : "origin", to: String(event.id), label };
-        bindings.push(binding);
-        label.setAttribute("aria-label", `Время пути до «${event.title}»: открыть в Яндекс Картах`);
-      } else {
-        label.type = "button"; label.textContent = "Выбрать старт";
-        label.dataset.walkOriginOpen = "";
-        label.setAttribute("aria-controls", dialog.id); label.setAttribute("aria-haspopup", "dialog");
-        label.setAttribute("aria-label", "Выбрать начальную точку для расчёта времени");
-        label.addEventListener("click", () => openOrigin(label));
-      }
-      leg.append(label); item.before(leg);
-    });
-  }
-  function setNote(text, attribution = false) {
-    timeNote.textContent = text;
-    if (attribution) {
-      const link = document.createElement("a"); link.href = "https://yandex.ru/maps/";
-      link.textContent = "Яндекс Карты"; link.target = "_blank"; link.rel = "noopener";
-      timeNote.append(document.createTextNode(" "), link);
-    }
-  }
-  function applyTimes(data) {
-    if (data.mode !== walk.getMode() || !Array.isArray(data.legs) || data.legs.length !== bindings.length) throw new Error("invalid route");
-    const valid = data.legs.every((leg, i) => leg.from_id === bindings[i].from && leg.to_id === bindings[i].to && (leg.seconds === null || (Number.isFinite(leg.seconds) && leg.seconds >= 0)));
-    if (!valid) throw new Error("invalid route");
-    data.legs.forEach((leg, i) => {
-      const label = bindings[i].label;
-      label.textContent = leg.seconds === null ? "Путь не найден" : duration(leg.seconds);
-      label.classList.toggle("is-unavailable", leg.seconds === null);
-      label.title = `${modeNames[walk.getMode()]} · ${label.textContent} · Яндекс Карты`;
-      label.setAttribute("aria-label", `${label.title}. Открыть этот участок в Яндекс Картах`);
-    });
-    if (data.legs.every(leg => leg.seconds !== null)) {
-      const total = data.legs.reduce((sum, leg) => sum + leg.seconds, 0);
-      setNote(`${walk.getOrigin() ? "В дороге" : "Между выбранными местами"}: ${duration(total)}, ${modeNames[walk.getMode()]}. Оценка на текущее время, без учёта посещения мест.`, true);
-    } else setNote("Для части участков путь не найден. Проверьте точки в Яндекс Картах.", true);
-  }
-  async function refreshTimes(force = false) {
-    cancelEstimates();
-    const sequence = estimateSequence;
-    if (root.getAttribute("aria-busy") === "true") return;
-    const events = walk.getEvents();
-    addLegs(events);
-    retry.hidden = !enabled || !bindings.length;
-    if (!events.length) { setNote(""); return; }
-    if (!bindings.length) { setNote("Выберите начальную точку, чтобы рассчитать путь до первого места."); return; }
-    if (!enabled) { setNote("Время в пути можно посмотреть в Яндекс Картах."); return; }
-    const origin = walk.getOrigin();
-    const payload = { ids: events.map(e => e.id), mode: walk.getMode(), origin: origin ? { lat: origin.lat, lng: origin.lng } : null };
-    const key = JSON.stringify({ ...payload, points: events.map(e => [e.lat, e.lng]) });
-    const cached = cache.get(key);
-    if (!force && cached && Date.now() - cached.at < 300000) { applyTimes(cached.data); return; }
-    estimatesController = new AbortController();
-    retry.disabled = true; retry.setAttribute("aria-busy", "true");
-    setNote("Рассчитываем время в пути…");
-    try {
-      const data = await post(root.dataset.timesEndpoint, payload, estimatesController.signal);
-      if (sequence !== estimateSequence) return;
-      applyTimes(data);
-      if (cache.size >= 20) cache.delete(cache.keys().next().value);
-      cache.set(key, { at: Date.now(), data });
-    } catch (error) {
-      if (sequence !== estimateSequence) return;
-      if (error.status === 409) { walk.reload(); return; }
-      bindings.forEach(({ label }) => { label.textContent = "Время недоступно ↗"; label.classList.add("is-unavailable"); });
-      setNote(error.status === 429 ? "Слишком частые расчёты. Повторите позже или откройте маршрут в Яндекс Картах." : "Не удалось рассчитать время. Можно повторить расчёт или открыть маршрут в Яндекс Картах.");
-    } finally {
-      if (sequence === estimateSequence) { retry.disabled = false; retry.removeAttribute("aria-busy"); }
     }
   }
 
@@ -310,11 +198,6 @@
     finally { if (revision === searchRevision) button.disabled = false; }
   });
   modeInput.addEventListener("change", () => walk.setMode(modeInput.value));
-  retry.addEventListener("click", () => refreshTimes(true));
-  document.addEventListener("kidstime:walk-loaded", () => refreshTimes());
-  document.addEventListener("kidstime:walk-mode-changed", () => refreshTimes());
-  document.addEventListener("kidstime:walk-origin-changed", event => { paintOrigin(); if (!walk.getOrigin()) cache.clear(); if (event.detail?.coordinatesChanged !== false) refreshTimes(); });
-  document.addEventListener("kidstime:walk-loading", () => { cancelEstimates(); bindings.forEach(({ label }) => { label.textContent = "Обновляем…"; }); retry.hidden = true; });
-  document.addEventListener("kidstime:walk-load-error", () => { cancelEstimates(); setNote(""); retry.hidden = true; });
-  paintOrigin(); refreshTimes();
+  document.addEventListener("kidstime:walk-origin-changed", paintOrigin);
+  paintOrigin();
 })();

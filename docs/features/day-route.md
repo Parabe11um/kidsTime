@@ -1,14 +1,15 @@
-# Day route: origin and travel times
+# Day route: origin and external directions
 
 Reference: the supplied `Route.png` desktop layout (1440px). The route keeps the
-1000px content width, a 356px summary, numbered cards and time badges beside the
-dashed connections. The browser-storage note sits separately below the summary.
-The existing phone and tablet layouts remain responsive.
+1000px content width, a 356px summary and numbered cards with dashed connections.
+Travel-time badges, estimates and calculation controls have been removed by product
+request. The browser-storage note sits separately below the summary. The existing
+phone and tablet layouts remain responsive.
 
 ## User flow
 
 - Walking is the default. The selector also offers driving and public transport;
-  the estimate and the external Yandex Maps link use the same mode and point order.
+  the external Yandex Maps link uses the selected mode and point order.
 - The visible location button requests browser geolocation only when clicked.
   Permission denial, unavailable position and approximate coordinates have explicit
   feedback. An existing origin is retained if a later location attempt fails.
@@ -18,14 +19,11 @@ The existing phone and tablet layouts remain responsive.
   camera position is never silently accepted as the origin.
 - Up to nine catalog places can be selected, plus an optional origin. The count is
   the actual number of selected catalog places, excluding the origin.
-- Changing the origin, mode or place order invalidates old estimates immediately.
-  Stale responses cannot replace a newer route. The complete route uses one provider
-  request, with optimization disabled. Server-returned legs keep their point IDs.
-- Without an origin, times are calculated only between catalog places. The first
-  connection offers origin selection. Failed legs do not receive guessed durations.
-  Links to the corresponding leg in Yandex Maps remain available.
-- Times describe travel at the moment of calculation; event visits and waiting at
-  activities are not included. They are not a schedule of arrival at booked sessions.
+- Changing the origin, mode or place order updates the external directions link.
+  Opening, editing, saving or clearing a route never requests travel-time estimates.
+  This also applies when a router API key is configured on the server.
+- The page has no duration totals, per-leg time placeholders or refresh button.
+  Directions are opened in Yandex Maps using the main route button.
 
 ## Configuration
 
@@ -36,44 +34,42 @@ server environment, never in Git or a chat message:
 ```dotenv
 # JavaScript API: existing public, HTTP-Referer-restricted map key.
 YANDEX_MAPS_API_KEY=
-# Route Details HTTP API: required to display minutes between points.
-YANDEX_ROUTER_API_KEY=
 # HTTP Geocoder: optional address search and readable origin addresses.
 YANDEX_GEOCODER_API_KEY=
 ```
 
-Router and geocoder keys stay server-side and must have access to their respective
-products. A JavaScript API key alone does not imply this access. Check the connected
-products and available quota in the Yandex developer account before enabling them.
+The geocoder key stays server-side and must have access to its respective product.
+A JavaScript API key alone does not imply this access. Check the connected product
+and available quota in the Yandex developer account before enabling it.
 After changing production environment values, recreate `web` with the existing
 production Compose command. No Compose changes or database migration are required.
 
-Without the router key, the page offers Yandex Maps links instead of invented
-minutes. Without the geocoder key, map selection, browser geolocation and explicit
-coordinates still work. If the map cannot load, the coordinate form remains usable.
+No router key is needed for the current page. Without the geocoder key, map
+selection, browser geolocation and explicit coordinates still work. If the map
+cannot load, the coordinate form remains usable.
 
 Official integration references:
 
-- https://yandex.ru/maps-api/docs/router-api/request.html
-- https://yandex.ru/maps-api/docs/router-api/response.html
 - https://yandex.ru/maps-api/docs/geocoder-api/request.html
 - https://yandex.ru/maps-api/docs/geocoder-api/response.html
 
 ## Requests and temporary data
 
-Both `/events/api/walk/times/` and `/events/api/walk/geocode/` accept CSRF-protected
-JSON POST requests, with a 4096-byte body limit. Coordinates are not URL parameters
-of KidsTime requests. Responses carry `Cache-Control: no-store`. Provider errors
-are reduced to generic codes; private keys and provider request URLs are not logged.
-Routing accepts only currently public catalog events with published, located venues.
-If the selection has changed, the client reloads its public event list.
+The page uses `/events/api/walk/geocode/` only for enabled address lookup. It accepts
+CSRF-protected JSON POST requests, with a 4096-byte body limit. Coordinates are not
+URL parameters of KidsTime requests. Responses carry `Cache-Control: no-store`.
+Provider errors are reduced to generic codes; private keys and provider request
+URLs are not logged.
 
-The existing shared database limiter caps each operation at 20 requests per hour
-per client IP, across all Gunicorn workers. Repeated whole-route calculations use
-a five-minute cache in the page's memory (maximum 20 entries). The refresh action
-requests a new estimate. No provider responses or coordinates are saved in browser
-storage, accounts or route records. Clearing the origin also clears that memory cache.
-Saved routes continue to hold their names, catalog IDs and real creation dates.
+The existing shared database limiter caps geocoding at 20 requests per hour per
+client IP, across all Gunicorn workers. No provider responses or origin coordinates
+are saved in browser storage, accounts or route records. Saved routes continue to
+hold their names, catalog IDs and real creation dates.
+
+The separately tested `/events/api/walk/times/` backend and its optional
+`YANDEX_ROUTER_API_KEY` setting remain available for a future integration, but the
+page no longer exposes its URL or calls it. Leaving this setting empty disables the
+backend provider as well. Restoring travel-time UI requires a separate product change.
 
 ## Verification
 
@@ -81,6 +77,7 @@ Service tests cover response units, point order, partial failures, malformed dat
 timeouts and key redaction. Endpoint tests cover publication/coordinate validation,
 CSRF, rate limits, missing configuration and server-only keys. Browser tests cover
 nine widths from 320 to 1920px, map/address/geolocation selection, denial and cancel,
-mode changes, reordered stops, persistence of IDs, stale responses and API failures.
-External services are simulated in these tests; no production key or billed request
-was used during implementation. Live activation requires a configured service key.
+mode changes, reordered stops and persistence of IDs. They also check that no time
+badges or totals appear and no routing requests are made during these interactions,
+including with router configuration present. External services are simulated in
+these tests; no production key or billed request is used.
