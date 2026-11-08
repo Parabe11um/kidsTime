@@ -1615,6 +1615,25 @@ body:has(dialog[open]) { overflow: hidden; }
   .saved-walks-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px 20px; }
 }
 
+/* Empty saved walks: a centered message and the supplied map illustration. */
+.saved-walks-page.is-empty .saved-walks-grid { display: block; }
+.saved-walks-empty { max-width: 760px; min-height: 0; margin: 48px auto 0; padding: 0 16px; background: transparent; }
+.saved-walks-empty h2 { margin: 0; font-size: 18px; line-height: 24px; }
+.saved-walks-empty p { margin: 8px 0 0; font-size: 14px; line-height: 20px; }
+.saved-walks-empty__illustration { display: block; width: min(320px,100%); height: auto; margin: 28px auto 0; }
+@media (max-width: 639px) {
+  .saved-walks-empty h2 { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .saved-walks-empty p { margin-top: 0; }
+}
+@media (min-width: 640px) {
+  .saved-walks-page.is-empty .screen-header { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .saved-walks-empty { margin-top: 56px; }
+  .saved-walks-empty h2 { font-size: 20px; line-height: 28px; }
+}
+@media (min-width: 1024px) {
+  .page-saved-walks:has(.saved-walks-page.is-empty) > main { min-height: 515px; }
+}
+
 /* Favorites: nine desktop cards and the original empty-state illustration. */
 .favorites-page .breadcrumbs [aria-current="page"] { color: var(--ink); font-weight: 700; }
 @media (min-width: 640px) {

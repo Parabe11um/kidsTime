@@ -278,3 +278,22 @@ dates and overall age as unknown. Fetch failures also remain distinct from an
 empty route list. No distance or duration is calculated or displayed.
 
 The browser-storage format, route limits and reopening behavior are unchanged.
+
+### Empty My routes, 8 November 2026
+
+Reference: the supplied `Route(3).png`. With no saved routes, the page shows the
+centered title and exact explanatory text above the original map/pencil/compass
+illustration. The large desktop page title and create-route button are omitted
+from this state. Phone navigation retains its back button and title, with the
+repeated empty-state title visually hidden.
+
+The 320 × 224px asset preserves the original pixels and canvas color from
+`Route(3).png`, crop (570, 270, 890, 494). These pixels also match the earlier
+tablet export in `KidsTime(3).zip`, `Избранные события-2.png`, crop
+(212, 270, 532, 494). It is distinct from the existing folded-map/signpost art
+used by the day-route builder.
+
+The empty-state class follows validated browser records, including removal of
+the last route and storage updates. Routes with unavailable points or request
+failures keep their cards and warnings. The illustration is inserted only in the
+empty template, so populated cards do not request it.

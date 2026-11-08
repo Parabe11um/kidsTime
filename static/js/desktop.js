@@ -245,6 +245,7 @@
     const list = savedRoot.querySelector("[data-saved-walks-list]");
     list.replaceChildren();
     const routes = readRoutes();
+    savedRoot.classList.toggle("is-empty", routes.length === 0);
     if (!routes.length) { list.append(savedRoot.querySelector("[data-saved-walks-empty]").content.cloneNode(true)); savedPages.refresh(); return; }
     for (const route of routes) {
       const card = document.createElement("article"); card.className = "saved-route";
