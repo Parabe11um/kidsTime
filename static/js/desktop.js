@@ -250,23 +250,30 @@
       const card = document.createElement("article"); card.className = "saved-route";
       const link = document.createElement("a"); link.href = `${savedRoot.dataset.walkUrl}?route=${encodeURIComponent(route.id)}`;
       const cover = document.createElement("div"); cover.className = "saved-route__cover";
-      const badge = document.createElement("span"); badge.className = "saved-route__badge"; badge.textContent = String(route.ids.length); badge.setAttribute("aria-hidden", "true");
+      const badge = document.createElement("span"); badge.className = "saved-route__badge";
+      const number = document.createElement("span"); number.className = "saved-route__number"; number.textContent = String(route.ids.length); number.setAttribute("aria-hidden", "true");
+      const count = document.createElement("span"); count.className = "sr-only"; count.textContent = `Точек в маршруте: ${route.ids.length}`;
+      badge.append(number, count);
       const body = document.createElement("div"); body.className = "saved-route__body";
-      const heading = document.createElement("h2"); heading.textContent = route.name;
+      const heading = document.createElement("h2"); heading.textContent = route.name; heading.title = route.name;
       const meta = document.createElement("p"); meta.className = "saved-route__meta";
-      const count = document.createElement("span"); count.textContent = `Мест: ${route.ids.length}`;
-      if (route.created_at) {
-        const date = document.createElement("time"); date.dateTime = route.created_at;
-        date.textContent = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(route.created_at));
-        meta.append(date);
-      }
-      meta.append(count); body.append(heading, meta); link.append(cover, badge, body);
+      const fact = (name, label) => {
+        const node = document.createElement("span"); node.className = `saved-route__fact saved-route__fact--${name}`;
+        const icon = document.createElement("span"); icon.className = `ui-icon ui-icon--${name === "date" ? "calendar" : "child"}`; icon.setAttribute("aria-hidden", "true");
+        const value = document.createElement("span"); value.className = "saved-route__value"; value.textContent = "Уточняется";
+        node.setAttribute("aria-label", `${label}: уточняется`); node.append(icon, value); meta.append(node);
+        return (text, description = text) => { value.textContent = text; node.title = description; node.setAttribute("aria-label", `${label}: ${description}`); };
+      };
+      const setDate = fact("date", "Даты событий");
+      const setAge = fact("age", "Возрастное ограничение");
+      const availability = document.createElement("p"); availability.className = "saved-route__availability"; availability.hidden = true;
+      body.append(heading, meta, availability); link.append(cover, badge, body);
       const remove = document.createElement("button"); remove.className = "saved-route__remove"; remove.type = "button"; remove.textContent = "Удалить";
-      remove.setAttribute("aria-label", `Удалить маршрут «${route.name}»`);
+      remove.hidden = true; remove.id = `remove-route-${route.id}`; remove.setAttribute("aria-label", `Удалить маршрут «${route.name}»`);
       remove.addEventListener("click", () => { if (window.confirm(`Удалить маршрут «${route.name}»?`)) writeRoutes(readRoutes().filter((item) => item.id !== route.id)); });
       const actions = document.createElement("button"); actions.className = "saved-route__actions"; actions.type = "button"; actions.textContent = "⋯";
-      actions.setAttribute("aria-label", `Действия с маршрутом «${route.name}»`); actions.setAttribute("aria-expanded", "false");
-      const reveal = (open) => { card.classList.toggle("is-revealed", open); actions.setAttribute("aria-expanded", String(open)); };
+      actions.setAttribute("aria-label", `Действия с маршрутом «${route.name}»`); actions.setAttribute("aria-expanded", "false"); actions.setAttribute("aria-controls", remove.id);
+      const reveal = (open) => { card.classList.toggle("is-revealed", open); actions.setAttribute("aria-expanded", String(open)); remove.hidden = !open; };
       actions.addEventListener("click", () => reveal(!card.classList.contains("is-revealed")));
       card.addEventListener("keydown", (event) => { if (event.key === "Escape") { reveal(false); actions.focus(); } });
       let touch = null;
@@ -290,10 +297,23 @@
       }).then((payload) => {
         if (current !== sequence) return;
         const events = Array.isArray(payload.results) ? payload.results : [];
-        count.textContent = events.length === route.ids.length ? `Мест: ${events.length}` : `Доступно: ${events.length} из ${route.ids.length}`;
+        const complete = events.length === route.ids.length;
+        const dates = [...new Set(events.map((item) => typeof item.date === "string" && item.date.trim() ? item.date.trim() : "Уточняется"))];
+        if (!complete && !dates.includes("Уточняется")) dates.push("Уточняется");
+        setDate(dates.join(" · ") || "Уточняется");
+        const ages = events.map((item) => typeof item.age === "string" && /^\d+\+$/.test(item.age) ? Number.parseInt(item.age, 10) : null);
+        setAge(complete && ages.length && ages.every((age) => age !== null) ? `${Math.max(...ages)}+` : "Уточняется");
+        if (!complete) {
+          availability.textContent = `Доступно ${events.length} из ${route.ids.length} точек`;
+          availability.hidden = false;
+        }
         const photo = events.find((item) => item.cover)?.cover;
         if (photo) { const image = document.createElement("img"); image.src = photo; image.alt = ""; image.loading = "lazy"; image.referrerPolicy = "no-referrer"; cover.append(image); }
-      }).catch(() => { if (current === sequence) count.textContent = "Не удалось проверить доступность мест. Откройте маршрут ещё раз."; });
+      }).catch(() => {
+        if (current !== sequence) return;
+        availability.textContent = "Не удалось проверить точки. Откройте маршрут ещё раз.";
+        availability.hidden = false;
+      });
     }
     savedPages.refresh();
   };
