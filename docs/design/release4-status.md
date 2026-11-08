@@ -297,3 +297,30 @@ The empty-state class follows validated browser records, including removal of
 the last route and storage updates. Routes with unavailable points or request
 failures keep their cards and warnings. The illustration is inserted only in the
 empty template, so populated cards do not request it.
+
+## Login and registration, 8 November 2026
+
+References: the supplied `Route2(1).png` (login) and `Route(4).png`
+(registration), both 1402 × 1086px. The desktop forms use the rounded left
+panel, 370px form width, 40px fields, outlined primary action and original
+background curves from those exports. The right panel retains the vector
+wordmark, supplied service copy and dynamic copyright year. These styles are
+scoped to login and registration at widths of at least 1024px; the existing
+phone/tablet layouts and recovery/verification layouts remain available.
+
+Background-only regions are stored as lossless WebP assets, with no baked-in
+form text or controls: left top (0, 0, 740, 258) from each export, right top
+(748, 0, 1402, 680) from each export, and shared lower panel glow
+(0, 936, 740, 1086) plus right edge (748, 680, 820, 1086) from the login
+export. These decorative assets are only requested by the desktop layout.
+
+Email verification, password requirements, field errors, recovery and resend
+links remain visible. Privacy acceptance is required; marketing consent is
+optional and unchecked. Missing policy/mail configuration still disables
+registration, and the test-mode notice is retained. Telegram/VK login and
+the corresponding social-login block are omitted by product agreement.
+
+Browser checks cover both pages from 320px to 1920px, password visibility,
+configuration notices and validation errors. A local fixture using the real
+account views/forms verifies login redirects, an inactive registration,
+confirmation by email and subsequent login; mail stays in memory during QA.

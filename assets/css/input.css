@@ -1571,6 +1571,39 @@ body:has(dialog[open]) { overflow: hidden; }
   .page-map .site-footer { display: none; }
 }
 
+/* Sign-in and registration: the supplied desktop split-panel backgrounds. */
+.account-shell--auth .account-recovery-group { display: grid; gap: 8px; }
+.account-shell--auth .account-recover { margin: 0 4px; font-size: 12px; line-height: 18px; }
+.account-shell--auth .account-registration-notes { display: grid; gap: 8px; }
+.account-shell--auth .account-registration-notes .account-help { margin: 0; font-size: 12px; line-height: 18px; }
+@media (min-width: 1024px) {
+  .page-account .account-shell--auth { display: grid; grid-template-columns: minmax(0,748fr) minmax(0,654fr); min-height: 100svh; border-radius: 20px; background: linear-gradient(165deg,#c66c91,#ff766c 32%,var(--canvas) 70%); }
+  .account-shell--auth .account-panel { isolation: isolate; padding: 48px 32px 64px 36px; border: 0; border-right: 8px solid transparent; border-radius: 0 64px 64px 0; background: linear-gradient(var(--canvas),var(--canvas)) padding-box,linear-gradient(180deg,#ffbec3,#ffffff80 60%,#fff) border-box; }
+  .page-account--register .account-shell--auth .account-panel { padding-top: 104px; }
+  .account-shell--auth .account-panel::before,.account-shell--auth .account-panel::after { content: ""; position: absolute; z-index: -1; left: 0; right: 0; pointer-events: none; background-repeat: no-repeat; }
+  .account-shell--auth .account-panel::before { top: 0; height: 258px; border-radius: inherit; background-image: url("../illustrations/auth-login-top.webp"); background-position: left top; background-size: 100% auto; mask-image: linear-gradient(#000 85%,transparent); }
+  .page-account--register .account-panel::before { background-image: url("../illustrations/auth-register-top.webp"); }
+  .account-shell--auth .account-panel::after { bottom: 0; height: 150px; border-radius: inherit; background-image: url("../illustrations/auth-panel-bottom.webp"); background-position: left bottom; background-size: 100% 100%; }
+  .account-shell--auth .account-heading { margin-bottom: 24px; }
+  .account-shell--auth .account-heading h1 { font-size: 24px; font-weight: 600; line-height: 32px; }
+  .account-shell--auth .account-form { gap: 16px; }
+  .account-shell--auth .account-input { min-height: 40px; border-radius: 8px; }
+  .account-shell--auth .account-input input { height: 38px; padding: 0 14px; line-height: 24px; }
+  .account-shell--auth .password-toggle { flex-basis: 40px; }
+  .account-shell--auth .account-button { min-height: 46px; font-size: 16px; line-height: 24px; }
+  .account-shell--auth .account-button--outline { width: calc(100% + 2px); margin-left: -1px; }
+  .account-shell--auth .account-button:not(.account-button--outline) { width: calc(100% + 8px); min-height: 50px; margin-top: 4px; margin-left: -4px; }
+  .account-shell--auth .account-consents { gap: 16px; margin: 24px 0 8px; }
+  .account-shell--auth .account-consent { font-size: 14px; line-height: 20px; }
+  .account-shell--auth .account-art { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(48px,4.56fr) auto auto minmax(48px,1fr) auto; justify-content: stretch; min-height: 100svh; height: auto; padding: 0 60px 45px 40px; background: url("../illustrations/auth-art-top.webp") center top/100% min(680px,62.62svh) no-repeat,url("../illustrations/auth-art-edge.webp") left bottom/11.01% calc(100% - min(680px,62.62svh)) no-repeat,var(--canvas); }
+  .page-account--register .account-shell--auth .account-art { grid-template-rows: minmax(48px,4.4fr) auto auto minmax(48px,1fr) auto; padding-bottom: 39px; background-image: url("../illustrations/auth-register-art-top.webp"),url("../illustrations/auth-art-edge.webp"); }
+  .account-shell--auth .account-art::before,.account-shell--auth .account-art::after { display: none; }
+  .account-shell--auth .account-wordmark { grid-row: 2; justify-self: center; margin: 0; color: var(--coral); }
+  .account-shell--auth .account-wordmark .brand-mark { width: 320px; max-width: 100%; height: auto; aspect-ratio: 133/28; }
+  .account-shell--auth .account-art__copy { grid-row: 3; justify-self: center; width: 100%; max-width: 460px; margin: 34px 0 0; font-size: 16px; line-height: 24px; }
+  .account-shell--auth .account-art__copyright { grid-row: 5; justify-self: center; margin: 0; padding: 0; font-size: 16px; line-height: 24px; }
+}
+
 /* Saved walks: source dates and ages, with the layered point counter. */
 .saved-walks-page .breadcrumbs [aria-current="page"] { color: var(--ink); font-weight: 700; }
 .saved-walks-note { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

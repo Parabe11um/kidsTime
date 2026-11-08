@@ -2,7 +2,7 @@
 {% load static %}
 {% block body_class %}page-account{% endblock %}
 {% block content %}
-<section class="account-shell">
+<section class="account-shell {% block account_shell_class %}{% endblock %}">
     {% include "accounts/art.html" %}
     <div class="account-panel">
         <header class="account-heading">
