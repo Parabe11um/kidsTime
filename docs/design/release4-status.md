@@ -324,3 +324,19 @@ Browser checks cover both pages from 320px to 1920px, password visibility,
 configuration notices and validation errors. A local fixture using the real
 account views/forms verifies login redirects, an inactive registration,
 confirmation by email and subsequent login; mail stays in memory during QA.
+
+### Auth panel corners, 9 November 2026
+
+The first background extracts contained the export's rounded edges. Stretching
+those pixels behind a fixed CSS radius produced a second arc on wider screens.
+The backgrounds now use opaque interior crops: left top (24, 0, 676, 258),
+lower glow (24, 936, 676, 1086), and right top (800, 0, 1376, 680).
+Both left/right variants still come from their respective supplied exports;
+the lower glow is shared from the login reference. No form text is baked in.
+
+The panel alone clips its decorative layers and supplies the rounded border.
+The right-side artwork is painted on the shared shell and extends underneath
+the rounded cutout, avoiding a seam between separate background surfaces.
+The bitmap shadow-edge strip is removed. Form positioning and account behavior
+remain unchanged. Browser verification includes narrow/short desktop windows,
+wide screens, test-mode notices, validation errors and fractional pixel ratios.
