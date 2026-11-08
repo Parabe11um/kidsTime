@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Мои маршруты — КидсТайм{% endblock %}
 {% block body_class %}page-saved-walks{% endblock %}
 {% block content %}
@@ -8,6 +9,14 @@
     <p class="saved-walks-note">Сохранённые маршруты доступны в этом браузере.</p>
     <div class="saved-walks-grid" data-saved-walks-list aria-live="polite"></div>
     <nav class="pagination collection-pagination" data-saved-walk-pages aria-label="Страницы маршрутов" hidden></nav>
-    <template data-saved-walks-empty><div class="empty-state saved-walks-empty"><h2>Мои маршруты</h2><p>Сохраняйте маршруты, которые вам понравились, чтобы вернуться к ним позже.</p><a class="primary-button" href="{% url 'catalog:walk_builder' %}">Собрать маршрут</a></div></template>
+    <template data-saved-walks-empty>
+        <div class="empty-state saved-walks-empty">
+            <h2 aria-hidden="true">Мои маршруты</h2>
+            <p>Сохраните маршруты, которые вам понравились, чтобы вернуться к ним позже</p>
+            <img class="saved-walks-empty__illustration"
+                 src="{% static 'illustrations/saved-walks-empty.png' %}"
+                 width="320" height="224" alt="" decoding="async">
+        </div>
+    </template>
 </div>
 {% endblock %}
