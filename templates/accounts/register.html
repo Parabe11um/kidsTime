@@ -1,17 +1,17 @@
 {% extends "accounts/layout.html" %}
 {% block body_class %}page-account page-account--register{% endblock %}
+{% block account_shell_class %}account-shell--auth{% endblock %}
 {% block title %}Регистрация — КидсТайм{% endblock %}
-{% block heading %}Регистрация{% endblock %}
+{% block heading %}Зарегистрируйте аккаунт{% endblock %}
 {% block account_content %}
 <form method="post" class="account-form">
     {% csrf_token %}
-    <p class="account-help">После регистрации отправим письмо для подтверждения email. Аккаунт станет доступен после подтверждения.</p>
     {% for error in form.non_field_errors %}<p class="account-error" role="alert">{{ error }}</p>{% endfor %}
     {% if test_registration_enabled %}<p class="account-help"><strong>Тестовая регистрация.</strong> Политика размещена в виде черновика, реквизиты оператора временные. Аккаунт и избранное сохраняются в приложении.</p>{% endif %}
     {% if not privacy_policy_url %}<p class="account-help">Регистрация станет доступна после публикации политики конфиденциальности. <a class="text-link" href="{% url 'core:privacy' %}">Посмотреть черновик</a></p>{% endif %}
     {% if not registration_mail_configured %}<p class="account-help">Регистрация временно недоступна: отправка писем ещё не настроена.</p>{% endif %}
     {% include "accounts/field.html" with field=form.email %}
-    {% include "accounts/field.html" with field=form.password1 %}
+    {% include "accounts/field.html" with field=form.password1 omit_help=True %}
     {% include "accounts/field.html" with field=form.password2 %}
     <div class="account-consents">
         <label class="account-consent" for="{{ form.privacy.id_for_label }}"><span>{% if test_registration_enabled %}Ознакомлен с <a href="{{ privacy_policy_url }}" target="_blank" rel="noopener">черновиком политики тестовой версии</a>{% else %}Ознакомлен с условиями {% if privacy_policy_url %}<a href="{{ privacy_policy_url }}" target="_blank" rel="noopener">Политики конфиденциальности</a>{% else %}Политики конфиденциальности{% endif %}{% endif %}</span>{{ form.privacy }}</label>
@@ -21,5 +21,9 @@
     <button class="account-button account-button--outline" type="submit"{% if not privacy_policy_url or not registration_mail_configured %} disabled{% endif %}>Зарегистрироваться</button>
     <a class="account-button" href="{% url 'accounts:login' %}">Войти</a>
     <a class="account-recover" href="{% url 'accounts:email_verification_resend' %}">Уже регистрировались, но письмо не пришло?</a>
+    <div class="account-registration-notes">
+        {% if form.password1.help_text %}<p class="account-help">{{ form.password1.help_text|striptags }}</p>{% endif %}
+        <p class="account-help">После регистрации подтвердите email по ссылке из письма, чтобы активировать аккаунт.</p>
+    </div>
 </form>
 {% endblock %}

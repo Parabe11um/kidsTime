@@ -1,4 +1,6 @@
 {% extends "accounts/layout.html" %}
+{% block body_class %}page-account page-account--login{% endblock %}
+{% block account_shell_class %}account-shell--auth{% endblock %}
 {% block title %}Войти — КидсТайм{% endblock %}
 {% block heading %}Авторизация{% endblock %}
 {% block account_content %}
@@ -8,8 +10,10 @@
     {% for error in form.non_field_errors %}<p class="account-error" role="alert">{{ error }}</p>{% endfor %}
     {% include "accounts/field.html" with field=form.email %}
     {% include "accounts/field.html" with field=form.password %}
-    <a class="account-recover" href="{% url 'accounts:password_reset' %}">Восстановить пароль</a>
-    <a class="account-recover" href="{% url 'accounts:email_verification_resend' %}">Не пришло письмо подтверждения?</a>
+    <div class="account-recovery-group">
+        <a class="account-recover" href="{% url 'accounts:password_reset' %}">Восстановить пароль</a>
+        <a class="account-recover" href="{% url 'accounts:email_verification_resend' %}">Не пришло письмо подтверждения?</a>
+    </div>
     <button class="account-button account-button--outline" type="submit">Войти</button>
     <a class="account-button" href="{% url 'accounts:register' %}">Зарегистрироваться</a>
 </form>
