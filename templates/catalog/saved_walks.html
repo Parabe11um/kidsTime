@@ -3,8 +3,8 @@
 {% block body_class %}page-saved-walks{% endblock %}
 {% block content %}
 <div class="page-shell saved-walks-page" data-saved-walks data-endpoint="{% url 'catalog:walk_events_api' %}" data-walk-url="{% url 'catalog:walk_builder' %}">
-    <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>→</span><a href="{% url 'core:profile' %}">Профиль</a><span>→</span><span>Мои маршруты</span></nav>
-    <header class="screen-header"><a class="round-button" href="{% url 'core:profile' %}" aria-label="В профиль">{% include "includes/icon.html" with name="arrow-left" %}</a><h1><span class="wide-label">Сохранённые маршруты</span><span class="tablet-label">Мои маршруты</span></h1></header>
+    <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span aria-hidden="true">→</span><span aria-current="page">Мои маршруты</span></nav>
+    <header class="screen-header"><a class="round-button" href="{% url 'core:profile' %}" aria-label="В профиль">{% include "includes/icon.html" with name="arrow-left" %}</a><h1>Мои маршруты</h1></header>
     <p class="saved-walks-note">Сохранённые маршруты доступны в этом браузере.</p>
     <div class="saved-walks-grid" data-saved-walks-list aria-live="polite"></div>
     <nav class="pagination collection-pagination" data-saved-walk-pages aria-label="Страницы маршрутов" hidden></nav>

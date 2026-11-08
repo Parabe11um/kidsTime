@@ -257,3 +257,24 @@ the original pixels and alignment padding while excluding the baked-in text.
 It is rendered only when the empty template is inserted; populated and load-error
 states remain distinct, including after removing the last favorite.
 Anonymous browser storage and account favorites retain their existing data flow.
+
+## My routes, 8 November 2026
+
+Reference: the supplied `Route(2).png` desktop export. Saved-route cards use the
+asymmetric corners, shallow photo, three overlapping point-count circles, and
+calendar/age facts from that layout. The desktop grid has three columns; the
+existing two-column tablet pagination and compact phone rows are retained.
+The page title and breadcrumbs now read "Мои маршруты". Deletion remains
+available through the actions button, keyboard and phone swipe gesture.
+
+The counter shows the number of saved catalog IDs. Dates come from the current
+public event payload, not the record's creation timestamp. Matching date labels
+are shown once; different dates are listed separately rather than converted into
+an invented continuous period. Full labels remain in the text and tooltip when
+the visual label is clamped. The displayed age is the highest minimum-age
+restriction among the route's points. If a point is unavailable, the card shows
+the available/saved counts, retains any known dates, and marks the unverified
+dates and overall age as unknown. Fetch failures also remain distinct from an
+empty route list. No distance or duration is calculated or displayed.
+
+The browser-storage format, route limits and reopening behavior are unchanged.
