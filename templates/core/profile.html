@@ -20,43 +20,49 @@
 {% else %}
     <div class="profile-page">
         <header class="screen-heading"><a class="round-button" href="{% url 'core:home' %}" aria-label="На главную">{% include "includes/icon.html" with name="arrow-left" %}</a><h1>Профиль</h1></header>
-        {% if profile_account %}
-        <form method="post" action="{% url 'core:profile_avatar' %}" enctype="multipart/form-data" class="profile-photo-form" data-avatar-form>
-            {% csrf_token %}
-            <input class="sr-only" id="profile-photo" type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required data-avatar-input>
-            <label class="profile-photo-button" for="profile-photo">Фото<span class="sr-only"> профиля: выбрать JPEG, PNG или WebP до 5 МБ</span></label>
-            <button class="secondary-button" type="submit" data-avatar-submit>Загрузить фото</button>
-            <noscript><p>Выберите фото, затем нажмите «Загрузить фото».</p></noscript>
-        </form>
-        {% endif %}
         <div class="profile-layout">
             <div class="profile-identity">
-                <div class="profile-avatar">{% include "includes/profile_avatar.html" %}</div>
-                <h2>{{ request.user.get_full_name|default:request.user.email|default:request.user.username }}</h2>
+                <div class="profile-summary">
+                    <div class="profile-avatar">{% include "includes/profile_avatar.html" %}</div>
+                    <div class="profile-person">
+                        <h2>{{ request.user.get_full_name|default:request.user.email|default:request.user.username }}</h2>
+                        {% if profile_account %}
+                        <form method="post" action="{% url 'core:profile_avatar' %}" enctype="multipart/form-data" class="profile-photo-form" data-avatar-form>
+                            {% csrf_token %}
+                            <input class="sr-only" id="profile-photo" type="file" name="avatar" accept="image/jpeg,image/png,image/webp" required data-avatar-input>
+                            <label class="profile-photo-button" for="profile-photo"><span class="profile-photo-button__compact">Фото</span><span class="profile-photo-button__full">{% if account_avatar_url %}Изменить фото{% else %}Добавить фото{% endif %}</span><span class="sr-only"> профиля (JPEG, PNG или WebP до 5 МБ)</span></label>
+                            <button class="secondary-button" type="submit" data-avatar-submit>Загрузить фото</button>
+                            <noscript><p>Выберите фото, затем нажмите «Загрузить фото».</p></noscript>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
                 {% include "includes/profile_collections.html" %}
                 <p class="profile-storage-note">Избранное сохраняется в аккаунте, маршруты — в этом браузере.</p>
             </div>
             <div class="profile-menu">
-            <nav class="profile-links" aria-label="Личный кабинет">
-                <button type="button" data-panel-open="notifications-panel" aria-controls="notifications-panel" aria-expanded="false">Уведомления</button>
-                <a href="mailto:info@kidstime.devtestenv.ru">Связаться с поддержкой</a>
-                <a href="{% url 'catalog:walk_builder' %}">Маршрут на день <b data-walk-count hidden>0</b></a>
-                {% if request.user.is_staff %}<a href="{% url 'admin:catalog_event_add' %}">+ Добавить событие</a>{% endif %}
-            </nav>
-        <details class="profile-settings"{% if settings_form.is_bound %} open{% endif %}>
-            <summary>Настройки</summary>
-            <form method="post" class="account-form">{% csrf_token %}
-                {{ settings_form.non_field_errors }}
-                <label>Имя {{ settings_form.first_name }}{{ settings_form.first_name.errors }}</label>
-                <label>Фамилия {{ settings_form.last_name }}{{ settings_form.last_name.errors }}</label>
-                {% if profile_account %}<label class="choice-row"><span>Получать рассылку с акциями</span>{{ settings_form.newsletter }}</label>{% endif %}
-                <button type="submit" class="primary-button">Сохранить</button>
-            </form>
-        </details>
+                <nav class="profile-links" aria-label="Личный кабинет">
+                    <button type="button" data-panel-open="notifications-panel" aria-controls="notifications-panel" aria-expanded="false">Уведомления</button>
+                    <a href="mailto:info@kidstime.devtestenv.ru">Связаться с поддержкой</a>
+                    <a href="{% url 'catalog:walk_builder' %}">Маршрут на день <b data-walk-count hidden>0</b></a>
+                    {% if request.user.is_staff %}<a href="{% url 'admin:catalog_event_add' %}">+ Добавить событие</a>{% endif %}
+                </nav>
+                <details class="profile-settings"{% if settings_form.is_bound %} open{% endif %}>
+                    <summary>Настройки</summary>
+                    <form method="post" class="account-form">{% csrf_token %}
+                        {{ settings_form.non_field_errors }}
+                        <label>Имя {{ settings_form.first_name }}{{ settings_form.first_name.errors }}</label>
+                        <label>Фамилия {{ settings_form.last_name }}{{ settings_form.last_name.errors }}</label>
+                        {% if profile_account %}<label class="choice-row"><span>Получать рассылку с акциями</span>{{ settings_form.newsletter }}</label>{% endif %}
+                        <button type="submit" class="primary-button">Сохранить</button>
+                    </form>
+                </details>
             </div>
         </div>
-        <form method="post" action="{% url 'accounts:logout' %}" class="profile-logout">{% csrf_token %}<button class="secondary-button" type="submit">Выйти из аккаунта</button></form>
-        <p class="profile-privacy"><a href="{% url 'core:privacy' %}">Политика конфиденциальности (черновик)</a></p>
+        <div class="profile-footer">
+            <form method="post" action="{% url 'accounts:logout' %}" class="profile-logout">{% csrf_token %}<button class="secondary-button" type="submit">Выйти из аккаунта</button></form>
+            <p class="profile-privacy"><a href="{% url 'core:privacy' %}">Политика конфиденциальности (черновик)</a></p>
+        </div>
     </div>
 {% endif %}
 {% endblock %}
