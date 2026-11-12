@@ -1111,8 +1111,9 @@ body:has(dialog[open]) { overflow: hidden; }
 .header-avatar { overflow: hidden; }
 .header-avatar > img,.profile-avatar > img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
 .profile-page { position: relative; }
-.profile-photo-form { position: absolute; z-index: 2; top: 156px; left: 24px; }
+.profile-photo-form { position: absolute; z-index: 2; top: -44px; left: 0; }
 .profile-photo-button { display: grid; place-items: center; width: 54px; height: 54px; border: 4px solid #ffffff80; border-radius: 50%; background: linear-gradient(150deg,#ffbb9d,#ff737d); color: white; font-size: 11px; cursor: pointer; }
+.profile-photo-button__full { display: none; }
 .profile-photo-form:focus-within .profile-photo-button { outline: 2px solid var(--violet); outline-offset: 3px; }
 .profile-photo-form[aria-busy="true"] .profile-photo-button { opacity: .5; pointer-events: none; }
 .profile-photo-form > [data-avatar-submit] { position: absolute; top: 58px; left: 0; width: 170px; box-shadow: var(--shadow); }
@@ -1603,6 +1604,47 @@ body:has(dialog[open]) { overflow: hidden; }
   .account-shell--auth .account-wordmark .brand-mark { width: 320px; max-width: 100%; height: auto; aspect-ratio: 133/28; }
   .account-shell--auth .account-art__copy { grid-row: 3; justify-self: center; width: 100%; max-width: 460px; margin: 34px 0 0; font-size: 16px; line-height: 24px; }
   .account-shell--auth .account-art__copyright { grid-row: 5; justify-self: center; margin: 0; padding: 0; font-size: 16px; line-height: 24px; }
+}
+
+/* Desktop profile: the portrait and account actions have their own panels. */
+@media (min-width: 1024px) {
+  .profile-page { width: min(1000px,calc(100% - 64px)); max-width: none; margin: 40px auto 56px; }
+  .profile-page .screen-heading { min-height: 44px; align-items: center; justify-content: flex-start; gap: 14px; margin-bottom: 22px; padding: 0; border-radius: 0; background: transparent; color: var(--ink); }
+  .profile-page .screen-heading h1 { padding: 0; font-size: 30px; text-align: left; }
+  .profile-page .screen-heading .round-button { width: 44px; height: 44px; border: 1px solid var(--line); background: white; }
+  .profile-page .profile-layout { grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); align-items: start; gap: 24px; padding: 0; }
+  .profile-page .profile-identity,.profile-page .profile-menu { min-width: 0; border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow); }
+  .profile-page .profile-identity { padding: 28px; background: linear-gradient(145deg,#fff3ed,#fff 58%); }
+  .profile-page .profile-summary { display: grid; grid-template-columns: 104px minmax(0,1fr); align-items: center; gap: 20px; }
+  .profile-page .profile-person { min-width: 0; }
+  .profile-page .profile-identity h2 { line-height: 1.3; }
+  .profile-page .profile-avatar { position: static; width: 104px; height: 104px; grid-template: minmax(0,1fr) / minmax(0,1fr); overflow: hidden; border-width: 4px; border-radius: 30px; font-size: 34px; }
+  .profile-page .profile-avatar > img { min-width: 0; min-height: 0; border-radius: 0; }
+  .profile-page .profile-photo-form { position: static; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+  .profile-page .profile-photo-button { display: inline-flex; align-items: center; justify-content: center; width: auto; height: auto; min-height: 40px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--ink); font-size: 13px; }
+  .profile-page .profile-photo-button__compact { display: none; }
+  .profile-page .profile-photo-button__full { display: inline; }
+  .profile-page .profile-photo-form > [data-avatar-submit] { position: static; width: auto; border: 1px solid var(--line); box-shadow: none; }
+  .profile-page .profile-photo-form noscript { flex-basis: 100%; }
+  .profile-page .profile-identity > .profile-collections { margin-top: 24px; gap: 12px; }
+  .profile-page .profile-identity .profile-collections > a { grid-template-columns: 20px minmax(0,1fr) auto; align-items: center; gap: 10px; min-height: 68px; padding: 12px 16px; border-color: var(--line); border-radius: 18px; background: white; }
+  .profile-page .profile-collections > a > span { overflow-wrap: anywhere; }
+  .profile-page .profile-collections b { font-size: 20px; font-variant-numeric: tabular-nums; }
+  .profile-page .profile-storage-note { max-width: none; margin-top: 14px; }
+  .profile-page .profile-menu { padding: 6px 20px; background: white; }
+  .profile-page .profile-links { gap: 0; margin-top: 0; }
+  .profile-page .profile-links > a,.profile-page .profile-links > button,.profile-page .profile-settings > summary { min-height: 52px; padding: 12px 4px; font-weight: 500; }
+  .profile-page .profile-links > a,.profile-page .profile-links > button { border-bottom: 1px solid var(--line); }
+  .profile-page .profile-links > a:hover,.profile-page .profile-links > button:hover,.profile-page .profile-settings > summary:hover,.profile-page .profile-photo-button:hover { color: var(--violet); }
+  .profile-page .profile-settings > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none; }
+  .profile-page .profile-settings > summary::-webkit-details-marker { display: none; }
+  .profile-page .profile-settings > summary::after { content: ""; width: 8px; height: 8px; margin-right: 4px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+  .profile-page .profile-settings[open] > summary::after { transform: rotate(225deg); }
+  .profile-page .profile-settings > .account-form { padding: 4px 4px 18px; }
+  .profile-page .profile-settings .primary-button { justify-self: start; }
+  .profile-page .profile-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 22px; }
+  .profile-page .profile-logout { padding: 0; }
+  .profile-page .profile-privacy { margin: 0; text-align: left; }
 }
 
 /* Saved walks: source dates and ages, with the layered point counter. */
