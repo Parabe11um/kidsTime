@@ -712,10 +712,7 @@ h3 { font-size: 16px; font-weight: 700; }
   .walk-item__title { font-size: 16px; }
   .walk-summary .primary-button { font-size: 13px; }
   .walk-notice { bottom: 32px; }
-  .profile-page { margin-top: 36px; }
   .screen-heading { border-radius: 32px; }
-  .profile-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-  .profile-links { margin-top: 34px; }
   .map-shell { min-height: calc(100dvh - 86px); }
   .map-toolbar { width: min(800px,calc(100% - 48px)); left: 50%; transform: translateX(-50%); top: 24px; }
   .map-sheet { bottom: 24px; }
@@ -1606,13 +1603,13 @@ body:has(dialog[open]) { overflow: hidden; }
   .account-shell--auth .account-art__copyright { grid-row: 5; justify-self: center; margin: 0; padding: 0; font-size: 16px; line-height: 24px; }
 }
 
-/* Desktop profile: the portrait and account actions have their own panels. */
-@media (min-width: 1024px) {
-  .profile-page { width: min(1000px,calc(100% - 64px)); max-width: none; margin: 40px auto 56px; }
+/* Tablet and desktop profile cards. */
+@media (min-width: 640px) {
+  .profile-page { width: calc(100% - 96px); margin: 28px auto 0; }
   .profile-page .screen-heading { min-height: 44px; align-items: center; justify-content: flex-start; gap: 14px; margin-bottom: 22px; padding: 0; border-radius: 0; background: transparent; color: var(--ink); }
-  .profile-page .screen-heading h1 { padding: 0; font-size: 30px; text-align: left; }
+  .profile-page .screen-heading h1 { padding: 0; font-size: 26px; text-align: left; }
   .profile-page .screen-heading .round-button { width: 44px; height: 44px; border: 1px solid var(--line); background: white; }
-  .profile-page .profile-layout { grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); align-items: start; gap: 24px; padding: 0; }
+  .profile-page .profile-layout { display: grid; grid-template-columns: minmax(0,1fr); align-items: start; gap: 24px; padding: 0; }
   .profile-page .profile-identity,.profile-page .profile-menu { min-width: 0; border: 1px solid var(--line); border-radius: 28px; box-shadow: var(--shadow); }
   .profile-page .profile-identity { padding: 28px; background: linear-gradient(145deg,#fff3ed,#fff 58%); }
   .profile-page .profile-summary { display: grid; grid-template-columns: 104px minmax(0,1fr); align-items: center; gap: 20px; }
@@ -1636,6 +1633,7 @@ body:has(dialog[open]) { overflow: hidden; }
   .profile-page .profile-links > a,.profile-page .profile-links > button,.profile-page .profile-settings > summary { min-height: 52px; padding: 12px 4px; font-weight: 500; }
   .profile-page .profile-links > a,.profile-page .profile-links > button { border-bottom: 1px solid var(--line); }
   .profile-page .profile-links > a:hover,.profile-page .profile-links > button:hover,.profile-page .profile-settings > summary:hover,.profile-page .profile-photo-button:hover { color: var(--violet); }
+  .profile-page .profile-settings { max-width: none; }
   .profile-page .profile-settings > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none; }
   .profile-page .profile-settings > summary::-webkit-details-marker { display: none; }
   .profile-page .profile-settings > summary::after { content: ""; width: 8px; height: 8px; margin-right: 4px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
@@ -1645,6 +1643,12 @@ body:has(dialog[open]) { overflow: hidden; }
   .profile-page .profile-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin-top: 22px; }
   .profile-page .profile-logout { padding: 0; }
   .profile-page .profile-privacy { margin: 0; text-align: left; }
+}
+
+@media (min-width: 1024px) {
+  .profile-page { width: min(1000px,calc(100% - 64px)); max-width: none; margin: 40px auto 56px; }
+  .profile-page .screen-heading h1 { font-size: 30px; }
+  .profile-page .profile-layout { grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); }
 }
 
 /* Saved walks: source dates and ages, with the layered point counter. */
