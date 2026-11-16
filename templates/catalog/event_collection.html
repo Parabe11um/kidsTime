@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }} — КидсТайм{% endblock %}
+{% block body_class %}page-event-collection{% endblock %}
+{% block content %}
+    {% include "includes/mobile_search_header.html" with search_id="collection-search" %}
+    <div class="page-shell event-collection">
+        <nav class="event-collection__breadcrumbs" aria-label="Хлебные крошки">
+            <a href="{% url 'core:home' %}">Главная</a>
+            {% include "includes/icon.html" with name="arrow-right" %}
+            <span aria-current="page">{{ title }}</span>
+        </nav>
+        <div class="event-collection__heading">
+            <div>
+                <h1>{{ title }}</h1>
+                <p>{{ description }}</p>
+            </div>
+            <div class="event-collection__actions">
+                <a class="map-button" href="{{ map_url }}">На карте</a>
+                {% if location %}
+                    <span class="event-collection__locate text-link" data-collection-location>{{ location }}</span>
+                    <button class="event-collection__locate text-link" type="button" data-collection-locate
+                            {% if auto_locate %}data-auto-locate{% endif %}
+                            aria-label="{{ location }}. Использовать моё местоположение" hidden>
+                        {% include "includes/icon.html" with name="location" %}
+                        <span>{{ location }}</span>
+                    </button>
+                    <span class="event-collection__status" role="status" data-collection-status></span>
+                {% endif %}
+            </div>
+        </div>
+        {% if events %}
+            <div class="event-collection__grid">
+                {% for event in events %}
+                    {% include "includes/event_card.html" with compact=True collection_card=True use_venue_name=True %}
+                {% endfor %}
+            </div>
+            {% include "includes/pagination.html" %}
+        {% else %}
+            <div class="empty-state empty-state--large">
+                <h2>{% if location %}Поблизости пока ничего не найдено{% else %}Подборка скоро появится{% endif %}</h2>
+                <a class="primary-button" href="{% url 'catalog:event_list' %}">К поиску событий</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+{% block scripts %}
+    {% if location %}<script src="{% static 'js/collection.js' %}" defer></script>{% endif %}
+{% endblock %}

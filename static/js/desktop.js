@@ -1,5 +1,8 @@
 (() => {
   // Native dialogs keep focus inside overlays and restore it on dismissal.
+  if (typeof HTMLDialogElement !== "undefined" && typeof HTMLDialogElement.prototype.showModal === "function") {
+    document.documentElement.classList.add("has-native-dialogs");
+  }
   const panelOpeners = new WeakMap();
   document.querySelectorAll("[data-panel-open]").forEach((button) => {
     const panel = document.getElementById(button.dataset.panelOpen);
@@ -97,21 +100,12 @@
     form.addEventListener("submit", () => { form.setAttribute("aria-busy", "true"); });
   });
 
-  const desktopFilters = matchMedia("(min-width: 1024px)");
-  document.querySelectorAll(".filters-form").forEach((form) => {
-    const native = form.querySelector("[data-format-select]");
-    const choices = form.querySelector("[data-format-choices]");
-    if (!native || !choices) return;
-    const select = native.querySelector("select");
-    const radios = [...choices.querySelectorAll("input")];
-    const sync = () => {
-      const desktop = desktopFilters.matches;
-      native.hidden = desktop; select.disabled = desktop; choices.hidden = !desktop;
-      radios.forEach((radio) => { radio.disabled = !desktop; radio.checked = radio.value === select.value; });
-    };
-    radios.forEach((radio) => radio.addEventListener("change", () => { if (radio.checked) select.value = radio.value; }));
-    select.addEventListener("change", sync);
-    desktopFilters.addEventListener("change", sync); sync();
+  document.querySelectorAll("[data-format-choices]").forEach((choices) => {
+    const native = choices.closest(".filters-form").querySelector("[data-format-select]");
+    native.querySelector("select").disabled = true;
+    native.hidden = true;
+    choices.hidden = false;
+    choices.querySelectorAll("input").forEach((input) => { input.disabled = false; });
   });
 
   document.querySelectorAll("[data-time-filter]").forEach((filter) => {
@@ -127,11 +121,15 @@
       upper.setAttribute("aria-valuetext", clock(Number(upper.value)));
       if (selection) { selection.hidden = !from.value && !until.value; selection.textContent = `${from.value || "08:00"} — ${until.value || "22:00"}`; }
     };
-    const sync = () => { lower.value = minutes(from.value, 480); upper.value = minutes(until.value, 1320); describe(); };
+    const sync = () => {
+      const start = minutes(from.value, 480), end = minutes(until.value, 1320);
+      const fitsSlider = (value) => value >= 480 && value <= 1320 && value % 30 === 0;
+      filter.classList.toggle("has-time-slider", start <= end && fitsSlider(start) && fitsSlider(end));
+      lower.value = start; upper.value = end; describe();
+    };
     lower.addEventListener("input", () => { lower.value = Math.min(Number(lower.value), Number(upper.value)); from.value = clock(Number(lower.value)); until.value = clock(Number(upper.value)); describe(); });
     upper.addEventListener("input", () => { upper.value = Math.max(Number(upper.value), Number(lower.value)); from.value = clock(Number(lower.value)); until.value = clock(Number(upper.value)); describe(); });
     from.addEventListener("change", sync); until.addEventListener("change", sync); sync();
-    filter.classList.add("has-time-slider");
   });
 
   const storageKey = "kidstime:saved-walks";

@@ -5,9 +5,7 @@
 {% block content %}
     <div class="home-shell">
         <h1 class="sr-only">Куда пойти с детьми в Москве</h1>
-        <section class="mobile-hero">
-            {% include "includes/search_form.html" with search_id="home-search" %}
-        </section>
+        {% include "includes/mobile_search_header.html" with search_id="home-search" %}
         <div class="home-desktop-intro">
             {% include "includes/stories.html" %}
             {% if spotlight_events %}
@@ -72,27 +70,37 @@
             </section>
             <div class="home-dashboard">
                 {% include "includes/weather_card.html" %}
-                <a class="today-plan-card" href="{% url 'catalog:walk_builder' %}"><span class="today-plan-card__copy"><strong>Маршрут</strong><small>на сегодня</small></span><span class="today-plan-card__pin" aria-hidden="true"><img src="{% static 'icons/today-route.svg' %}"
-     width="50"
-     height="50"
-     alt=""></span></a>
+                {% include "includes/random_route_card.html" %}
             </div>
             <nav class="hero-categories" aria-label="Популярные категории">{% for category in categories %}<a href="{% url 'catalog:event_list' %}?category={{ category.slug }}">{{ category.name }}</a>{% endfor %}</nav>
         </section>
         <div class="home-collections"><div class="home-content">
             <section class="event-section home-nearby" aria-labelledby="nearby-title">
-                <div class="section-heading"><div><h2 id="nearby-title">Рядом с вами</h2><p class="desktop-only">Места и события для семейных открытий</p></div><a href="{% url 'catalog:event_map' %}" aria-label="Все места на карте">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div>
-                {% if nearby_events %}
-                    <div class="home-feature home-feature--nearby">
-                        <div class="home-feature__widgets"><a class="nearby-count" href="{% url 'catalog:event_map' %}"><strong>{{ nearby_events|length }}</strong><span>в подборке</span></a>{% include "includes/weather_card.html" %}</div>
-                        {% include "includes/feature_card.html" with event=nearby_events.0 %}
+                <div class="section-heading">
+                    <div><h2 id="nearby-title">Рядом с вами</h2><p class="desktop-only">Интересные места и постоянные площадки поблизости</p></div>
+                    <div class="home-nearby__links">
+                        <a href="{% url 'catalog:nearby' %}" aria-label="Все места рядом с вами">{% include "includes/icon.html" with name="arrow-right" %}</a>
+                        <a class="home-nearby__location" href="{% url 'catalog:nearby' %}">{% include "includes/icon.html" with name="location" %} Москва, центр</a>
                     </div>
+                </div>
+                <div class="home-feature home-feature--nearby">
+                    <div class="home-feature__widgets">
+                        {% include "includes/random_route_card.html" %}
+                        {% include "includes/weather_card.html" %}
+                    </div>
+                    {% if nearby_events %}
+                        {% include "includes/feature_card.html" with event=nearby_events.0 %}
+                    {% else %}
+                        <div class="empty-state">Поблизости пока ничего не найдено.</div>
+                    {% endif %}
+                </div>
+                {% if nearby_events %}
                     <div class="event-row">
                         {% for event in nearby_events %}
                             {% include "includes/event_card.html" with compact=True %}
                         {% endfor %}
                     </div>
-{% else %}<div class="empty-state">Скоро здесь появятся места и события.</div>{% endif %}
+                {% else %}<div class="empty-state home-nearby__empty">Поблизости пока ничего не найдено.</div>{% endif %}
     </section>
     <section class="event-section home-recommended"
              aria-labelledby="recommended-title">
@@ -101,11 +109,16 @@
         <div class="event-row">{% for event in recommended_events %}{% include "includes/event_card.html" with compact=True %}{% empty %}<div class="empty-state">Рекомендации скоро появятся.</div>{% endfor %}</div>
     </section>
     <section class="event-section home-popular" aria-labelledby="popular-title">
-        <div class="section-heading"><div><h2 id="popular-title">Популярное</h2><p class="desktop-only">События, на которые стоит обратить внимание</p></div><a href="{% url 'catalog:event_list' %}?collection=popular"
-   aria-label="Все популярные события">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div>
-        {% if popular_events %}<div class="home-feature home-feature--popular">{% include "includes/feature_card.html" with event=popular_events.0 %}<blockquote class="home-family-note"><p>Время с детьми — самая ценная инвестиция в счастье семьи</p></blockquote></div>{% endif %}
-        <div class="event-row">{% for event in popular_events %}{% include "includes/event_card.html" with compact=True %}{% empty %}<div class="empty-state">Подборка скоро появится.</div>{% endfor %}</div>
-        {% if popular_events.3 %}<div class="home-feature__secondary">{% include "includes/feature_card.html" with event=popular_events.3 %}</div>{% endif %}
+        <div class="section-heading"><div><h2 id="popular-title">Популярное</h2><p class="desktop-only">События, на которые стоит обратить внимание</p></div><a href="{% url 'catalog:popular' %}"
+   aria-label="Все популярные события">{% include "includes/icon.html" with name="arrow-right" %}</a></div>
+        <div class="home-popular__grid">
+            {% if popular_events %}<div class="home-feature home-feature--popular">{% include "includes/feature_card.html" with event=popular_events.0 %}</div>{% endif %}
+            <div class="event-row">
+                {% for event in popular_events %}{% include "includes/event_card.html" with compact=True %}{% empty %}<div class="empty-state">Подборка скоро появится.</div>{% endfor %}
+            </div>
+            {% if popular_events.3 %}<div class="home-feature__secondary home-feature__secondary--tablet">{% include "includes/feature_card.html" with event=popular_events.3 %}</div>{% endif %}
+            {% if popular_events.6 %}<div class="home-feature__secondary home-feature__secondary--desktop">{% include "includes/feature_card.html" with event=popular_events.6 %}</div>{% endif %}
+        </div>
     </section>
     <section class="event-section home-editorial"
              aria-labelledby="editorial-title">

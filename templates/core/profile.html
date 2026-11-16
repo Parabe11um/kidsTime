@@ -46,14 +46,12 @@
                     <a href="mailto:info@kidstime.devtestenv.ru">Связаться с поддержкой</a>
                     <a href="{% url 'catalog:walk_builder' %}">Маршрут на день <b data-walk-count hidden>0</b></a>
                     {% if request.user.is_staff %}<a href="{% url 'admin:catalog_event_add' %}">+ Добавить событие</a>{% endif %}
+                    <button class="profile-mobile-settings" type="button" data-panel-open="settings-panel" aria-controls="settings-panel" aria-expanded="false">Настройки</button>
                 </nav>
-                <details class="profile-settings"{% if settings_form.is_bound %} open{% endif %}>
+                <details class="profile-settings{% if settings_form.is_bound %} profile-settings--invalid{% endif %}"{% if settings_form.is_bound %} open{% endif %}>
                     <summary>Настройки</summary>
                     <form method="post" class="account-form">{% csrf_token %}
-                        {{ settings_form.non_field_errors }}
-                        <label>Имя {{ settings_form.first_name }}{{ settings_form.first_name.errors }}</label>
-                        <label>Фамилия {{ settings_form.last_name }}{{ settings_form.last_name.errors }}</label>
-                        {% if profile_account %}<label class="choice-row"><span>Получать рассылку с акциями</span>{{ settings_form.newsletter }}</label>{% endif %}
+                        {% include "includes/profile_settings_fields.html" with form=settings_form has_account=profile_account %}
                         <button type="submit" class="primary-button">Сохранить</button>
                     </form>
                 </details>

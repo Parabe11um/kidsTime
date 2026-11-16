@@ -3,9 +3,15 @@
 {% block title %}Мои маршруты — КидсТайм{% endblock %}
 {% block body_class %}page-saved-walks{% endblock %}
 {% block content %}
+{% include "includes/mobile_search_header.html" with search_id="saved-walks-search" %}
 <div class="page-shell saved-walks-page" data-saved-walks data-endpoint="{% url 'catalog:walk_events_api' %}" data-walk-url="{% url 'catalog:walk_builder' %}">
     <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span aria-hidden="true">→</span><span aria-current="page">Мои маршруты</span></nav>
-    <header class="screen-header"><a class="round-button" href="{% url 'core:profile' %}" aria-label="В профиль">{% include "includes/icon.html" with name="arrow-left" %}</a><h1>Мои маршруты</h1></header>
+    <header class="screen-header">
+        <a class="round-button" href="{% url 'core:profile' %}" aria-label="В профиль">{% include "includes/icon.html" with name="arrow-left" %}</a>
+        <h1><span class="saved-walks-title--mobile">Сохранённые маршруты</span><span class="saved-walks-title--wide">Мои маршруты</span></h1>
+        {% url 'catalog:walk_builder' as walk_url %}
+        {% include "includes/page_actions.html" with action_url=walk_url action_label="Маршрут на день" mobile_only=True %}
+    </header>
     <p class="saved-walks-note">Сохранённые маршруты доступны в этом браузере.</p>
     <div class="saved-walks-grid" data-saved-walks-list aria-live="polite"></div>
     <nav class="pagination collection-pagination" data-saved-walk-pages aria-label="Страницы маршрутов" hidden></nav>

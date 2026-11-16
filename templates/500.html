@@ -1,3 +1,15 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Не удалось загрузить страницу — КидсТайм{% endblock %}
-{% block content %}<section class="page-shell error-page"><h1>Страница временно недоступна</h1><p>Попробуйте открыть её немного позже.</p><a class="primary-button" href="{% url 'core:home' %}">На главную</a></section>{% endblock %}
+{% block body_class %}page-server-error{% endblock %}
+{% block content %}
+    {% include "includes/mobile_search_header.html" with search_id="error-search" %}
+    <section class="page-shell error-page" aria-labelledby="server-error-title">
+        <h1 id="server-error-title">Ведутся технические работы</h1>
+        <p>Перезагрузите страницу или вернитесь чуть позже</p>
+        <div class="error-page__art" aria-hidden="true">
+            <img src="{% static 'illustrations/release5-technical-work.png' %}" width="1376" height="768" alt="">
+        </div>
+        <noscript><a class="primary-button" href="{% url 'core:home' %}">На главную</a></noscript>
+    </section>
+{% endblock %}

@@ -19,7 +19,15 @@
         <a class="event-card__title" href="{{ event.get_absolute_url }}">{{ event.title }}</a>
         <div class="event-card__meta">
             <div class="event-card__location">{% include "includes/place_meta.html" %}</div>
-            {% if event.next_session %}<time class="event-card__date-badge" datetime="{{ event.next_session.starts_at|date:'c' }}"><span>{{ event.next_session.starts_at|date:'F' }}</span><b>{{ event.next_session.starts_at|date:'j' }}</b></time>{% elif event.available_until %}<time class="event-card__date-badge" datetime="{{ event.available_until|date:'Y-m-d' }}"><span>до {{ event.available_until|date:'E' }}</span><b>{{ event.available_until|date:'j' }}</b></time>{% endif %}
+            {% if event.next_session %}
+                <time class="event-card__date-badge" datetime="{{ event.next_session.starts_at|date:'c' }}"><span>{{ event.next_session.starts_at|date:'F' }}</span><b>{{ event.next_session.starts_at|date:'j' }}</b></time>
+            {% elif event.available_until %}
+                {% if collection_card and event.available_from|date:'Y-m' == event.available_until|date:'Y-m' and event.available_from != event.available_until %}
+                    <span class="event-card__date-badge"><span>{{ event.available_until|date:'F' }}</span><b>{{ event.available_from|date:'j' }}–{{ event.available_until|date:'j' }}</b></span>
+                {% else %}
+                    <time class="event-card__date-badge" datetime="{{ event.available_until|date:'Y-m-d' }}"><span>до {{ event.available_until|date:'E' }}</span><b>{{ event.available_until|date:'j' }}</b></time>
+                {% endif %}
+            {% endif %}
         </div>
         {% if not compact %}
             <div class="event-card__facts">

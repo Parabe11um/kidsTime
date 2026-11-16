@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -11,7 +12,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.models import Account
 from apps.catalog.models import Category
-from apps.catalog.views import _base_events
+from apps.catalog.views import MOSCOW_CENTER, _base_events, nearby_events
 from .forms import ProfileAvatarForm, ProfileSettingsForm
 
 
@@ -49,9 +50,9 @@ def home(request):
         "categories": Category.objects.filter(is_active=True).order_by("sort_order", "name"),
         "spotlight_events": events[:5],
         "story_events": [event for event in events if event.display_cover_url][:6],
-        "nearby_events": events[:6],
+        "nearby_events": nearby_events(_base_events(), MOSCOW_CENTER)[:6],
         "recommended_events": [event for event in events if event.is_recommended][:6] or events[:6],
-        "popular_events": [event for event in events if event.is_featured][:6] or events[:6],
+        "popular_events": [event for event in events if event.is_featured][:7],
         "feed_top_events": events[:10],
         "feed_new_events": _base_events().order_by("-created_at", "pk")[:10],
         "feed_free_events": _base_events().filter(is_free=True).order_by("-is_featured", "title")[:10],
@@ -66,21 +67,28 @@ def profile(request):
             return redirect("accounts:login")
         return render(request, "core/profile.html", {"today": timezone.localdate()})
     account = getattr(request.user, "account", None)
-    form = ProfileSettingsForm(request.POST if request.method == "POST" else None, initial={
-        "first_name": request.user.first_name,
-        "last_name": request.user.last_name,
-        "newsletter": bool(account and account.newsletter_accepted_at),
-    })
+    form = ProfileSettingsForm.for_user(
+        request.user, account, data=request.POST if request.method == "POST" else None,
+    )
     if request.method == "POST" and form.is_valid():
-        request.user.first_name = form.cleaned_data["first_name"]
-        request.user.last_name = form.cleaned_data["last_name"]
-        request.user.save(update_fields=["first_name", "last_name"])
-        if account:
-            if not form.cleaned_data["newsletter"]:
-                account.newsletter_accepted_at = None
-            elif not account.newsletter_accepted_at:
-                account.newsletter_accepted_at = timezone.now()
-            account.save(update_fields=["newsletter_accepted_at"])
+        with transaction.atomic():
+            request.user.first_name = form.cleaned_data["first_name"]
+            request.user.last_name = form.cleaned_data["last_name"]
+            request.user.save(update_fields=["first_name", "last_name"])
+            if account:
+                if not form.cleaned_data["newsletter"]:
+                    account.newsletter_accepted_at = None
+                elif not account.newsletter_accepted_at:
+                    account.newsletter_accepted_at = timezone.now()
+                changed_fields = ["newsletter_accepted_at"]
+                for field in ("patronymic", "birth_date", "phone"):
+                    if field in request.POST:
+                        setattr(account, field, form.cleaned_data[field])
+                        changed_fields.append(field)
+                if request.POST.get("location_preferences") == "1":
+                    account.use_geolocation = form.cleaned_data["use_geolocation"]
+                    changed_fields.append("use_geolocation")
+                account.save(update_fields=changed_fields)
         messages.success(request, "Настройки сохранены")
         return_to = request.POST.get("next", "")
         if url_has_allowed_host_and_scheme(return_to, allowed_hosts={request.get_host()}, require_https=request.is_secure()):

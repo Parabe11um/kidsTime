@@ -2,12 +2,14 @@ from datetime import datetime, time
 from math import isfinite
 
 from django.conf import settings
+from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
-from django.db.models import Prefetch, Q
 from django.core.paginator import Paginator
+from django.db.models import Prefetch, Q
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.views.decorators.http import require_safe
@@ -16,6 +18,8 @@ from .models import ActivityFormat, Category, Event, EventImage, EventSession
 from .services.calendar import build_event_calendar
 
 WALK_POINT_LIMIT = 9
+MOSCOW_CENTER = Point(37.6176, 55.7558, srid=4326)
+NEARBY_RADIUS_KM = 5
 
 
 def _base_events():
@@ -34,6 +38,24 @@ def _base_events():
         .filter(venue__is_published=True)
         .select_related("category", "venue", "organizer", "source")
         .prefetch_related(upcoming, images)
+    )
+
+
+def _location_filter(params):
+    try:
+        lat = float(params.get("lat"))
+        lng = float(params.get("lng"))
+        radius = float(params.get("radius") or NEARBY_RADIUS_KM)
+    except (TypeError, ValueError):
+        return None, NEARBY_RADIUS_KM
+    if -90 <= lat <= 90 and -180 <= lng <= 180 and isfinite(radius):
+        return Point(lng, lat, srid=4326), min(max(radius, 1), 50)
+    return None, NEARBY_RADIUS_KM
+
+
+def nearby_events(queryset, center, radius=NEARBY_RADIUS_KM):
+    return queryset.filter(venue__location__distance_lte=(center, D(km=radius))).order_by(
+        Distance("venue__location", center), "title", "pk",
     )
 
 
@@ -120,44 +142,91 @@ def _apply_filters(queryset, params):
     elif first_day or last_day:
         queryset = queryset.filter(session_dates | period_dates)
 
-    latitude = params.get("lat")
-    longitude = params.get("lng")
-    radius = params.get("radius") or "5"
-    try:
-        if latitude and longitude:
-            lat, lng, km = float(latitude), float(longitude), float(radius)
-            if all(isfinite(value) for value in (lat, lng, km)) and -90 <= lat <= 90 and -180 <= lng <= 180:
-                center = Point(lng, lat, srid=4326)
-                queryset = queryset.filter(venue__location__distance_lte=(center, D(km=min(max(km, 1), 50))))
-    except (TypeError, ValueError):
-        pass
+    center, radius = _location_filter(params)
+    if params.get("collection") == "nearby":
+        center = center if center is not None else MOSCOW_CENTER
+        radius = NEARBY_RADIUS_KM
+    if center is not None:
+        queryset = queryset.filter(venue__location__distance_lte=(center, D(km=radius)))
 
     return queryset.distinct()
+
+
+def _pagination(request, queryset, page_size):
+    page = Paginator(queryset, page_size).get_page(request.GET.get("page"))
+    query_params = request.GET.copy()
+    query_params.pop("page", None)
+    return {
+        "events": page.object_list,
+        "page_obj": page,
+        "page_numbers": page.paginator.get_elided_page_range(page.number, on_each_side=2, on_ends=1),
+        "pagination_query": query_params.urlencode(),
+    }
 
 
 def event_list(request):
     order = ("-created_at", "title") if request.GET.get("collection") == "new" else ("-is_featured", "title")
     queryset = _apply_filters(_base_events(), request.GET).order_by(*order, "pk")
-    page = Paginator(queryset, 12).get_page(request.GET.get("page"))
-    events = page.object_list
-    query_params = request.GET.copy()
-    query_params.pop("page", None)
+    pagination = _pagination(request, queryset, 12)
+    count = pagination["page_obj"].paginator.count
+    last_digit = count % 10
+    if 11 <= count % 100 <= 14:
+        count_word = "событий"
+    elif last_digit == 1:
+        count_word = "событие"
+    elif 2 <= last_digit <= 4:
+        count_word = "события"
+    else:
+        count_word = "событий"
     has_filters = any(value for key, value in request.GET.items() if key not in ("filters", "page"))
     return render(
         request,
         "catalog/event_list.html",
         {
-            "events": events,
-            "result_count": page.paginator.count,
-            "page_obj": page,
-            "page_numbers": page.paginator.get_elided_page_range(page.number, on_each_side=2, on_ends=1),
-            "pagination_query": query_params.urlencode(),
+            **pagination,
+            "result_count": count,
+            "result_count_word": count_word,
             "categories": Category.objects.filter(is_active=True).order_by("sort_order", "name"),
             "formats": ActivityFormat.choices,
             "filters": request.GET,
             "has_filters": has_filters,
-            "spotlight_event": events.first() if not has_filters else None,
-            "story_events": [event for event in events[:6] if event.display_cover_url] if not has_filters else [],
+            "spotlight_event": pagination["events"].first() if not has_filters else None,
+        },
+    )
+
+
+@require_safe
+def event_collection(request, collection):
+    events = _base_events()
+    location = None
+    auto_locate = False
+    map_query = {"collection": collection}
+    if collection == "nearby":
+        title = "Рядом с вами"
+        description = "Интересные места и постоянные площадки поблизости"
+        coordinates, _ = _location_filter(request.GET)
+        center = coordinates if coordinates is not None else MOSCOW_CENTER
+        location = "Ваше местоположение" if coordinates is not None else "Москва, центр"
+        events = nearby_events(events, center)
+        if coordinates is not None:
+            map_query.update(lat=coordinates.y, lng=coordinates.x)
+        elif "page" not in request.GET:
+            auto_locate = getattr(getattr(request.user, "account", None), "use_geolocation", False)
+    else:
+        title = "Популярное"
+        description = "События, на которые стоит обратить внимание"
+        events = events.filter(is_featured=True).order_by("title", "pk")
+        map_query["from"] = "collection"
+    return render(
+        request,
+        "catalog/event_collection.html",
+        {
+            **_pagination(request, events, 9),
+            "title": title,
+            "description": description,
+            "location": location,
+            "auto_locate": auto_locate,
+            "map_url": reverse("catalog:event_map", query=map_query),
         },
     )
 
@@ -176,10 +245,20 @@ def event_detail(request, slug):
 
 
 def event_map(request):
+    center, _ = _location_filter(request.GET)
+    collection = request.GET.get("collection")
+    if collection == "nearby":
+        if center is None:
+            center = MOSCOW_CENTER
+        back_url = reverse("catalog:nearby", query={key: request.GET[key] for key in ("lat", "lng") if key in request.GET})
+    elif collection == "popular" and request.GET.get("from") == "collection":
+        back_url = reverse("catalog:popular")
+    else:
+        back_url = reverse("catalog:event_list", query=request.GET)
     return render(
         request,
         "catalog/event_map.html",
-        {"active_filters": request.GET.urlencode()},
+        {"active_filters": request.GET.urlencode(), "back_url": back_url, "center": center},
     )
 
 

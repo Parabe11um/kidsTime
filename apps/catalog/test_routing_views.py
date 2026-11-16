@@ -7,7 +7,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Category, Event, Organizer, PublicationStatus, Source, Venue
+from .models import Category, Event, EventSession, Organizer, PublicationStatus, Source, Venue
 from .services.routing import RoutingUnavailable
 
 
@@ -33,6 +33,7 @@ class WalkRoutingTests(TestCase):
         self.assertContains(response, 'data-origin-search')
         self.assertContains(response, 'data-walk-locate')
         self.assertContains(response, 'data-walk-origin-open')
+        self.assertContains(response, 'data-walk-random')
         for removed in (
             'data-times-endpoint', 'data-routing-enabled',
             'data-walk-time-note', 'data-walk-times-retry',
@@ -43,6 +44,53 @@ class WalkRoutingTests(TestCase):
                 self.assertNotContains(response, removed)
         self.assertNotContains(response, "private-routing-key")
         self.assertNotContains(response, "private-geocoder-key")
+
+    def test_random_walk_selects_up_to_three_distinct_nearby_public_venues(self):
+        first, second = self.events
+        first.is_featured = True
+        first.save(update_fields=["is_featured"])
+        events = []
+        for index, (lng, published, past) in enumerate((
+            (37.63, True, False), (37.64, True, False), (37.65, False, False),
+            (37.66, True, True), (38.6, True, False),
+        )):
+            venue = Venue.objects.create(
+                name=f"Площадка {index}", slug=f"random-place-{index}", address="Москва",
+                location=Point(lng, 55.72, srid=4326), is_published=published,
+            )
+            event = Event.objects.create(
+                title=f"Мероприятие {index}", slug=f"random-event-{index}", venue=venue,
+                category=first.category, source=first.source, organizer=first.organizer,
+                status=PublicationStatus.PUBLISHED,
+            )
+            if past:
+                EventSession.objects.create(event=event, starts_at=timezone.now() - timedelta(days=1))
+            events.append(event)
+        Event.objects.create(
+            title="Другое событие в том же месте", slug="duplicate-venue", venue=first.venue,
+            category=first.category, source=first.source, organizer=first.organizer,
+            status=PublicationStatus.PUBLISHED,
+        )
+        response = self.client.post(
+            reverse("catalog:walk_random"), {"origin": {"lat": 55.72, "lng": 37.62}},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("no-store", response["Cache-Control"])
+        ids = response.json()["ids"]
+        self.assertEqual(len(ids), 3)
+        self.assertTrue(set(ids) <= {first.pk, second.pk, events[0].pk, events[1].pk})
+        self.assertEqual(Event.objects.filter(pk__in=ids).values("venue_id").distinct().count(), 3)
+
+    def test_random_walk_checks_method_csrf_and_coordinates(self):
+        url = reverse("catalog:walk_random")
+        valid = {"origin": {"lat": 10, "lng": 10}}
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.assertEqual(Client(enforce_csrf_checks=True).post(url, valid, content_type="application/json").status_code, 403)
+        for body in ({}, {"origin": {"lat": 91, "lng": 37}}, {"origin": {"lat": 10**400, "lng": 37}}):
+            with self.subTest(body=body):
+                self.assertEqual(self.client.post(url, body, content_type="application/json").status_code, 400)
+        self.assertEqual(self.client.post(url, valid, content_type="application/json").json(), {"ids": []})
 
     @patch("apps.catalog.routing_views.route_legs", return_value=[{"seconds": 2700, "meters": 3000}, {"seconds": 600, "meters": 700}])
     def test_origin_and_selected_order_are_kept_and_response_is_private(self, calculate):

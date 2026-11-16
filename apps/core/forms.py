@@ -1,16 +1,66 @@
 import io
+import re
 import warnings
 from uuid import uuid4
 
 from django import forms
 from django.core.files.base import ContentFile
+from django.utils import timezone
 from PIL import Image, ImageOps
 
 
 class ProfileSettingsForm(forms.Form):
-    first_name = forms.CharField(label="Имя", max_length=150, required=False)
-    last_name = forms.CharField(label="Фамилия", max_length=150, required=False)
-    newsletter = forms.BooleanField(label="Получать рассылку с акциями", required=False)
+    first_name = forms.CharField(
+        label="Имя", max_length=150, required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Имя", "autocomplete": "given-name"}),
+    )
+    last_name = forms.CharField(
+        label="Фамилия", max_length=150, required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Фамилия", "autocomplete": "family-name"}),
+    )
+    patronymic = forms.CharField(
+        label="Отчество", max_length=150, required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Отчество", "autocomplete": "additional-name"}),
+    )
+    birth_date = forms.DateField(
+        label="Дата рождения", required=False,
+        widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date", "autocomplete": "bday"}),
+    )
+    phone = forms.CharField(
+        label="Телефон", max_length=40, required=False,
+        widget=forms.TextInput(attrs={"type": "tel", "placeholder": "Телефон", "autocomplete": "tel"}),
+    )
+    newsletter = forms.BooleanField(
+        label="Получать рассылку с акциями", required=False,
+        widget=forms.CheckboxInput(attrs={"role": "switch"}),
+    )
+    use_geolocation = forms.BooleanField(
+        label="Определять местоположение автоматически", required=False,
+        widget=forms.CheckboxInput(attrs={"role": "switch"}),
+    )
+
+    @classmethod
+    def for_user(cls, user, account, **kwargs):
+        initial = {"first_name": user.first_name, "last_name": user.last_name}
+        if account:
+            initial.update(
+                patronymic=account.patronymic, birth_date=account.birth_date, phone=account.phone,
+                newsletter=bool(account.newsletter_accepted_at),
+                use_geolocation=account.use_geolocation,
+            )
+        return cls(initial=initial, **kwargs)
+
+    def clean_birth_date(self):
+        value = self.cleaned_data["birth_date"]
+        if value and value > timezone.localdate():
+            raise forms.ValidationError("Дата рождения не может быть в будущем.")
+        return value
+
+    def clean_phone(self):
+        value = self.cleaned_data["phone"]
+        if value and (not re.fullmatch(r"\+?[0-9() .-]+", value) or not 7 <= sum(char.isdigit() for char in value) <= 15):
+            raise forms.ValidationError("Укажите номер телефона с кодом города или страны.")
+        return value
 
 
 class ProfileAvatarForm(forms.Form):

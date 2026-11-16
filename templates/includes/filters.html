@@ -1,3 +1,4 @@
+{% load static %}
 <aside class="filters-panel" id="filters-panel" aria-labelledby="filters-title">
     <header class="filters-panel__heading">
         <span class="sheet-handle" aria-hidden="true"></span>
@@ -9,7 +10,7 @@
         <input type="hidden" name="q" value="{{ filters.q }}">
         <section class="filter-section filter-location-section">
             <div class="filter-location">
-                <button type="button" data-filter-location>{% include "includes/icon.html" with name="location" %} Рядом со мной</button>
+                <button type="button" data-filter-location>Рядом со мной <img src="{% static 'icons/release5/filter-dropdown.svg' %}" alt="" width="16" height="16"></button>
                 <span data-location-status role="status">{% if filters.lat and filters.lng %}Местоположение выбрано{% endif %}</span>
             </div>
             <input type="hidden" name="lat" value="{{ filters.lat }}">
@@ -18,8 +19,10 @@
         </section>
         <section class="filter-section filter-dates">
             <h3>Дата</h3>
-            <label><span>От</span><input type="date" name="date_from" aria-label="Дата, от" value="{% if filters.date_from %}{{ filters.date_from }}{% else %}{{ filters.date }}{% endif %}"></label>
-            <label><span>До</span><input type="date" name="date_until" aria-label="Дата, до" value="{% if filters.date_until %}{{ filters.date_until }}{% else %}{{ filters.date }}{% endif %}"></label>
+            <div class="filter-dates__fields">
+                <label><span>От</span><input type="date" name="date_from" aria-label="Дата, от" value="{% if filters.date_from %}{{ filters.date_from }}{% else %}{{ filters.date }}{% endif %}"></label>
+                <label><span>До</span><input type="date" name="date_until" aria-label="Дата, до" value="{% if filters.date_until %}{{ filters.date_until }}{% else %}{{ filters.date }}{% endif %}"></label>
+            </div>
         </section>
         <fieldset class="filter-section filter-ages">
             <legend class="sr-only">Возраст</legend><h3 aria-hidden="true">Возраст</h3>
@@ -46,13 +49,13 @@
                     {% for value, label in formats %}<label class="choice-row"><span>{{ label }}</span><input type="radio" name="format" value="{{ value }}" {% if filters.format == value %}checked{% endif %} disabled></label>{% endfor %}
                 </fieldset>
             </div>
-            <fieldset class="filter-subsection filter-extra">
-                <legend class="sr-only">Дополнительно</legend><h3 aria-hidden="true">Дополнительно</h3>
-                <label class="choice-row"><span>Детская комната</span><input type="checkbox" name="children_room" value="1" {% if filters.children_room == '1' %}checked{% endif %}></label>
-                <label class="choice-row"><span>Рестораны, кафе</span><input type="checkbox" name="cafe" value="1" {% if filters.cafe == '1' %}checked{% endif %}></label>
-                <label class="choice-row"><span>Пушкинская карта</span><input type="checkbox" name="pushkin_card" value="1" {% if filters.pushkin_card == '1' %}checked{% endif %}></label>
-            </fieldset>
         </section>
+        <fieldset class="filter-section filter-extra">
+            <legend class="sr-only">Дополнительно</legend><h3 aria-hidden="true">Дополнительно</h3>
+            <label class="choice-row"><span>Детская комната</span><input type="checkbox" name="children_room" value="1" {% if filters.children_room == '1' %}checked{% endif %}></label>
+            <label class="choice-row"><span>Рестораны, кафе</span><input type="checkbox" name="cafe" value="1" {% if filters.cafe == '1' %}checked{% endif %}></label>
+            <label class="choice-row filter-pushkin"><span><img src="{% static 'icons/release5/pushkin.svg' %}" alt="" width="13" height="13"> Пушкинская карта</span><input type="checkbox" name="pushkin_card" value="1" {% if filters.pushkin_card == '1' %}checked{% endif %}></label>
+        </fieldset>
         <fieldset class="filter-section">
             <legend class="sr-only">Доступность</legend><h3 aria-hidden="true">Доступность</h3>
             <label class="choice-row"><span>Маломобильность</span><input type="checkbox" name="accessible" value="1" {% if filters.accessible == '1' %}checked{% endif %}></label>
@@ -63,8 +66,8 @@
         <fieldset class="filter-section filter-price">
             <legend class="sr-only">Стоимость</legend><h3 aria-hidden="true">Стоимость</h3>
             <label class="choice-row"><span>Бесплатно</span><input type="checkbox" name="free" value="1" {% if filters.free == '1' %}checked{% endif %}></label>
-            <label class="filter-inline"><span><span class="filter-mobile-copy">Цена до, ₽</span><span class="filter-desktop-copy">Цена, ₽</span></span><input type="number" name="max_price" value="{{ filters.max_price }}" min="0" max="99999999" placeholder="До"></label>
+            <label class="filter-inline"><span>Цена, ₽</span><input type="number" name="max_price" value="{{ filters.max_price }}" min="0" max="99999999" placeholder="До"></label>
         </fieldset>
-        <div class="filters-form__actions"><button class="primary-button" type="submit"><span class="filter-mobile-copy">Показать события</span><span class="filter-desktop-copy">Применить фильтр</span></button><a class="secondary-button" href="{% url 'catalog:event_list' %}"><span class="filter-mobile-copy">Сбросить фильтры</span><span class="filter-desktop-copy">Сбросить</span></a></div>
+        <div class="filters-form__actions"><button class="primary-button" type="submit">Применить фильтр</button><a class="secondary-button" href="{% url 'catalog:event_list' %}">Сбросить</a></div>
     </form>
 </aside>

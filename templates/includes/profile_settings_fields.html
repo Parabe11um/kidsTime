@@ -1,0 +1,26 @@
+{{ form.non_field_errors }}
+<div class="profile-fields">
+    <label><span class="sr-only">Имя</span>{{ form.first_name }}{{ form.first_name.errors }}</label>
+    <label><span class="sr-only">Фамилия</span>{{ form.last_name }}{{ form.last_name.errors }}</label>
+    {% if has_account %}
+        <label><span class="sr-only">Отчество</span>{{ form.patronymic }}{{ form.patronymic.errors }}</label>
+        <label class="profile-date-field"><span>Дата рождения</span>{{ form.birth_date }}{{ form.birth_date.errors }}</label>
+    {% endif %}
+    <div class="settings-email"><span class="sr-only">Email</span><p>{{ request.user.email|default:request.user.username }}</p></div>
+    {% if has_account %}<label><span class="sr-only">Телефон</span>{{ form.phone }}{{ form.phone.errors }}</label>{% endif %}
+</div>
+{% if has_account %}
+    <div class="profile-preferences">
+        <div>
+            <h3>Уведомления</h3>
+            <label class="choice-row profile-preferences__switch"><span>Получать письма с акциями</span>{{ form.newsletter }}</label>
+        </div>
+        <div>
+            <h3>Местоположение</h3>
+            <input type="hidden" name="location_preferences" value="1">
+            <label class="choice-row profile-preferences__switch"><span>Определять автоматически</span>{{ form.use_geolocation }}</label>
+            <p class="profile-preferences__hint">Для подборки «Рядом с вами». Браузер может запросить доступ к геолокации.</p>
+        </div>
+        <a class="profile-removal-link" href="mailto:info@kidstime.devtestenv.ru?subject=Удаление%20аккаунта%20КидсТайм">Запросить удаление аккаунта</a>
+    </div>
+{% endif %}

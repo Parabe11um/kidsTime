@@ -1,0 +1,5 @@
+{% load static %}
+<details class="page-actions{% if mobile_only %} page-actions--mobile{% endif %}">
+    <summary aria-label="Действия"><img src="{% static 'icons/release5/kebab.svg' %}" alt="" width="24" height="24"></summary>
+    <a href="{{ action_url }}">{{ action_label }}</a>
+</details>

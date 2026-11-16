@@ -8,6 +8,9 @@
         <header class="account-heading">
             <a class="round-button" href="{% block back_url %}{% url 'core:profile' %}{% endblock %}" aria-label="Назад">{% include "includes/icon.html" with name="arrow-left" %}</a>
             <h1>{% block heading %}{% endblock %}</h1>
+            <button class="account-heading__menu round-button" type="button" data-panel-open="profile-panel" aria-controls="profile-panel" aria-expanded="false" aria-label="Меню">
+                <img src="{% static 'icons/release5/kebab.svg' %}" alt="" width="24" height="24">
+            </button>
         </header>
         {% block account_content %}{% endblock %}
     </div>

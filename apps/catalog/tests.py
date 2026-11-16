@@ -42,19 +42,55 @@ class PublicPagesTests(TestCase):
         response = self.client.get(reverse("core:home"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Куда пойти с детьми в Москве")
-        self.assertContains(response, 'class="mobile-hero"')
+        self.assertContains(response, 'class="mobile-hero release-search-header"')
         self.assertContains(response, 'class="home-overview"')
         self.assertContains(response, 'class="hero-calendar"')
         self.assertContains(response, 'aria-label="Открыть фильтры"', count=2)
         self.assertContains(response, 'class="weather-card__temperature"')
-        self.assertContains(response, 'class="today-plan-card__pin"')
+        self.assertContains(response, f'href="{reverse("catalog:walk_builder")}?random=1"')
         self.assertNotContains(response, "25°")
-        self.assertContains(response, "Маршрут")
+        self.assertContains(response, "Случайный маршрут")
         self.assertContains(response, "home-desktop-intro")
         self.assertNotContains(response, "По погоде")
         self.assertNotContains(response, 'class="route-preview"')
         self.assertContains(response, "event-card--compact")
         self.assertContains(response, Event.objects.first().title)
+
+    def test_nearby_collection_and_map_use_the_same_radius(self):
+        events = list(Event.objects.order_by("pk")[:3])
+        for event, longitude in zip(events, (8.03, 8.01, 8.9), strict=True):
+            Venue.objects.filter(pk=event.venue_id).update(location=Point(longitude, 4, srid=4326))
+        params = {"lat": "4", "lng": "8"}
+        nearby = reverse("catalog:nearby")
+
+        response = self.client.get(nearby, params)
+        self.assertEqual(list(response.context["events"]), [events[1], events[0]])
+        self.assertContains(response, "Ваше местоположение")
+        map_response = self.client.get(response.context["map_url"])
+        self.assertEqual(map_response.context["back_url"], reverse("catalog:nearby", query={"lat": "4.0", "lng": "8.0"}))
+        markers = self.client.get(reverse("catalog:map_events_api"), {**params, "collection": "nearby"})
+        self.assertCountEqual([marker["id"] for marker in markers.json()["results"]], [events[0].id, events[1].id])
+
+        fallback = self.client.get(nearby, {"lat": "nan", "lng": "181"})
+        self.assertContains(fallback, "Москва, центр")
+        self.assertEqual(fallback.context["map_url"], reverse("catalog:event_map", query={"collection": "nearby"}))
+
+    def test_popular_collection_only_lists_visible_featured_events(self):
+        Event.objects.update(is_featured=False)
+        featured, draft = list(Event.objects.order_by("pk")[:2])
+        Event.objects.filter(pk=featured.pk).update(is_featured=True)
+        Event.objects.filter(pk=draft.pk).update(is_featured=True, status=PublicationStatus.DRAFT)
+
+        response = self.client.get(reverse("catalog:popular"))
+        self.assertEqual(list(response.context["events"]), [featured])
+        response_map = self.client.get(response.context["map_url"])
+        self.assertEqual(response_map.context["back_url"], reverse("catalog:popular"))
+        markers = self.client.get(reverse("catalog:map_events_api"), {"collection": "popular"})
+        self.assertEqual([marker["id"] for marker in markers.json()["results"]], [featured.pk])
+
+        search_params = {"collection": "popular", "q": "музей"}
+        search_map = self.client.get(reverse("catalog:event_map"), search_params)
+        self.assertEqual(search_map.context["back_url"], reverse("catalog:event_list", query=search_params))
 
     def test_mobile_navigation_uses_figma_icons(self):
         response = self.client.get(reverse("core:home"))

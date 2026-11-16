@@ -368,9 +368,13 @@
       moveDown.dataset.walkMove = "1";
       moveDown.dataset.eventId = String(event.id);
       moveDown.disabled = index === events.length - 1;
-      const remove = makeButton("Удалить", "walk-item__remove", `Удалить «${event.title}» из прогулки`);
+      const remove = makeButton("", "walk-item__remove", `Удалить «${event.title}» из прогулки`);
+      const removeIcon = document.createElement("span");
+      removeIcon.className = "ui-icon ui-icon--walk-remove";
+      removeIcon.setAttribute("aria-hidden", "true");
+      remove.append(removeIcon);
       remove.dataset.walkRemove = String(event.id);
-      reorder.append(moveDown, moveUp, remove);
+      reorder.append(moveUp, moveDown, remove);
       actions.append(directRoute, reorder);
       content.append(title, venue, address, facts, actions);
       if (event.description) {
