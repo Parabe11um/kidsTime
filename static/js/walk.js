@@ -159,6 +159,9 @@
   function openOrigin(button) {
     opener = button;
     candidate = walk.getOrigin();
+    const isRandom = opener === randomButton;
+    confirm.textContent = isRandom ? "Построить маршрут" : "Начать отсюда";
+    root.querySelector("[data-random-replace-note]").hidden = !isRandom || !walk.getIds().length;
     root.querySelector("[data-origin-results]")?.replaceChildren();
     dialog.showModal();
     root.querySelectorAll("[data-walk-origin-open]").forEach(node => node.setAttribute("aria-expanded", "true"));
@@ -205,7 +208,7 @@
 
   root.querySelectorAll("[data-walk-origin-open]").forEach(button => button.addEventListener("click", () => openOrigin(button)));
   root.querySelectorAll("[data-walk-locate]").forEach(button => button.addEventListener("click", locate));
-  randomButton.addEventListener("click", generateWalk);
+  randomButton.addEventListener("click", () => openOrigin(randomButton));
   const cancelRandom = () => {
     randomRequest?.abort();
     randomMessage("");
@@ -259,4 +262,10 @@
     if (event.detail.coordinatesChanged) cancelRandom();
   });
   paintOrigin();
+  const url = new URL(window.location.href);
+  if (url.searchParams.get("random") === "1" && !url.searchParams.has("route")) {
+    url.searchParams.delete("random");
+    window.history.replaceState(window.history.state, "", url);
+    openOrigin(randomButton);
+  }
 })();

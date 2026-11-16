@@ -34,6 +34,10 @@ class ProfileSettingsForm(forms.Form):
         label="Получать рассылку с акциями", required=False,
         widget=forms.CheckboxInput(attrs={"role": "switch"}),
     )
+    use_geolocation = forms.BooleanField(
+        label="Определять местоположение автоматически", required=False,
+        widget=forms.CheckboxInput(attrs={"role": "switch"}),
+    )
 
     @classmethod
     def for_user(cls, user, account, **kwargs):
@@ -42,6 +46,7 @@ class ProfileSettingsForm(forms.Form):
             initial.update(
                 patronymic=account.patronymic, birth_date=account.birth_date, phone=account.phone,
                 newsletter=bool(account.newsletter_accepted_at),
+                use_geolocation=account.use_geolocation,
             )
         return cls(initial=initial, **kwargs)
 

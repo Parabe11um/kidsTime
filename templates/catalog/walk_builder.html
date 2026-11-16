@@ -14,9 +14,12 @@
          data-limit="{{ walk_point_limit }}">
         <div data-walk-csrf hidden>{% csrf_token %}</div>
         <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>→</span><span data-walk-title>Маршрут на день</span></nav>
-        <header class="section-page-header"><a class="round-button"
-   href="{% url 'core:home' %}"
-   aria-label="На главную">{% include "includes/icon.html" with name="arrow-left" %}</a><h1 data-walk-title>Маршрут на день</h1><a href="{% url 'catalog:saved_walks' %}" aria-label="Мои маршруты">{% include "includes/icon.html" with name="route" %}</a></header>
+        <header class="section-page-header">
+            <a class="round-button" href="{% url 'core:home' %}" aria-label="На главную">{% include "includes/icon.html" with name="arrow-left" %}</a>
+            <h1 data-walk-title>Маршрут на день</h1>
+            {% url 'catalog:saved_walks' as saved_walks_url %}
+            {% include "includes/page_actions.html" with action_url=saved_walks_url action_label="Мои маршруты" %}
+        </header>
         <div class="walk-layout">
             <section class="walk-list-card" aria-labelledby="walk-list-title">
                 <div class="walk-list-card__heading">
@@ -55,24 +58,24 @@
                    data-walk-route
                    target="_blank"
                    rel="noopener"
-                   aria-disabled="true">На карте</a>
+                   aria-disabled="true"><span class="walk-route__short">На карте</span><span class="walk-route__long">Построить маршрут на карте</span></a>
                 <button class="secondary-button" type="button" data-save-walk disabled>Сохранить</button>
                 <button class="walk-delete" type="button" data-delete-walk hidden>Удалить маршрут</button>
               </aside>
-              <p class="walk-storage-note">Маршрут сохраняется в этом браузере.</p>
-              <a class="text-link walk-saved-link" href="{% url 'catalog:saved_walks' %}">Мои маршруты</a>
+                <section class="walk-random" aria-labelledby="walk-random-title">
+                    <h2 id="walk-random-title">Не знаете, что выбрать?</h2>
+                    <p>Постройте случайный маршрут по ближайшим точкам</p>
+                    <button class="secondary-button" type="button" data-walk-random aria-controls="walk-origin-dialog" aria-expanded="false">Случайный маршрут</button>
+                    <p class="walk-random__status" data-walk-random-status role="status" hidden></p>
+                </section>
+                <p class="walk-storage-note">Маршрут сохраняется в этом браузере.</p>
             </div>
         </div>
-        <section class="walk-random" aria-labelledby="walk-random-title">
-            <h2 id="walk-random-title">Не знаете, что выбрать?</h2>
-            <p>Постройте случайный маршрут по ближайшим точкам</p>
-            <button class="secondary-button route-button" type="button" data-walk-random aria-controls="walk-origin-dialog" aria-expanded="false">Случайный маршрут</button>
-            <p class="walk-random__status" data-walk-random-status role="status" hidden></p>
-        </section>
         <dialog class="walk-origin-dialog" id="walk-origin-dialog" data-walk-origin-dialog aria-labelledby="walk-origin-dialog-title">
             <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть">{% include "includes/icon.html" with name="close" %}</button>
             <h2 id="walk-origin-dialog-title">Откуда начнём прогулку?</h2>
             <p>Выберите точку на карте или определите своё местоположение.</p>
+            <p data-random-replace-note hidden>Случайный маршрут заменит точки текущей прогулки.</p>
             <button class="secondary-button walk-origin-dialog__locate" type="button" data-walk-locate>{% include "includes/icon.html" with name="location" %}<span>Моё местоположение</span></button>
             {% if walk_geocoder_enabled %}
             <form class="walk-address-search" data-origin-search>

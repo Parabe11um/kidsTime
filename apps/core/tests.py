@@ -97,6 +97,20 @@ class ProfileSettingsTests(TestCase):
         self.account.refresh_from_db()
         self.assertEqual((self.account.patronymic, self.account.birth_date, self.account.phone), ("", None, ""))
 
+    def test_automatic_location_is_opt_in_and_can_be_disabled(self):
+        self.client.force_login(self.user)
+        profile = reverse("core:profile")
+        nearby = reverse("catalog:nearby")
+        self.assertNotContains(self.client.get(nearby), "data-auto-locate")
+
+        self.assertRedirects(self.client.post(profile, {"location_preferences": "1", "use_geolocation": "on"}), profile)
+        self.client.post(profile, {"first_name": "Анна"})
+        self.assertContains(self.client.get(nearby), "data-auto-locate")
+        self.assertNotContains(self.client.get(nearby, {"lat": "55.750", "lng": "37.600"}), "data-auto-locate")
+
+        self.assertRedirects(self.client.post(profile, {"location_preferences": "1"}), profile)
+        self.assertNotContains(self.client.get(nearby), "data-auto-locate")
+
     def test_invalid_birth_date_and_phone_do_not_update_the_profile(self):
         self.client.force_login(self.user)
         future_date = timezone.localdate() + timedelta(days=1)

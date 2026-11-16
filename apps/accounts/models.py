@@ -9,6 +9,7 @@ class Account(models.Model):
     patronymic = models.CharField("Отчество", max_length=150, blank=True)
     birth_date = models.DateField("Дата рождения", null=True, blank=True)
     phone = models.CharField("Телефон", max_length=40, blank=True)
+    use_geolocation = models.BooleanField("Подбирать места по геолокации", default=False)
     privacy_accepted_at = models.DateTimeField("Политика принята")
     privacy_policy_url = models.CharField("Принятая политика", max_length=500)
     newsletter_accepted_at = models.DateTimeField("Согласие на рассылку", null=True, blank=True)

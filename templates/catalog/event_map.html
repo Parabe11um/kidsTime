@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load l10n static %}
 {% block title %}Карта событий — КидсТайм{% endblock %}
 {% block body_class %}page-map{% endblock %}
 {% block head %}
@@ -11,9 +11,10 @@
     <div class="map-shell"
          data-map-root
          data-endpoint="{% url 'catalog:map_events_api' %}?{{ active_filters }}"
+         {% if center %}data-center-lat="{{ center.y|unlocalize }}" data-center-lng="{{ center.x|unlocalize }}"{% endif %}
          data-map-enabled="{% if YANDEX_MAPS_API_KEY %}true{% else %}false{% endif %}">
         <div class="map-toolbar">
-            <a href="{% url 'catalog:event_list' %}?{{ active_filters }}"
+            <a href="{{ back_url }}"
                class="map-toolbar__back"
                aria-label="Вернуться к списку">{% include "includes/icon.html" with name="arrow-left" %}</a>
             <form action="{% url 'catalog:event_map' %}"

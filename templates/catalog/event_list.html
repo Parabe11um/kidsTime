@@ -33,18 +33,7 @@
                         {% if event.pk != spotlight_event.pk %}{% include "includes/event_card.html" with search_result=True %}{% endif %}
                     {% endfor %}
                 </div>
-                {% if page_obj.has_other_pages %}
-                <nav class="pagination" aria-label="Страницы результатов">
-                    {% if page_obj.has_previous %}<a href="?{{ pagination_query }}&amp;page={{ page_obj.previous_page_number }}" rel="prev">← Назад</a>{% endif %}
-                    {% for number in page_numbers %}
-                        {% if number == page_obj.number %}<span class="pagination__number is-current" aria-current="page">{{ number }}</span>
-                        {% elif number == page_obj.paginator.ELLIPSIS %}<span aria-hidden="true">…</span>
-                        {% else %}<a class="pagination__number" href="?{{ pagination_query }}&amp;page={{ number }}">{{ number }}</a>{% endif %}
-                    {% endfor %}
-                    {% if page_obj.has_next %}<a href="?{{ pagination_query }}&amp;page={{ page_obj.next_page_number }}" rel="next">Далее →</a>{% endif %}
-                    <small>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</small>
-                </nav>
-                {% endif %}
+                {% include "includes/pagination.html" %}
 {% else %}<div class="search-empty"><h2>Пока ничего не найдено</h2><p>Попробуйте ввести другую дату, возраст или категорию</p><a class="primary-button" href="{% url 'catalog:event_list' %}">Сбросить фильтры</a><span class="empty-illustration"><img src="{% static 'illustrations/empty-search.png' %}" alt=""></span></div>{% endif %}
             </div>
     </section>

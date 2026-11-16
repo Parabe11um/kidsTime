@@ -5,16 +5,21 @@
     {% if not request.user.is_authenticated %}<div class="drawer-auth"><a class="primary-button" href="{% url 'accounts:login' %}">Войти</a><a class="secondary-button route-button" href="{% url 'accounts:register' %}">Зарегистрироваться</a></div>{% endif %}
     {% include "includes/profile_collections.html" %}
     <nav class="drawer-links" aria-label="Личный кабинет">
+        <a href="{% url 'core:home' %}">{% include "includes/icon.html" with name="dashboard" %}Главная</a>
         <a href="{% url 'catalog:walk_builder' %}">{% include "includes/icon.html" with name="route" %}Маршрут на день</a>
-        <button type="button" data-panel-open="notifications-panel" aria-controls="notifications-panel" aria-expanded="false">Уведомления</button>
-        <a href="mailto:info@kidstime.devtestenv.ru">{% include "includes/icon.html" with name="share" %}Связаться с поддержкой</a>
-        <a href="{% url 'core:profile' %}"{% if request.user.is_authenticated %} data-panel-open="settings-panel" aria-controls="settings-panel" aria-expanded="false"{% endif %}>{% if request.user.is_authenticated %}Настройки{% else %}Профиль{% endif %}</a>
-        {% if request.user.is_authenticated %}<form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="drawer-logout" type="submit">Выйти</button></form>{% endif %}
+        <button type="button" data-panel-open="notifications-panel" aria-controls="notifications-panel" aria-expanded="false"><img src="{% static 'icons/ui/notification.svg' %}" alt="" width="18" height="18">Уведомления</button>
+        <a href="{% url 'core:profile' %}"{% if request.user.is_authenticated %} data-panel-open="settings-panel" aria-controls="settings-panel" aria-expanded="false"{% endif %}><img src="{% static 'icons/release5/settings.svg' %}" alt="" width="18" height="18">{% if request.user.is_authenticated %}Настройки{% else %}Профиль{% endif %}</a>
+        {% if request.user.is_authenticated %}
+            <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="drawer-logout" type="submit"><img src="{% static 'icons/release5/exit.svg' %}" alt="" width="18" height="18">Выйти</button></form>
+        {% else %}
+            <a href="mailto:info@kidstime.devtestenv.ru">{% include "includes/icon.html" with name="share" %}Связаться с поддержкой</a>
+        {% endif %}
     </nav>
 </dialog>
 {% if request.user.is_authenticated %}
 <dialog class="settings-panel" id="settings-panel" aria-labelledby="settings-panel-title">
-    <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть настройки">{% include "includes/icon.html" with name="arrow-left" %}</button>
+    <button class="account-panel-back round-button" type="button" data-panel-open="profile-panel" aria-controls="profile-panel" aria-expanded="false" aria-label="Назад в профиль">{% include "includes/icon.html" with name="arrow-left" %}</button>
+    <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть настройки">{% include "includes/icon.html" with name="close" %}</button>
     <h2 id="settings-panel-title">Настройки</h2>
     {% if account_has_profile %}
         <form method="post" action="{% url 'core:profile_avatar' %}" enctype="multipart/form-data" class="settings-photo-form" data-avatar-form>
@@ -32,13 +37,13 @@
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         {% include "includes/profile_settings_fields.html" with form=account_settings_form has_account=account_has_profile %}
-        {% if account_has_profile %}<a class="profile-removal-link" href="mailto:info@kidstime.devtestenv.ru?subject=Удаление%20аккаунта%20КидсТайм">Запросить удаление аккаунта</a>{% endif %}
         <button class="primary-button" type="submit">Сохранить</button>
     </form>
 </dialog>
 {% endif %}
 <dialog class="notifications-panel" id="notifications-panel" aria-labelledby="notifications-title">
+    <button class="account-panel-back round-button" type="button" data-panel-open="profile-panel" aria-controls="profile-panel" aria-expanded="false" aria-label="Назад в профиль">{% include "includes/icon.html" with name="arrow-left" %}</button>
     <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть уведомления">{% include "includes/icon.html" with name="close" %}</button>
     <h2 id="notifications-title">Уведомления</h2>
-    <p>Новых уведомлений пока нет.</p>
+    <p class="notifications-empty">Новых уведомлений пока нет.</p>
 </dialog>

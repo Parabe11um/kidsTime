@@ -3,11 +3,14 @@
 {% block title %}Избранные события — КидсТайм{% endblock %}
 {% block body_class %}page-favorites{% endblock %}
 {% block content %}
+    {% include "includes/mobile_search_header.html" with search_id="favorites-search" %}
     <div class="page-shell favorites-page">
         <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>→</span><span aria-current="page">Избранные события</span></nav>
         <header class="screen-header">
             <a class="round-button" href="{% url 'core:profile' %}" aria-label="В профиль">{% include "includes/icon.html" with name="arrow-left" %}</a>
-            <h1>Избранные события</h1>
+            <h1>Избранное</h1>
+            {% url 'catalog:event_list' as search_url %}
+            {% include "includes/page_actions.html" with action_url=search_url action_label="Выбрать событие" mobile_only=True %}
         </header>
         <div class="event-grid event-grid--results" data-device-favorites data-endpoint="{% url 'favorites:cards' %}" aria-live="polite"><div class="empty-state">Загружаем избранное…</div></div>
         <nav class="pagination collection-pagination" data-favorite-pages aria-label="Страницы избранного" hidden></nav>
@@ -18,6 +21,7 @@
                 <img class="favorites-empty__illustration"
                      src="{% static 'illustrations/favorites-empty.png' %}"
                      width="320" height="260" alt="" decoding="async">
+                <a class="primary-button favorites-empty__browse" href="{{ search_url }}">Выбрать событие</a>
             </div>
         </template>
     </div>

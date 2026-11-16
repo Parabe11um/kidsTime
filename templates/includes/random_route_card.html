@@ -1,0 +1,10 @@
+{% load static %}
+<a class="random-route-card" href="{% url 'catalog:walk_builder' %}?random=1">
+    <picture class="random-route-card__trail" aria-hidden="true">
+        <source media="(max-width: 639px)" srcset="{% static 'icons/release5/random-path-mobile.svg' %}">
+        <img src="{% static 'icons/release5/random-path.svg' %}" alt="" width="79" height="26">
+    </picture>
+    <img class="random-route-card__pin" src="{% static 'icons/release5/random-pin.svg' %}" alt="" width="23" height="29">
+    <strong>Случайный маршрут</strong>
+    <small>по ближайшим точкам</small>
+</a>

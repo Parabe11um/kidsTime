@@ -12,8 +12,11 @@ if (!root || root.dataset.mapEnabled !== "true" || !window.ymaps3) {
     await window.ymaps3.ready;
     const { YMap, YMapDefaultSchemeLayer, YMapDefaultFeaturesLayer, YMapMarker } = window.ymaps3;
 
+    const location = root.dataset.centerLat
+      ? { center: [Number(root.dataset.centerLng), Number(root.dataset.centerLat)], zoom: 12 }
+      : { center: [37.6176, 55.7558], zoom: 10 };
     const map = new YMap(document.getElementById("events-map"), {
-      location: { center: [37.6176, 55.7558], zoom: 10 },
+      location,
       behaviors: ["drag", "scrollZoom", "pinchZoom", "dblClick"],
     });
     map.addChild(new YMapDefaultSchemeLayer({}));

@@ -12,7 +12,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.models import Account
 from apps.catalog.models import Category
-from apps.catalog.views import _base_events
+from apps.catalog.views import MOSCOW_CENTER, _base_events, nearby_events
 from .forms import ProfileAvatarForm, ProfileSettingsForm
 
 
@@ -50,9 +50,9 @@ def home(request):
         "categories": Category.objects.filter(is_active=True).order_by("sort_order", "name"),
         "spotlight_events": events[:5],
         "story_events": [event for event in events if event.display_cover_url][:6],
-        "nearby_events": events[:6],
+        "nearby_events": nearby_events(_base_events(), MOSCOW_CENTER)[:6],
         "recommended_events": [event for event in events if event.is_recommended][:6] or events[:6],
-        "popular_events": [event for event in events if event.is_featured][:6] or events[:6],
+        "popular_events": [event for event in events if event.is_featured][:7],
         "feed_top_events": events[:10],
         "feed_new_events": _base_events().order_by("-created_at", "pk")[:10],
         "feed_free_events": _base_events().filter(is_free=True).order_by("-is_featured", "title")[:10],
@@ -85,6 +85,9 @@ def profile(request):
                     if field in request.POST:
                         setattr(account, field, form.cleaned_data[field])
                         changed_fields.append(field)
+                if request.POST.get("location_preferences") == "1":
+                    account.use_geolocation = form.cleaned_data["use_geolocation"]
+                    changed_fields.append("use_geolocation")
                 account.save(update_fields=changed_fields)
         messages.success(request, "Настройки сохранены")
         return_to = request.POST.get("next", "")
