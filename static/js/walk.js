@@ -7,6 +7,8 @@
   const selection = root.querySelector("[data-origin-selection]");
   const dialogStatus = root.querySelector("[data-origin-dialog-status]");
   const originStatus = root.querySelector("[data-walk-origin-status]");
+  const randomButton = root.querySelector("[data-walk-random]");
+  const randomStatus = root.querySelector("[data-walk-random-status]");
   const geocoder = root.dataset.geocoderEnabled === "true";
   const csrf = root.querySelector("[name=csrfmiddlewaretoken]")?.value || "";
   const validPoint = p => p && Number.isFinite(p.lat) && Number.isFinite(p.lng) && Math.abs(p.lat) <= 90 && Math.abs(p.lng) <= 180;
@@ -34,6 +36,48 @@
   let candidate = null;
   let map, marker, apiPromise, mapPromise, opener;
   let originRevision = 0, geoRevision = 0, searchRevision = 0;
+  let randomRequest;
+
+  function randomMessage(text) {
+    randomStatus.textContent = text;
+    randomStatus.hidden = !text;
+  }
+
+  async function generateWalk() {
+    const origin = walk.getOrigin();
+    if (!origin) {
+      openOrigin(randomButton);
+      return;
+    }
+    if (randomRequest) return;
+
+    const request = new AbortController();
+    randomRequest = request;
+    randomButton.disabled = true;
+    randomMessage("Подбираем места рядом с начальной точкой…");
+    try {
+      const data = await post(root.dataset.randomEndpoint, { origin: { lat: origin.lat, lng: origin.lng } }, request.signal);
+      if (request.signal.aborted || root.classList.contains("is-saved")) {
+        randomMessage("");
+        return;
+      }
+      if (!Array.isArray(data.ids)) throw new Error("walk unavailable");
+      if (!data.ids.length) {
+        randomMessage("Поблизости пока нет подходящих мест. Выберите другую начальную точку.");
+        return;
+      }
+      randomRequest = null;
+      walk.replaceIds(data.ids);
+      randomMessage("");
+      walk.notice("Случайный маршрут готов");
+    } catch (error) {
+      if (request.signal.aborted) return;
+      randomMessage(error.status === 429 ? "Слишком много попыток. Попробуйте позже." : "Не удалось подобрать маршрут. Попробуйте ещё раз.");
+    } finally {
+      randomRequest = null;
+      randomButton.disabled = false;
+    }
+  }
   function paintOrigin() {
     const point = walk.getOrigin();
     root.querySelector("[data-walk-origin-title]").textContent = point?.source === "geolocation" ? "Ваше текущее местоположение" : "Начальная точка";
@@ -118,6 +162,7 @@
     root.querySelector("[data-origin-results]")?.replaceChildren();
     dialog.showModal();
     root.querySelectorAll("[data-walk-origin-open]").forEach(node => node.setAttribute("aria-expanded", "true"));
+    if (button === randomButton) randomButton.setAttribute("aria-expanded", "true");
     paintCandidate(); loadMap();
   }
   function applyOrigin(point) {
@@ -160,7 +205,19 @@
 
   root.querySelectorAll("[data-walk-origin-open]").forEach(button => button.addEventListener("click", () => openOrigin(button)));
   root.querySelectorAll("[data-walk-locate]").forEach(button => button.addEventListener("click", locate));
-  confirm.addEventListener("click", () => { if (validPoint(candidate)) { applyOrigin({ ...candidate }); dialog.close(); walk.notice("Начальная точка выбрана"); } });
+  randomButton.addEventListener("click", generateWalk);
+  const cancelRandom = () => {
+    randomRequest?.abort();
+    randomMessage("");
+  };
+  document.addEventListener("kidstime:walk-changed", cancelRandom);
+  confirm.addEventListener("click", () => {
+    if (!validPoint(candidate)) return;
+    applyOrigin({ ...candidate });
+    dialog.close();
+    if (opener === randomButton) generateWalk();
+    else walk.notice("Начальная точка выбрана");
+  });
   root.querySelector("[data-origin-clear]").addEventListener("click", () => { applyOrigin(null); dialog.close(); });
   root.querySelector("[data-origin-map-retry]").addEventListener("click", loadMap);
   dialog.addEventListener("close", () => {
@@ -168,6 +225,7 @@
     const searchButton = root.querySelector("[data-origin-search] button");
     if (searchButton) searchButton.disabled = false;
     root.querySelectorAll("[data-walk-origin-open]").forEach(node => node.setAttribute("aria-expanded", "false"));
+    randomButton.setAttribute("aria-expanded", "false");
     const returnTo = opener?.isConnected ? opener : root.querySelector("[data-walk-origin-open]");
     returnTo?.focus({ preventScroll: true });
   });
@@ -196,6 +254,9 @@
     } catch (_) { if (revision === searchRevision) dialogStatus.textContent = "Поиск адреса временно недоступен. Выберите точку на карте."; }
     finally { if (revision === searchRevision) button.disabled = false; }
   });
-  document.addEventListener("kidstime:walk-origin-changed", paintOrigin);
+  document.addEventListener("kidstime:walk-origin-changed", event => {
+    paintOrigin();
+    if (event.detail.coordinatesChanged) cancelRandom();
+  });
   paintOrigin();
 })();

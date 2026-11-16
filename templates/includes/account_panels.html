@@ -1,3 +1,4 @@
+{% load static %}
 <dialog class="account-drawer" id="profile-panel" aria-labelledby="profile-panel-title">
     <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть профиль">{% include "includes/icon.html" with name="close" %}</button>
     <div class="drawer-identity"><span class="header-avatar" aria-hidden="true">{% if request.user.is_authenticated %}{% include "includes/profile_avatar.html" %}{% else %}<span class="ui-icon ui-icon--profile"></span>{% endif %}</span><h2 id="profile-panel-title">{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.email|default:request.user.username }}{% else %}Ваш профиль{% endif %}</h2></div>
@@ -13,16 +14,25 @@
 </dialog>
 {% if request.user.is_authenticated %}
 <dialog class="settings-panel" id="settings-panel" aria-labelledby="settings-panel-title">
-    <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть настройки">{% include "includes/icon.html" with name="close" %}</button>
+    <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть настройки">{% include "includes/icon.html" with name="arrow-left" %}</button>
     <h2 id="settings-panel-title">Настройки</h2>
+    {% if account_has_profile %}
+        <form method="post" action="{% url 'core:profile_avatar' %}" enctype="multipart/form-data" class="settings-photo-form" data-avatar-form>
+            {% csrf_token %}
+            <img class="settings-photo" src="{% if account_avatar_url %}{{ account_avatar_url }}{% else %}{% static 'illustrations/profile-placeholder.png' %}{% endif %}" alt="" width="140" height="140">
+            <input class="sr-only" type="file" id="settings-photo" name="avatar" accept="image/jpeg,image/png,image/webp" required data-avatar-input>
+            <label class="settings-photo-button" for="settings-photo">
+                <img src="{% static 'icons/release5/profile-photo.svg' %}" alt="" width="24" height="24">
+                <span class="sr-only">{% if account_avatar_url %}Изменить фото{% else %}Добавить фото{% endif %} профиля</span>
+            </label>
+            <button class="secondary-button" type="submit" data-avatar-submit>Загрузить фото</button>
+        </form>
+    {% endif %}
     <form method="post" action="{% url 'core:profile' %}" class="account-form">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
-        <label>Имя {{ account_settings_form.first_name }}</label>
-        <label>Фамилия {{ account_settings_form.last_name }}</label>
-        <div class="settings-email"><span>Email</span><p>{{ request.user.email|default:request.user.username }}</p></div>
-        {% if account_has_profile %}<label class="choice-row"><span>Получать рассылку с акциями</span>{{ account_settings_form.newsletter }}</label>{% endif %}
-        <a class="text-link" href="{% url 'core:privacy' %}">Политика конфиденциальности (черновик)</a>
+        {% include "includes/profile_settings_fields.html" with form=account_settings_form has_account=account_has_profile %}
+        {% if account_has_profile %}<a class="profile-removal-link" href="mailto:info@kidstime.devtestenv.ru?subject=Удаление%20аккаунта%20КидсТайм">Запросить удаление аккаунта</a>{% endif %}
         <button class="primary-button" type="submit">Сохранить</button>
     </form>
 </dialog>

@@ -1,18 +1,16 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Поиск событий — КидсТайм{% endblock %}
-{% block body_class %}page-catalog{% endblock %}
+{% block body_class %}page-catalog{% if not has_filters %} page-catalog--discovery{% endif %}{% endblock %}
 {% block content %}
-    <section class="mobile-hero">
-        {% include "includes/search_form.html" with search_id="catalog-search" %}
-    </section>
+    {% include "includes/mobile_search_header.html" with search_id="catalog-search" %}
     <div class="page-shell catalog-layout{% if not has_filters %} catalog-layout--discovery{% endif %}">
         {% include "includes/filters.html" %}
         <section class="catalog-results" aria-labelledby="catalog-title">
             <h1 id="catalog-title" class="catalog-title{% if not has_filters %} sr-only{% endif %}">{% if has_filters %}Результаты поиска{% else %}Поиск событий{% endif %}</h1>
             {% if has_filters %}
             <div class="catalog-toolbar{% if not events %} catalog-toolbar--empty{% endif %}">
-                <p>Найдено событий: {{ result_count }}</p>
+                <p>Найдено {{ result_count }} {{ result_count_word }}</p>
                 {% if events %}<a class="map-button" href="{% url 'catalog:event_map' %}?{{ request.GET.urlencode }}">На карте</a>{% endif %}
             </div>
             {% else %}
@@ -32,7 +30,7 @@
             {% if events %}
                 <div class="event-grid event-grid--results">
                     {% for event in events %}
-                        {% include "includes/event_card.html" with search_result=True %}
+                        {% if event.pk != spotlight_event.pk %}{% include "includes/event_card.html" with search_result=True %}{% endif %}
                     {% endfor %}
                 </div>
                 {% if page_obj.has_other_pages %}

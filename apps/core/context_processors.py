@@ -12,11 +12,7 @@ def runtime_settings(request):
     if request.user.is_authenticated:
         account = getattr(request.user, "account", None)
         account_has_profile = account is not None
-        account_settings_form = ProfileSettingsForm(auto_id="drawer_%s", initial={
-            "first_name": request.user.first_name,
-            "last_name": request.user.last_name,
-            "newsletter": bool(account and account.newsletter_accepted_at),
-        })
+        account_settings_form = ProfileSettingsForm.for_user(request.user, account, auto_id="drawer_%s")
         if account and account.avatar:
             avatar_url = account.avatar.url
         favorite_ids = list(

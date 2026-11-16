@@ -12,6 +12,7 @@ urlpatterns = [
     path("walks/", views.saved_walks, name="saved_walks"),
     path("api/map/", views.map_events_api, name="map_events_api"),
     path("api/walk/", views.walk_events_api, name="walk_events_api"),
+    path("api/walk/random/", routing_views.walk_random, name="walk_random"),
     path("api/walk/times/", routing_views.walk_route_times, name="walk_route_times"),
     path("api/walk/geocode/", routing_views.walk_geocode, name="walk_geocode"),
     path("<slug:slug>/calendar.ics", views.event_calendar, name="event_calendar"),

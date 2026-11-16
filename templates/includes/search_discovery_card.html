@@ -1,8 +1,4 @@
 <div class="search-stack">
-    <span class="search-stack__back" aria-hidden="true"></span>
-    <div class="search-stack__middle" aria-hidden="true">
-        {% if story_events.1.display_cover_url %}<img src="{{ story_events.1.display_cover_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% endif %}
-    </div>
     <article class="search-discovery" data-event-id="{{ event.pk }}">
         <div class="search-discovery__media">
             <a href="{{ event.get_absolute_url }}" aria-label="Открыть {{ event.title }}">

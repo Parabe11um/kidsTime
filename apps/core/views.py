@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -66,21 +67,25 @@ def profile(request):
             return redirect("accounts:login")
         return render(request, "core/profile.html", {"today": timezone.localdate()})
     account = getattr(request.user, "account", None)
-    form = ProfileSettingsForm(request.POST if request.method == "POST" else None, initial={
-        "first_name": request.user.first_name,
-        "last_name": request.user.last_name,
-        "newsletter": bool(account and account.newsletter_accepted_at),
-    })
+    form = ProfileSettingsForm.for_user(
+        request.user, account, data=request.POST if request.method == "POST" else None,
+    )
     if request.method == "POST" and form.is_valid():
-        request.user.first_name = form.cleaned_data["first_name"]
-        request.user.last_name = form.cleaned_data["last_name"]
-        request.user.save(update_fields=["first_name", "last_name"])
-        if account:
-            if not form.cleaned_data["newsletter"]:
-                account.newsletter_accepted_at = None
-            elif not account.newsletter_accepted_at:
-                account.newsletter_accepted_at = timezone.now()
-            account.save(update_fields=["newsletter_accepted_at"])
+        with transaction.atomic():
+            request.user.first_name = form.cleaned_data["first_name"]
+            request.user.last_name = form.cleaned_data["last_name"]
+            request.user.save(update_fields=["first_name", "last_name"])
+            if account:
+                if not form.cleaned_data["newsletter"]:
+                    account.newsletter_accepted_at = None
+                elif not account.newsletter_accepted_at:
+                    account.newsletter_accepted_at = timezone.now()
+                changed_fields = ["newsletter_accepted_at"]
+                for field in ("patronymic", "birth_date", "phone"):
+                    if field in request.POST:
+                        setattr(account, field, form.cleaned_data[field])
+                        changed_fields.append(field)
+                account.save(update_fields=changed_fields)
         messages.success(request, "Настройки сохранены")
         return_to = request.POST.get("next", "")
         if url_has_allowed_host_and_scheme(return_to, allowed_hosts={request.get_host()}, require_https=request.is_secure()):

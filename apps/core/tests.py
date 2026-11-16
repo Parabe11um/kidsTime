@@ -1,5 +1,6 @@
 import io
 import tempfile
+from datetime import date, timedelta
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
@@ -76,6 +77,32 @@ class ProfileSettingsTests(TestCase):
     def test_guest_cannot_change_settings(self):
         response = self.client.post(reverse("core:profile"), {"first_name": "Wrong"})
         self.assertRedirects(response, reverse("accounts:login"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "")
+
+    def test_additional_profile_details_persist_and_can_be_cleared(self):
+        self.client.force_login(self.user)
+        url = reverse("core:profile")
+        data = {"first_name": "Анна", "patronymic": "Андреевна", "birth_date": "1988-02-29", "phone": "+7 (495) 123-45-67"}
+        self.assertRedirects(self.client.post(url, data), url)
+        self.assertContains(self.client.get(url), 'value="1988-02-29"')
+        self.client.post(url, {"first_name": "Анна"})
+        self.account.refresh_from_db()
+        self.assertEqual(self.account.patronymic, data["patronymic"])
+        self.assertEqual(self.account.birth_date, date(1988, 2, 29))
+        self.assertEqual(self.account.phone, data["phone"])
+
+        data.update(patronymic="", birth_date="", phone="")
+        self.assertRedirects(self.client.post(url, data), url)
+        self.account.refresh_from_db()
+        self.assertEqual((self.account.patronymic, self.account.birth_date, self.account.phone), ("", None, ""))
+
+    def test_invalid_birth_date_and_phone_do_not_update_the_profile(self):
+        self.client.force_login(self.user)
+        future_date = timezone.localdate() + timedelta(days=1)
+        response = self.client.post(reverse("core:profile"), {"first_name": "Анна", "birth_date": future_date.isoformat(), "phone": "abc"})
+        self.assertContains(response, "Дата рождения не может быть в будущем.")
+        self.assertContains(response, "Укажите номер телефона")
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, "")
 

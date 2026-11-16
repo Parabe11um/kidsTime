@@ -140,6 +140,16 @@ def event_list(request):
     queryset = _apply_filters(_base_events(), request.GET).order_by(*order, "pk")
     page = Paginator(queryset, 12).get_page(request.GET.get("page"))
     events = page.object_list
+    count = page.paginator.count
+    last_digit = count % 10
+    if 11 <= count % 100 <= 14:
+        count_word = "событий"
+    elif last_digit == 1:
+        count_word = "событие"
+    elif 2 <= last_digit <= 4:
+        count_word = "события"
+    else:
+        count_word = "событий"
     query_params = request.GET.copy()
     query_params.pop("page", None)
     has_filters = any(value for key, value in request.GET.items() if key not in ("filters", "page"))
@@ -148,7 +158,8 @@ def event_list(request):
         "catalog/event_list.html",
         {
             "events": events,
-            "result_count": page.paginator.count,
+            "result_count": count,
+            "result_count_word": count_word,
             "page_obj": page,
             "page_numbers": page.paginator.get_elided_page_range(page.number, on_each_side=2, on_ends=1),
             "pagination_query": query_params.urlencode(),
@@ -157,7 +168,6 @@ def event_list(request):
             "filters": request.GET,
             "has_filters": has_filters,
             "spotlight_event": events.first() if not has_filters else None,
-            "story_events": [event for event in events[:6] if event.display_cover_url] if not has_filters else [],
         },
     )
 

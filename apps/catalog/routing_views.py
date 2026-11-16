@@ -1,13 +1,18 @@
 import json
+from random import sample
 
 from django.conf import settings
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D
+from django.db.models import Exists, OuterRef, Subquery
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
 from apps.accounts.limits import rate_limited
-from .models import Event
+from .models import Event, EventSession, Venue
 from .services.routing import RoutingUnavailable, geocode, route_legs, valid_coordinate
 from .views import WALK_POINT_LIMIT
 
@@ -41,6 +46,36 @@ def _limited(request, action):
         response["Retry-After"] = "3600"
         return response
     return None
+
+
+@never_cache
+@require_POST
+def walk_random(request):
+    try:
+        origin = _point(_body(request).get("origin"))
+    except (ValueError, TypeError, UnicodeError, RecursionError, OverflowError):
+        return _error("invalid_request", 400)
+    limited = _limited(request, "walk-random")
+    if limited is not None:
+        return limited
+
+    center = Point(origin["lng"], origin["lat"], srid=4326)
+    sessions = EventSession.objects.filter(event_id=OuterRef("pk"))
+    events_at_venue = (
+        Event.objects.visible()
+        .filter(venue_id=OuterRef("pk"))
+        .filter(~Exists(sessions) | Exists(sessions.filter(starts_at__gte=timezone.now())))
+        .order_by("-is_featured", "title", "pk")
+    )
+    candidates = list(
+        Venue.objects.filter(is_published=True, location__distance_lte=(center, D(km=10)))
+        .annotate(event_id=Subquery(events_at_venue.values("pk")[:1]))
+        .filter(event_id__isnull=False)
+        .order_by(Distance("location", center), "pk")
+        .values_list("event_id", flat=True)[:12]
+    )
+    selected = set(sample(candidates, min(3, len(candidates))))
+    return JsonResponse({"ids": [event_id for event_id in candidates if event_id in selected]})
 
 
 @never_cache

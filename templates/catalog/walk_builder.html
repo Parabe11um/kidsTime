@@ -3,9 +3,11 @@
 {% block title %}Маршрут на день — КидсТайм{% endblock %}
 {% block body_class %}page-walk{% endblock %}
 {% block content %}
+    {% include "includes/mobile_search_header.html" with search_id="walk-search" %}
     <div class="walk-page"
          data-walk-root
          data-endpoint="{% url 'catalog:walk_events_api' %}"
+         data-random-endpoint="{% url 'catalog:walk_random' %}"
          data-geocode-endpoint="{% url 'catalog:walk_geocode' %}"
          data-geocoder-enabled="{{ walk_geocoder_enabled|yesno:'true,false' }}"
          data-map-key="{{ YANDEX_MAPS_API_KEY }}"
@@ -42,7 +44,6 @@
                 </template>
                 <a class="walk-add"
                    href="{% url 'catalog:event_list' %}"><span class="ui-icon ui-icon--plus" aria-hidden="true"></span> Добавить место</a>
-                <button class="secondary-button route-button walk-empty-route" type="button" disabled>Построить маршрут</button>
             </section>
             <div class="walk-sidebar">
               <aside class="walk-summary">
@@ -54,7 +55,7 @@
                    data-walk-route
                    target="_blank"
                    rel="noopener"
-                   aria-disabled="true">Построить маршрут</a>
+                   aria-disabled="true">На карте</a>
                 <button class="secondary-button" type="button" data-save-walk disabled>Сохранить</button>
                 <button class="walk-delete" type="button" data-delete-walk hidden>Удалить маршрут</button>
               </aside>
@@ -62,6 +63,12 @@
               <a class="text-link walk-saved-link" href="{% url 'catalog:saved_walks' %}">Мои маршруты</a>
             </div>
         </div>
+        <section class="walk-random" aria-labelledby="walk-random-title">
+            <h2 id="walk-random-title">Не знаете, что выбрать?</h2>
+            <p>Постройте случайный маршрут по ближайшим точкам</p>
+            <button class="secondary-button route-button" type="button" data-walk-random aria-controls="walk-origin-dialog" aria-expanded="false">Случайный маршрут</button>
+            <p class="walk-random__status" data-walk-random-status role="status" hidden></p>
+        </section>
         <dialog class="walk-origin-dialog" id="walk-origin-dialog" data-walk-origin-dialog aria-labelledby="walk-origin-dialog-title">
             <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть">{% include "includes/icon.html" with name="close" %}</button>
             <h2 id="walk-origin-dialog-title">Откуда начнём прогулку?</h2>

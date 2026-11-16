@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% load l10n %}
+{% load l10n static %}
 {% block title %}{{ event.title }} — КидсТайм{% endblock %}
 {% block body_class %}page-detail{% if event.next_session or event.available_until %} page-detail--scheduled{% endif %}{% endblock %}
 {% block content %}
+    {% include "includes/mobile_search_header.html" with search_id="detail-search" %}
     <article class="detail-shell">
         <nav class="breadcrumbs" aria-label="Хлебные крошки"><a href="{% url 'core:home' %}">Главная</a><span>›</span><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}">{{ event.category.name }}</a><span>›</span><span>{{ event.title }}</span></nav>
         <section class="detail-gallery" data-gallery aria-label="Фотографии события">
@@ -49,12 +50,23 @@
                     {% endfor %}
                 </div>
             {% endif %}
-                <div class="detail-hero__tools"><button class="share-button" type="button" data-share aria-label="Поделиться событием">{% include "includes/icon.html" with name="share" %}</button>{% include "includes/favorite_button.html" %}</div>
+                <div class="detail-hero__tools"><button class="share-button" type="button" data-share aria-label="Поделиться событием">{% include "includes/icon.html" with name="share" %}</button>{% include "includes/favorite_button.html" with detail=True %}</div>
             </div>
         </section>
         <div class="detail-grid">
             <div class="detail-main">
-                <header class="detail-heading"><h1>{{ event.title }}</h1>{% include "includes/place_meta.html" %}</header>
+                <header class="detail-heading">
+                    <div class="detail-heading__title">
+                        <h1>{{ event.title }}</h1>
+                        {% if event.venue.stroller_access or event.venue.parking_notes %}
+                            <span class="detail-heading__facilities">
+                                {% if event.venue.stroller_access %}<img src="{% static 'icons/release5/stroller.svg' %}" alt="Можно с коляской" width="16" height="16">{% endif %}
+                                {% if event.venue.parking_notes %}<img src="{% static 'icons/release5/parking.svg' %}" alt="Парковка" width="16" height="16">{% endif %}
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% include "includes/place_meta.html" %}
+                </header>
                 <div class="detail-tags"><span class="age-tag">{{ event.age_from }}+</span><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}">{{ event.category.name }}</a><span>{{ event.get_activity_format_display }}</span>{% if event.venue.accessible %}<span>Маломобильность</span>{% endif %}{% if event.venue.stroller_access %}<span>Можно с коляской</span>{% endif %}{% if event.venue.parking_notes %}<span>Парковка</span>{% endif %}</div>
                 <div class="detail-mobile-schedule">{% include "includes/event_schedule.html" %}</div>
                 <section class="detail-section detail-description"
@@ -82,12 +94,12 @@
                             <a class="secondary-button route-button"
                                href="https://yandex.ru/maps/?rtext=~{{ event.venue.location.y|unlocalize }}%2C{{ event.venue.location.x|unlocalize }}&amp;rtt=pd"
                                target="_blank"
-                               rel="noopener">Построить маршрут</a>
+                               rel="noopener">Построить маршрут на карте</a>
 {% else %}<a class="primary-button"
    href="https://yandex.ru/maps/?text={{ event.venue.address|urlencode }}"
    target="_blank"
    rel="noopener">Открыть адрес на карте</a>{% endif %}
-        <button class="secondary-button" type="button" data-share>Поделиться</button>
+        <button class="secondary-button detail-share-action" type="button" data-share>Поделиться</button>
         {% if event.next_session %}<a class="secondary-button" href="{% url 'catalog:event_calendar' event.slug %}">Добавить в календарь</a>{% endif %}
     </div>
     </div>
