@@ -49,7 +49,6 @@ def home(request):
         "days": days,
         "categories": Category.objects.filter(is_active=True).order_by("sort_order", "name"),
         "spotlight_events": events[:5],
-        "story_events": [event for event in events if event.display_cover_url][:6],
         "nearby_events": nearby_events(_base_events(), MOSCOW_CENTER)[:6],
         "recommended_events": [event for event in events if event.is_recommended][:6] or events[:6],
         "popular_events": [event for event in events if event.is_featured][:7],
