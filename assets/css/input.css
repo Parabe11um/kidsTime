@@ -596,9 +596,9 @@ h3 { font-size: 16px; font-weight: 700; }
   .spotlight-date strong { font-size: 58px; line-height: 1.1; font-weight: 500; }
   .spotlight-place .place-address,.spotlight-place .place-metro { font-size: 13px; }
   .spotlight-card__copy .detail-tags { margin: 22px 0; }
-  .carousel-arrow { position: absolute; z-index: 1; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border: 0; border-radius: 50%; background: white; box-shadow: var(--shadow); font-size: 24px; }
-  .carousel-arrow--previous { left: max(4px,calc(50% - min(400px,50vw - 240px) - 48px)); }
-  .carousel-arrow--next { right: max(4px,calc(50% - min(400px,50vw - 240px) - 48px)); }
+  .carousel-arrow { position: absolute; z-index: 1; top: -26px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: white; box-shadow: var(--shadow); font-size: 24px; }
+  .carousel-arrow--previous { left: 48px; }
+  .carousel-arrow--next { right: 48px; }
   .home-overview { position: relative; isolation: isolate; width: min(1000px,calc(100% - 64px)); margin: 0 auto 80px; }
   .home-overview::before { content: ""; position: absolute; z-index: -1; inset: 28px 0 auto; height: 120px; background: var(--rainbow); filter: blur(36px); opacity: .45; }
   .hero-calendar { isolation: isolate; border-radius: 12px 32px 24px 40px; background: #e4e5e9; padding: 14px 24px 18px; }
@@ -705,6 +705,11 @@ h3 { font-size: 16px; font-weight: 700; }
   .map-toolbar { width: min(800px,calc(100% - 48px)); left: 50%; transform: translateX(-50%); top: 24px; }
   .map-sheet { bottom: 24px; }
 }
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+  .spotlight .carousel-arrow { opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .spotlight:hover .carousel-arrow,.spotlight:has(:focus-visible) .carousel-arrow { opacity: 1; pointer-events: auto; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *,*::before,*::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
