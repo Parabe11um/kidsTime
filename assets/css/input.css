@@ -1103,6 +1103,15 @@ body:has(dialog[open]) { overflow: hidden; }
 .header-avatar { overflow: hidden; }
 .header-avatar,.profile-avatar { grid-template: minmax(0,1fr) / minmax(0,1fr); }
 .header-avatar > img,.profile-avatar > img { width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: cover; border-radius: inherit; }
+.header-avatar--guest { border: 0; background: transparent; }
+@media (min-width: 1024px) {
+  .desktop-nav > .desktop-profile { width: 44px; height: 44px; }
+  .desktop-profile .header-avatar { position: relative; width: 44px; height: 44px; border: 0; overflow: visible; }
+  /* UI Kit avatar: 44px circle with a 2px outside stroke, exported at 48px. */
+  .desktop-profile .header-avatar--guest > img { position: absolute; inset: -2px; width: 48px; height: 48px; max-width: none; }
+  .desktop-profile .header-avatar:not(.header-avatar--guest)::after { content: ""; position: absolute; inset: -2px; border: 2px solid #ffffff80; border-radius: inherit; pointer-events: none; }
+  .desktop-profile:is(:hover,:focus-visible,:active,[aria-expanded="true"]) .header-avatar:not(.header-avatar--guest)::after { border-color: #fff; }
+}
 .profile-page { position: relative; }
 .profile-photo-form { position: absolute; z-index: 2; top: -44px; left: 0; }
 .profile-photo-button { display: grid; place-items: center; width: 54px; height: 54px; border: 4px solid #ffffff80; border-radius: 50%; background: linear-gradient(150deg,#ffbb9d,#ff737d); color: white; font-size: 11px; cursor: pointer; }

@@ -1,0 +1,8 @@
+{% load static %}
+<span class="header-avatar{% if not request.user.is_authenticated %} header-avatar--guest{% endif %}" aria-hidden="true">
+    {% if request.user.is_authenticated %}
+        {% include "includes/profile_avatar.html" %}
+    {% else %}
+        <img src="{% static 'illustrations/header-avatar-guest.png' %}" alt="" width="48" height="48">
+    {% endif %}
+</span>

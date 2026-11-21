@@ -1,7 +1,7 @@
 {% load static %}
 <dialog class="account-drawer" id="profile-panel" aria-labelledby="profile-panel-title">
     <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть профиль">{% include "includes/icon.html" with name="close" %}</button>
-    <div class="drawer-identity"><span class="header-avatar" aria-hidden="true">{% if request.user.is_authenticated %}{% include "includes/profile_avatar.html" %}{% else %}<span class="ui-icon ui-icon--profile"></span>{% endif %}</span><h2 id="profile-panel-title">{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.email|default:request.user.username }}{% else %}Ваш профиль{% endif %}</h2></div>
+    <div class="drawer-identity">{% include "includes/header_avatar.html" %}<h2 id="profile-panel-title">{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.email|default:request.user.username }}{% else %}Ваш профиль{% endif %}</h2></div>
     {% if not request.user.is_authenticated %}<div class="drawer-auth"><a class="primary-button" href="{% url 'accounts:login' %}">Войти</a><a class="secondary-button route-button" href="{% url 'accounts:register' %}">Зарегистрироваться</a></div>{% endif %}
     {% include "includes/profile_collections.html" %}
     <nav class="drawer-links" aria-label="Личный кабинет">
