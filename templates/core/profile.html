@@ -12,7 +12,6 @@
         <nav class="account-guest-links" aria-label="Личный кабинет">
             <a href="{% url 'favorites:list' %}"><span class="ui-icon ui-icon--heart" aria-hidden="true"></span>Избранное</a>
             <a href="{% url 'catalog:saved_walks' %}">{% include "includes/icon.html" with name="route" %}Сохранённые маршруты</a>
-            <a href="mailto:info@kidstime.devtestenv.ru">Связаться с поддержкой</a>
         </nav>
         <p class="profile-privacy"><a href="{% url 'core:privacy' %}">Политика конфиденциальности (черновик)</a></p>
     </div>
@@ -43,7 +42,6 @@
             <div class="profile-menu">
                 <nav class="profile-links" aria-label="Личный кабинет">
                     <button type="button" data-panel-open="notifications-panel" aria-controls="notifications-panel" aria-expanded="false">Уведомления</button>
-                    <a href="mailto:info@kidstime.devtestenv.ru">Связаться с поддержкой</a>
                     <a href="{% url 'catalog:walk_builder' %}">Маршрут на день <b data-walk-count hidden>0</b></a>
                     {% if request.user.is_staff %}<a href="{% url 'admin:catalog_event_add' %}">+ Добавить событие</a>{% endif %}
                     <button class="profile-mobile-settings" type="button" data-panel-open="settings-panel" aria-controls="settings-panel" aria-expanded="false">Настройки</button>

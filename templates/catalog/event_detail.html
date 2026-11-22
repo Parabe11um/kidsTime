@@ -99,7 +99,6 @@
    href="https://yandex.ru/maps/?text={{ event.venue.address|urlencode }}"
    target="_blank"
    rel="noopener">Открыть адрес на карте</a>{% endif %}
-        <button class="secondary-button detail-share-action" type="button" data-share>Поделиться</button>
         {% if event.next_session %}<a class="secondary-button" href="{% url 'catalog:event_calendar' event.slug %}">Добавить в календарь</a>{% endif %}
     </div>
     </div>
