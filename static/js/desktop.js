@@ -109,6 +109,18 @@
     choices.querySelectorAll("input").forEach((input) => { input.disabled = false; });
   });
 
+  document.querySelectorAll("[data-date-control]").forEach((control) => {
+    const input = control.querySelector('input[type="date"]');
+    const button = control.querySelector("[data-date-picker]");
+    if (!input || !button || typeof input.showPicker !== "function") return;
+    control.classList.add("has-date-trigger"); button.hidden = false;
+    button.addEventListener("click", () => {
+      input.focus();
+      try { input.showPicker(); }
+      catch (_) { control.classList.remove("has-date-trigger"); button.hidden = true; }
+    });
+  });
+
   document.querySelectorAll("[data-time-filter]").forEach((filter) => {
     const lower = filter.querySelector("[data-time-min]");
     const upper = filter.querySelector("[data-time-max]");

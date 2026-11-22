@@ -20,8 +20,14 @@
         <section class="filter-section filter-dates">
             <h3>Дата</h3>
             <div class="filter-dates__fields">
-                <label><span>От</span><input type="date" name="date_from" aria-label="Дата, от" value="{% if filters.date_from %}{{ filters.date_from }}{% else %}{{ filters.date }}{% endif %}"></label>
-                <label><span>До</span><input type="date" name="date_until" aria-label="Дата, до" value="{% if filters.date_until %}{{ filters.date_until }}{% else %}{{ filters.date }}{% endif %}"></label>
+                <div class="filter-date-control" data-date-control>
+                    <label><span>От</span><input id="filter-date-from" type="date" name="date_from" aria-label="Дата, от" value="{% if filters.date_from %}{{ filters.date_from }}{% else %}{{ filters.date }}{% endif %}"></label>
+                    <button class="filter-date-trigger" type="button" data-date-picker aria-label="Выбрать дату начала" aria-controls="filter-date-from" hidden>{% include "includes/icon.html" with name="calendar" %}</button>
+                </div>
+                <div class="filter-date-control" data-date-control>
+                    <label><span>До</span><input id="filter-date-until" type="date" name="date_until" aria-label="Дата, до" value="{% if filters.date_until %}{{ filters.date_until }}{% else %}{{ filters.date }}{% endif %}"></label>
+                    <button class="filter-date-trigger" type="button" data-date-picker aria-label="Выбрать дату окончания" aria-controls="filter-date-until" hidden>{% include "includes/icon.html" with name="calendar" %}</button>
+                </div>
             </div>
         </section>
         <fieldset class="filter-section filter-ages">
