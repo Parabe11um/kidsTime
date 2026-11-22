@@ -190,6 +190,7 @@ h3 { font-size: 16px; font-weight: 700; }
 .trust-card { display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 24px; padding: 24px 12px; border-radius: 24px; background: #ffffffb3; font-size: 12px; text-align: center; }
 .detail-related { margin-top: 36px; padding: 0 16px; }
 .detail-related .section-heading h2 { font-size: 22px; }
+.detail-related .ui-icon--arrow-right { --icon: url("../icons/release5/arrow-right.svg"); }
 
 /* Catalog and filter sheet */
 .catalog-layout { margin-top: 24px; }
