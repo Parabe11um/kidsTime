@@ -547,7 +547,8 @@ h3 { font-size: 16px; font-weight: 700; }
 }
 
 @media (min-width: 1024px) {
-  body { padding-bottom: 0; font-size: 14px; }
+  body { display: flex; flex-direction: column; min-height: 100svh; padding-bottom: 0; font-size: 14px; }
+  body > .desktop-header,body > .site-footer { flex-shrink: 0; }
   .bottom-nav,.mobile-hero,.home-dashboard,.home-feed { display: none; }
   .desktop-only { display: block; }
   #main-content::after { content: none; }
@@ -950,7 +951,7 @@ body:has(dialog[open]) { overflow: hidden; }
   .page-account--guest .account-wordmark { color: var(--coral); }
 }
 @media (min-width: 1024px) {
-  body > main { min-height: 520px; border-radius: 0 0 60px 60px; padding-bottom: 90px; background: var(--canvas); }
+  body > main { flex-grow: 1; min-height: 520px; border-radius: 0 0 60px 60px; padding-bottom: 90px; background: var(--canvas); }
   .page-account > main { padding: 0; }
   .catalog-layout { width: min(1000px,calc(100% - 64px)); grid-template-columns: 300px minmax(0,1fr); gap: 32px; margin-top: 24px; }
   .catalog-results { position: relative; min-width: 0; }
@@ -2229,4 +2230,11 @@ body:has(dialog[open]) { overflow: hidden; }
   .editorial-grid .event-card:nth-child(2) .event-card__body { display: none; }
   .event-collection__grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .event-collection .pagination__number { min-width: 44px; height: 44px; font-size: 14px; }
+}
+
+/* Equal icon columns keep the pin and metro dot on the same axis. */
+@media (min-width: 1024px) {
+  .event-card .event-card__location :is(.place-address,.place-metro) { display: grid; grid-template-columns: 12px minmax(0,1fr); column-gap: 5px; }
+  .event-card .event-card__location :is(.ui-icon,.metro-dot) { justify-self: center; margin-right: 0; }
+  .event-card .place-meta__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 }
