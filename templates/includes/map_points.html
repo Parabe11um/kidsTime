@@ -1,0 +1,55 @@
+<div class="map-point-tools" data-personal-tools hidden>
+    <button type="button" class="primary-button" data-point-add aria-pressed="false">+ Добавить точку</button>
+    <button type="button" class="secondary-button" data-points-open aria-controls="personal-points" aria-expanded="false">Мои точки <span data-points-count>0</span></button>
+</div>
+<div class="map-point-selection" data-point-selection hidden>
+    <p role="status">Нажмите на карту, чтобы выбрать место для своей точки.</p>
+    <div>
+        <button type="button" class="secondary-button" data-point-manual>Ввести координаты</button>
+        <button type="button" class="text-link" data-point-selection-cancel>Отмена</button>
+    </div>
+</div>
+<p class="map-point-notice" data-points-status role="status" hidden></p>
+<aside class="map-personal-panel" id="personal-points" data-points-panel aria-labelledby="personal-points-title" hidden>
+    <button type="button" class="map-sheet__close" data-points-close aria-label="Закрыть мои точки">{% include "includes/icon.html" with name="close" %}</button>
+    <h2 id="personal-points-title">Мои точки</h2>
+    <p class="map-point-hint">Эти места видны только в этом браузере. При очистке данных браузера они удалятся.</p>
+    <p data-points-empty>Пока нет сохранённых точек.</p>
+    <ul class="map-personal-list" data-points-list></ul>
+    <button type="button" class="primary-button" data-point-add>+ Добавить точку</button>
+</aside>
+<aside class="map-sheet map-sheet--personal" data-personal-sheet aria-labelledby="personal-point-title" hidden>
+    <button type="button" class="map-sheet__close" data-personal-close aria-label="Закрыть мою точку">{% include "includes/icon.html" with name="close" %}</button>
+    <div>
+        <span class="map-point-hint">Моя точка</span>
+        <h2 id="personal-point-title" data-personal-title></h2>
+        <p data-personal-address></p>
+        <p class="map-point-coordinates-label" data-personal-coordinates></p>
+        <p class="map-point-note" data-personal-note></p>
+        <div class="map-sheet__actions">
+            <a class="primary-button" data-personal-route target="_blank" rel="noopener">Маршрут</a>
+            <button type="button" class="secondary-button" data-personal-edit>Изменить</button>
+        </div>
+        <button type="button" class="map-point-delete" data-personal-delete>Удалить точку</button>
+    </div>
+</aside>
+<dialog class="map-point-dialog" data-point-dialog aria-labelledby="map-point-editor-title">
+    <form data-point-form>
+        <h2 id="map-point-editor-title" data-point-editor-title>Новая точка</h2>
+        <button type="button" class="map-sheet__close" data-point-cancel aria-label="Закрыть редактор точки">{% include "includes/icon.html" with name="close" %}</button>
+        <p class="map-point-hint">Точка сохранится только в этом браузере.</p>
+        <label>Название<input name="name" type="text" required maxlength="80" autocomplete="off" placeholder="Например, наша площадка"></label>
+        <label>Адрес (необязательно)<input name="address" type="text" maxlength="200" autocomplete="off"></label>
+        <div class="map-point-coordinates">
+            <label>Широта<input name="lat" type="text" inputmode="decimal" required maxlength="30" autocomplete="off" placeholder="55.7558"></label>
+            <label>Долгота<input name="lng" type="text" inputmode="decimal" required maxlength="30" autocomplete="off" placeholder="37.6176"></label>
+        </div>
+        <button type="button" class="secondary-button map-point-pick" data-point-pick>Выбрать на карте</button>
+        <label>Заметка (необязательно)<textarea name="note" rows="3" maxlength="500"></textarea></label>
+        <p class="map-point-error" data-point-error role="alert" hidden></p>
+        <div class="map-point-dialog__actions">
+            <button type="button" class="secondary-button" data-point-cancel>Отмена</button>
+            <button type="submit" class="primary-button">Сохранить точку</button>
+        </div>
+    </form>
+</dialog>

@@ -240,6 +240,30 @@ class PublicPagesTests(TestCase):
         self.assertContains(response, "data-map-sheet-route")
         self.assertContains(response, "data-map-sheet-walk")
 
+    @override_settings(YANDEX_MAPS_API_KEY="")
+    def test_personal_points_are_available_to_guests_without_a_map_api_key(self):
+        response = self.client.get(reverse("catalog:event_map"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-map-enabled="false"')
+        self.assertContains(response, 'data-points-module="')
+        self.assertContains(response, 'data-point-form')
+        self.assertContains(response, 'data-point-manual')
+        self.assertContains(response, 'name="lat"')
+        self.assertContains(response, 'name="lng"')
+        self.assertContains(response, 'Точка сохранится только в этом браузере.')
+        self.assertNotContains(response, 'api-maps.yandex.ru/v3/')
+
+    @override_settings(YANDEX_MAPS_API_KEY="public-map-key")
+    def test_personal_points_keep_the_public_map_and_catalog_actions(self):
+        response = self.client.get(reverse("catalog:event_map"), {"collection": "popular", "from": "collection"})
+
+        self.assertContains(response, 'data-map-enabled="true"')
+        self.assertContains(response, 'data-personal-route')
+        self.assertContains(response, 'data-map-sheet-walk')
+        self.assertContains(response, 'data-endpoint="/events/api/map/?collection=popular&amp;from=collection"')
+        self.assertContains(response, 'href="/events/collections/popular/"')
+
     def test_walk_builder_page_is_available(self):
         response = self.client.get(reverse("catalog:walk_builder"))
 
