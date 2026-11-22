@@ -2282,6 +2282,20 @@ body:has(dialog[open]) { overflow: hidden; }
 .map-point-pick { border: 1px solid var(--line); }
 .map-point-dialog__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .map-point-error { color: #b74450; font-size: 13px; }
+.walk-add-personal { display: flex; width: min(340px,100%); min-height: 44px; margin: 12px auto 24px; border: 1px solid var(--line); }
+.walk-personal-dialog { position: fixed; inset: 0; width: min(560px,calc(100% - 24px)); max-height: calc(100dvh - 32px); margin: auto; padding: 28px 20px; border: 0; border-radius: 24px; background: white; overflow-y: auto; overscroll-behavior: contain; }
+.walk-personal-dialog h2 { padding-right: 32px; font-size: 22px; }
+.walk-personal-choices { display: grid; gap: 12px; margin: 12px 0 20px; }
+.walk-personal-choice { display: grid; gap: 6px; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--canvas); overflow-wrap: anywhere; }
+.walk-personal-choice > p { color: var(--muted); font-size: 12px; }
+.walk-personal-choice__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.walk-personal-choice__actions > button { min-height: 44px; padding: 8px 12px; font-size: 13px; }
+.walk-personal-origins { margin: 12px 0; }
+.walk-personal-origins > summary { min-height: 44px; padding: 12px; border-radius: 12px; background: var(--canvas); cursor: pointer; }
+.walk-personal-origin-choice { min-height: 44px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: white; text-align: left; overflow-wrap: anywhere; }
+.walk-item--personal .walk-item__title { display: block; }
+.walk-item--personal .walk-item__facts:empty { display: none; }
+.walk-item--personal .walk-item__image-empty { background: linear-gradient(145deg,#e8ddf6,#d9e6f4); }
 @media (min-width: 640px) {
   .page-map .map-shell { height: calc(100dvh - 86px); }
   .map-point-tools { top: 80px; }

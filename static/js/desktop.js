@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+  await window.KidsTimeReady;
   // Native dialogs keep focus inside overlays and restore it on dismissal.
   if (typeof HTMLDialogElement !== "undefined" && typeof HTMLDialogElement.prototype.showModal === "function") {
     document.documentElement.classList.add("has-native-dialogs");
@@ -136,21 +137,11 @@
   const maximumRoutes = 20;
   const walk = window.KidsTimeWalk;
   const notice = (text) => walk?.notice(text);
-  const normalizeIds = (ids) => [...new Set((Array.isArray(ids) ? ids : []).map(String).filter((id) => /^[1-9]\d{0,18}$/.test(id)))].slice(0, 9);
+  const normalizeIds = walk.normalizeIds;
   const readRoutes = () => {
     try {
       const values = JSON.parse(localStorage.getItem(storageKey) || "[]");
-      if (!Array.isArray(values)) return [];
-      const unique = new Set();
-      return values.filter((route) => {
-        if (!route || typeof route !== "object" || typeof route.id !== "string" || !/^[\w-]{1,80}$/.test(route.id) || unique.has(route.id)) return false;
-        unique.add(route.id);
-        return typeof route.name === "string" && route.name.trim() && normalizeIds(route.ids).length;
-      }).slice(0, maximumRoutes).map((route) => {
-        const record = { id: route.id, name: route.name.trim().slice(0, 80), ids: normalizeIds(route.ids) };
-        if (typeof route.created_at === "string" && /^\d{4}-\d{2}-\d{2}T/.test(route.created_at) && Number.isFinite(Date.parse(route.created_at))) record.created_at = route.created_at;
-        return record;
-      });
+      return walk.places.normalizeSavedWalks(values);
     } catch (_) { return []; }
   };
   const writeRoutes = (routes) => {
@@ -178,7 +169,7 @@
   if (root && walk) {
     const wanted = new URLSearchParams(location.search).get("route");
     const saved = readRoutes().find((route) => route.id === wanted);
-    if (saved) { activeRouteId = saved.id; walk.replaceIds(saved.ids); }
+    if (saved) { if (walk.restore(saved.ids, saved.origin_id)) activeRouteId = saved.id; }
     else if (wanted) notice("Сохранённый маршрут не найден в этом браузере.");
     const dialog = root.querySelector("[data-route-dialog]");
     const form = root.querySelector("[data-save-walk-form]");
@@ -188,7 +179,7 @@
       const route = readRoutes().find((item) => item.id === activeRouteId);
       root.querySelectorAll("[data-walk-title]").forEach((node) => { node.textContent = route?.name || "Маршрут на день"; });
       root.classList.toggle("is-saved", Boolean(route));
-      saveButton.disabled = !walk.getEvents().length;
+      saveButton.disabled = !walk.isComplete();
       deleteButton.hidden = !route;
     };
     saveButton.addEventListener("click", () => {
@@ -204,13 +195,14 @@
       const routes = readRoutes();
       const index = routes.findIndex((route) => route.id === activeRouteId);
       const error = root.querySelector("[data-save-walk-error]");
-      if (!name || !ids.length || (index < 0 && routes.length >= maximumRoutes)) {
-        error.textContent = !name ? "Укажите название маршрута." : !ids.length ? "Добавьте доступные места в маршрут." : `Можно сохранить до ${maximumRoutes} маршрутов. Удалите один из прежних.`;
+      if (!name || !ids.length || !walk.isComplete() || (index < 0 && routes.length >= maximumRoutes)) {
+        error.textContent = !name ? "Укажите название маршрута." : !ids.length ? "Добавьте доступные места в маршрут." : !walk.isComplete() ? "Проверьте доступность точек и выберите начало маршрута." : `Можно сохранить до ${maximumRoutes} маршрутов. Удалите один из прежних.`;
         error.hidden = false;
         return;
       }
       const id = index >= 0 ? activeRouteId : crypto.randomUUID();
       const record = { id, name: name.slice(0, 80), ids };
+      if (walk.getOriginRef()) record.origin_id = walk.getOriginRef();
       const createdAt = index >= 0 ? routes[index].created_at : new Date().toISOString();
       if (createdAt) record.created_at = createdAt;
       if (index >= 0) routes[index] = record; else routes.unshift(record);
@@ -230,6 +222,8 @@
     });
     document.addEventListener("kidstime:walk-loaded", update);
     document.addEventListener("kidstime:walk-loading", update);
+    document.addEventListener("kidstime:walk-origin-changed", update);
+    document.addEventListener("kidstime:walk-load-error", update);
     document.addEventListener("kidstime:saved-walks-changed", update);
     update();
   }
@@ -250,8 +244,9 @@
       const link = document.createElement("a"); link.href = `${savedRoot.dataset.walkUrl}?route=${encodeURIComponent(route.id)}`;
       const cover = document.createElement("div"); cover.className = "saved-route__cover";
       const badge = document.createElement("span"); badge.className = "saved-route__badge";
-      const number = document.createElement("span"); number.className = "saved-route__number"; number.textContent = String(route.ids.length); number.setAttribute("aria-hidden", "true");
-      const count = document.createElement("span"); count.className = "sr-only"; count.textContent = `Точек в маршруте: ${route.ids.length}`;
+      const totalPoints = route.ids.length + Number(Boolean(route.origin_id));
+      const number = document.createElement("span"); number.className = "saved-route__number"; number.textContent = String(totalPoints); number.setAttribute("aria-hidden", "true");
+      const count = document.createElement("span"); count.className = "sr-only"; count.textContent = `Точек в маршруте: ${totalPoints}`;
       badge.append(number, count);
       const body = document.createElement("div"); body.className = "saved-route__body";
       const heading = document.createElement("h2"); heading.textContent = route.name; heading.title = route.name;
@@ -291,19 +286,20 @@
       });
       link.addEventListener("click", (event) => { if (suppressClick) { event.preventDefault(); suppressClick = false; } });
       card.append(link, actions, remove); list.append(card);
-      fetch(`${savedRoot.dataset.endpoint}?ids=${encodeURIComponent(route.ids.join(","))}`, { headers: { Accept: "application/json" } }).then((response) => {
-        if (!response.ok) throw new Error("unavailable"); return response.json();
-      }).then((payload) => {
+      walk.resolvePoints(route.ids, savedRoot.dataset.endpoint).then((events) => {
         if (current !== sequence) return;
-        const events = Array.isArray(payload.results) ? payload.results : [];
-        const complete = events.length === route.ids.length;
-        const dates = [...new Set(events.map((item) => typeof item.date === "string" && item.date.trim() ? item.date.trim() : "Уточняется"))];
+        const origin = route.origin_id ? walk.places.resolvePersonalOrigin(route.origin_id, walk.getPersonalPoints()) : null;
+        const available = events.length + Number(Boolean(origin));
+        const complete = available === totalPoints;
+        const catalog = events.filter(item => item.kind !== "personal");
+        meta.hidden = !catalog.length;
+        const dates = [...new Set(catalog.map((item) => typeof item.date === "string" && item.date.trim() ? item.date.trim() : "Уточняется"))];
         if (!complete && !dates.includes("Уточняется")) dates.push("Уточняется");
         setDate(dates.join(" · ") || "Уточняется");
-        const ages = events.map((item) => typeof item.age === "string" && /^\d+\+$/.test(item.age) ? Number.parseInt(item.age, 10) : null);
+        const ages = catalog.map((item) => typeof item.age === "string" && /^\d+\+$/.test(item.age) ? Number.parseInt(item.age, 10) : null);
         setAge(complete && ages.length && ages.every((age) => age !== null) ? `${Math.max(...ages)}+` : "Уточняется");
         if (!complete) {
-          availability.textContent = `Доступно ${events.length} из ${route.ids.length} точек`;
+          availability.textContent = `Доступно ${available} из ${totalPoints} точек`;
           availability.hidden = false;
         }
         const photo = events.find((item) => item.cover)?.cover;
@@ -317,6 +313,7 @@
     savedPages.refresh();
   };
   document.addEventListener("kidstime:saved-walks-changed", () => { refreshCounts(); renderRoutes(); });
+  document.addEventListener("kidstime:personal-points-changed", renderRoutes);
   window.addEventListener("storage", (event) => {
     if (event.key === storageKey || event.key === null) document.dispatchEvent(new Event("kidstime:saved-walks-changed"));
     if (event.key === "kidstime:favorites") refreshCounts();

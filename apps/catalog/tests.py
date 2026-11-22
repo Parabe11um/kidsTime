@@ -271,6 +271,9 @@ class PublicPagesTests(TestCase):
         self.assertContains(response, "Маршрут на день")
         self.assertContains(response, 'data-walk-root')
         self.assertContains(response, 'data-limit="9"')
+        self.assertContains(response, 'data-walk-points-dialog')
+        self.assertContains(response, 'data-origin-personal-points')
+        self.assertContains(response, 'Выбрать из моих точек')
 
     def test_walk_api_preserves_selected_order_and_removes_duplicates(self):
         events = list(Event.objects.visible().order_by("pk")[:3])

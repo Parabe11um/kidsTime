@@ -30,6 +30,11 @@
             <a class="primary-button" data-personal-route target="_blank" rel="noopener">Маршрут</a>
             <button type="button" class="secondary-button" data-personal-edit>Изменить</button>
         </div>
+        <div class="map-sheet__actions">
+            <button type="button" class="secondary-button" data-personal-walk data-walk-button="" data-walk-default-label="+ В маршрут" data-walk-active-label="✓ В маршруте" aria-pressed="false">+ В маршрут</button>
+            <button type="button" class="secondary-button" data-personal-start>Начать отсюда</button>
+        </div>
+        <a class="map-sheet__details" href="{% url 'catalog:walk_builder' %}">Открыть маршрут {% include "includes/icon.html" with name="arrow-right" %}</a>
         <button type="button" class="map-point-delete" data-personal-delete>Удалить точку</button>
     </div>
 </aside>
