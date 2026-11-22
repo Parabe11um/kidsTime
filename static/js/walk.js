@@ -1,4 +1,5 @@
-(() => {
+(async () => {
+  await window.KidsTimeReady;
   const root = document.querySelector("[data-walk-root]");
   const walk = window.KidsTimeWalk;
   if (!root || !walk) return;
@@ -80,9 +81,12 @@
   }
   function paintOrigin() {
     const point = walk.getOrigin();
+    const missing = Boolean(walk.getOriginRef() && !point);
     root.querySelector("[data-walk-origin-title]").textContent = point?.source === "geolocation" ? "Ваше текущее местоположение" : "Начальная точка";
-    root.querySelector("[data-walk-origin-label]").textContent = point ? (point.label || pointText(point)) : "Выбрать на карте";
-    root.querySelector("[data-origin-clear]").hidden = !point;
+    root.querySelector("[data-walk-origin-label]").textContent = point ? (point.label || pointText(point)) : missing ? "Личная точка удалена — выбрать другую" : "Выбрать на карте";
+    root.querySelector("[data-origin-clear]").hidden = !point && !missing;
+    if (missing) { originMessage("Начальная точка недоступна. Выберите другую или уберите начало маршрута."); originStatus.dataset.missingPoint = "true"; }
+    else if (originStatus.dataset.missingPoint) { originMessage(""); delete originStatus.dataset.missingPoint; }
   }
   function originMessage(text) {
     originStatus.textContent = text; originStatus.hidden = !text;
@@ -170,7 +174,7 @@
   }
   function applyOrigin(point) {
     const revision = ++originRevision;
-    walk.setOrigin(point);
+    if (walk.setOrigin(point) === false) return false;
     originMessage("");
     if (!point || !geocoder || point.label) return;
     post(root.dataset.geocodeEndpoint, { point: { lat: point.lat, lng: point.lng } }).then(data => {
@@ -196,7 +200,7 @@
       const point = { lat: position.coords.latitude, lng: position.coords.longitude, source: "geolocation" };
       if (!validPoint(point)) { originMessage("Не удалось определить точку. Выберите её на карте."); return; }
       if (inDialog) { candidate = point; paintCandidate(true); dialogStatus.textContent = "Проверьте точку и нажмите «Начать отсюда»."; }
-      else { applyOrigin(point); walk.notice("Начальная точка определена"); }
+      else { if (applyOrigin(point) !== false) walk.notice("Начальная точка определена"); }
       if (position.coords.accuracy > 1000) originMessage("Местоположение определено приблизительно. Проверьте начальную точку на карте.");
       else originMessage("");
     }, error => {
@@ -216,12 +220,12 @@
   document.addEventListener("kidstime:walk-changed", cancelRandom);
   confirm.addEventListener("click", () => {
     if (!validPoint(candidate)) return;
-    applyOrigin({ ...candidate });
+    if (applyOrigin({ ...candidate }) === false) return;
     dialog.close();
     if (opener === randomButton) generateWalk();
     else walk.notice("Начальная точка выбрана");
   });
-  root.querySelector("[data-origin-clear]").addEventListener("click", () => { applyOrigin(null); dialog.close(); });
+  root.querySelector("[data-origin-clear]").addEventListener("click", () => { if (applyOrigin(null) !== false) dialog.close(); });
   root.querySelector("[data-origin-map-retry]").addEventListener("click", loadMap);
   dialog.addEventListener("close", () => {
     geoRevision++; searchRevision++; setLocateBusy(false);
@@ -262,6 +266,53 @@
     if (event.detail.coordinatesChanged) cancelRandom();
   });
   paintOrigin();
+  const personalDialog = root.querySelector("[data-walk-points-dialog]");
+  const personalOpener = root.querySelector("[data-walk-points-open]");
+  function renderPersonalChoices() {
+    const list = root.querySelector("[data-walk-personal-points]");
+    const origins = root.querySelector("[data-origin-personal-points]");
+    list.replaceChildren(); origins.replaceChildren();
+    let points;
+    try { points = walk.getPersonalPoints(); }
+    catch (_) {
+      for (const node of [list, origins]) { const p = document.createElement("p"); p.textContent = "Не удалось открыть сохранённые точки. Проверьте настройки хранения данных в браузере."; node.append(p); }
+      return;
+    }
+    if (!points.length) {
+      for (const node of [list, origins]) { const p = document.createElement("p"); p.textContent = "Сохраните свои места на карте, чтобы выбирать их здесь."; node.append(p); }
+    }
+    points.forEach(point => {
+      const ref = walk.places.personalPointRef(point.id);
+      const record = document.createElement("div"); record.className = "walk-personal-choice";
+      const name = document.createElement("strong"); name.textContent = point.name;
+      const address = document.createElement("p"); address.textContent = point.address || pointText(point);
+      const actions = document.createElement("div"); actions.className = "walk-personal-choice__actions";
+      const add = document.createElement("button"); add.type = "button"; add.className = "secondary-button";
+      add.dataset.walkButton = ref; add.dataset.walkDefaultLabel = "+ В маршрут"; add.dataset.walkActiveLabel = "✓ В маршруте";
+      add.setAttribute("aria-pressed", "false"); walk.refreshButton(add);
+      const start = document.createElement("button"); start.type = "button"; start.className = "secondary-button"; start.textContent = "Начать отсюда";
+      start.addEventListener("click", () => {
+        if (walk.setOrigin({ lat: point.lat, lng: point.lng, label: point.name, source: "personal", pointId: point.id })) {
+          personalDialog.close(); walk.notice("Начальная точка выбрана");
+        }
+      });
+      actions.append(add, start); record.append(name, address, actions); list.append(record);
+      const chooseOrigin = document.createElement("button"); chooseOrigin.type = "button"; chooseOrigin.className = "walk-personal-origin-choice";
+      chooseOrigin.textContent = point.name;
+      chooseOrigin.addEventListener("click", () => {
+        candidate = { lat: point.lat, lng: point.lng, label: point.name, source: "personal", pointId: point.id };
+        paintCandidate(true); dialogStatus.textContent = "Проверьте начальную точку и нажмите «Начать отсюда».";
+      });
+      origins.append(chooseOrigin);
+    });
+  }
+  personalOpener.addEventListener("click", () => {
+    renderPersonalChoices(); personalDialog.showModal(); personalOpener.setAttribute("aria-expanded", "true");
+  });
+  root.querySelector("[data-walk-points-close]").addEventListener("click", () => personalDialog.close());
+  personalDialog.addEventListener("close", () => { personalOpener.setAttribute("aria-expanded", "false"); personalOpener.focus(); });
+  document.addEventListener("kidstime:personal-points-changed", renderPersonalChoices);
+  renderPersonalChoices();
   const url = new URL(window.location.href);
   if (url.searchParams.get("random") === "1" && !url.searchParams.has("route")) {
     url.searchParams.delete("random");

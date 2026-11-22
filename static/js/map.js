@@ -1,6 +1,7 @@
 const root = document.querySelector("[data-map-root]");
 
 if (root) {
+  await window.KidsTimeReady;
   // Django fingerprints the module URL in the template, including after collectstatic.
   const { createMapPointStore, MAP_POINTS_KEY, MAP_POINTS_LIMIT, parseCoordinate, validCoordinates } = await import(root.dataset.pointsModule);
   const store = createMapPointStore({
@@ -109,7 +110,15 @@ if (root) {
     const note = find("[data-personal-note]"); note.textContent = point.note; note.hidden = !point.note;
     find("[data-personal-route]").href = `https://yandex.ru/maps/?rtext=~${encodeURIComponent(`${point.lat},${point.lng}`)}&rtt=pd`;
     personalSheet.hidden = false;
+    updatePersonalActions();
     if (focus) { centerOn(point); find("[data-personal-close]").focus({ preventScroll: true }); }
+  }
+  function updatePersonalActions() {
+    if (!activeId) return;
+    const walk = window.KidsTimeWalk, ref = walk.places.personalPointRef(activeId);
+    const button = find("[data-personal-walk]"); button.dataset.walkButton = ref; walk.refreshButton(button);
+    const isOrigin = walk.getOriginRef() === ref;
+    const start = find("[data-personal-start]"); start.disabled = isOrigin; start.textContent = isOrigin ? "Начальная точка" : "Начать отсюда";
   }
   function readForm() {
     const value = name => form.elements.namedItem(name).value;
@@ -156,6 +165,7 @@ if (root) {
     try {
       const values = readForm(), point = store.save(values, values.id);
       dialog.close("saved"); clearDraft(); refreshPoints(); showPoint(point.id, panelButton);
+      document.dispatchEvent(new Event("kidstime:personal-points-changed"));
       announce(values.id ? "Изменения сохранены в этом браузере." : "Точка сохранена в этом браузере.");
     } catch (error) {
       errorText.textContent = messageFor(error); errorText.hidden = false;
@@ -177,9 +187,17 @@ if (root) {
     const point = points.find(item => item.id === activeId);
     if (!point || !window.confirm(`Удалить точку «${point.name}» из этого браузера?`)) return;
     try {
-      store.remove(point.id); closeSheets(); refreshPoints(); panelButton.focus(); announce("Точка удалена.");
+      store.remove(point.id); closeSheets(); refreshPoints(); panelButton.focus();
+      document.dispatchEvent(new Event("kidstime:personal-points-changed")); announce("Точка удалена.");
     } catch (error) { announce(messageFor(error)); }
   });
+  find("[data-personal-start]").addEventListener("click", () => {
+    const walk = window.KidsTimeWalk;
+    const point = walk.places.resolvePersonalOrigin(walk.places.personalPointRef(activeId), points);
+    if (point && walk.setOrigin(point)) announce("Точка выбрана началом. Нажмите «Открыть маршрут», чтобы продолжить.");
+  });
+  document.addEventListener("kidstime:walk-origin-changed", updatePersonalActions);
+  document.addEventListener("kidstime:walk-changed", updatePersonalActions);
   document.addEventListener("keydown", event => {
     if (event.key !== "Escape" || dialog.open) return;
     if (selecting) { event.preventDefault(); cancelDraft(); }

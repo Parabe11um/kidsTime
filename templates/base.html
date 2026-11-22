@@ -17,7 +17,7 @@
         <link rel="stylesheet" href="{% static 'css/app.css' %}">
         {% block head %}{% endblock %}
     </head>
-    <body class="{% block body_class %}{% endblock %}">
+    <body class="{% block body_class %}{% endblock %}" data-points-module="{% static 'js/map-points.js' %}">
         <a class="skip-link" href="#main-content">Перейти к содержимому</a>
         <header class="desktop-header">
             <div class="desktop-header__inner">

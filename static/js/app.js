@@ -1,6 +1,12 @@
-(() => {
+window.KidsTimeReady = (async () => {
+  const places = await import(document.body.dataset.pointsModule);
+  const personalStore = places.createMapPointStore({
+    getItem: key => window.localStorage.getItem(key),
+    setItem: (key, value) => window.localStorage.setItem(key, value),
+  });
   const favoriteStorageKey = "kidstime:favorites";
   const walkStorageKey = "kidstime:walk";
+  const originStorageKey = "kidstime:walk-origin:v1";
   let loadedWalkEvents = [];
   const defaultWalkLimit = 9;
 
@@ -143,16 +149,7 @@
     ? configuredWalkLimit
     : defaultWalkLimit;
 
-  const normalizeWalkIds = (values) => {
-    const normalized = [];
-    for (const value of Array.isArray(values) ? values : []) {
-      const id = String(value).trim();
-      if (!/^\d+$/.test(id) || normalized.includes(id)) continue;
-      normalized.push(id);
-      if (normalized.length === walkLimit) break;
-    }
-    return normalized;
-  };
+  const normalizeWalkIds = values => places.normalizeWalkRefs(values, walkLimit);
 
   const readWalkIds = () => {
     try {
@@ -164,6 +161,43 @@
 
   let walkIds = readWalkIds();
   let noticeTimer;
+  const readOriginRef = () => {
+    try { const ref = localStorage.getItem(originStorageKey); return places.personalPointId(ref) ? ref : null; }
+    catch (_) { return null; }
+  };
+  let originRef = readOriginRef(), transientOrigin = null;
+  const getPersonalPoints = () => personalStore.list();
+  const getOrigin = () => {
+    if (!originRef) return transientOrigin ? { ...transientOrigin } : null;
+    try { return places.resolvePersonalOrigin(originRef, getPersonalPoints()); }
+    catch (_) { return null; }
+  };
+  const writeOriginRef = ref => {
+    try {
+      if (ref) localStorage.setItem(originStorageKey, ref); else localStorage.removeItem(originStorageKey);
+      return true;
+    } catch (_) { showWalkNotice("Не удалось сохранить начальную точку. Разрешите хранение данных сайта в браузере."); return false; }
+  };
+  let observedOrigin = getOrigin();
+  const originChanged = () => {
+    const point = getOrigin();
+    const coordinatesChanged = observedOrigin?.lat !== point?.lat || observedOrigin?.lng !== point?.lng;
+    observedOrigin = point;
+    refreshWalkControls();
+    document.dispatchEvent(new CustomEvent("kidstime:walk-origin-changed", { detail: { coordinatesChanged } }));
+  };
+  const setOrigin = point => {
+    const ref = point?.source === "personal" ? places.personalPointRef(point.pointId) : null;
+    if (ref) {
+      try { if (!places.resolvePersonalOrigin(ref, getPersonalPoints())) { showWalkNotice("Личная точка уже удалена. Выберите другую."); return false; } }
+      catch (_) { showWalkNotice("Не удалось открыть личные точки. Проверьте настройки браузера."); return false; }
+    } else if (point && !places.validCoordinates(point)) return false;
+    if ((ref || originRef) && !writeOriginRef(ref)) return false;
+    originRef = ref; transientOrigin = ref ? null : point ? { ...point } : null;
+    if (ref && walkIds.includes(ref)) replaceWalkIds(walkIds.filter(id => id !== ref));
+    originChanged();
+    return true;
+  };
 
   const writeWalkIds = () => {
     try {
@@ -195,9 +229,11 @@
     const selected = walkIds.includes(id);
     const defaultLabel = button.dataset.walkDefaultLabel || "+ В прогулку";
     const activeLabel = button.dataset.walkActiveLabel || "✓ В прогулке";
-    button.classList.toggle("is-active", selected);
-    button.setAttribute("aria-pressed", selected ? "true" : "false");
-    button.textContent = selected ? activeLabel : defaultLabel;
+    const isOrigin = places.personalPointId(id) && id === originRef;
+    button.disabled = Boolean(isOrigin);
+    button.classList.toggle("is-active", selected || isOrigin);
+    button.setAttribute("aria-pressed", selected || isOrigin ? "true" : "false");
+    button.textContent = isOrigin ? "Начальная точка" : selected ? activeLabel : defaultLabel;
   };
 
   const refreshWalkControls = () => {
@@ -209,7 +245,7 @@
   };
 
   const replaceWalkIds = (values, { announce = false } = {}) => {
-    walkIds = normalizeWalkIds(values);
+    walkIds = normalizeWalkIds(values).filter(id => id !== originRef);
     writeWalkIds();
     refreshWalkControls();
     document.dispatchEvent(new CustomEvent("kidstime:walk-changed", { detail: { ids: [...walkIds] } }));
@@ -217,6 +253,7 @@
   };
 
   const toggleWalkPoint = (id) => {
+    if (id === originRef) { showWalkNotice("Эта точка уже выбрана началом маршрута"); return; }
     if (walkIds.includes(id)) {
       replaceWalkIds(walkIds.filter((item) => item !== id));
       showWalkNotice("Точка удалена из прогулки");
@@ -237,13 +274,34 @@
     replaceIds: replaceWalkIds,
     notice: showWalkNotice,
     refreshButton: refreshWalkButton,
+    getOrigin, setOrigin, getOriginRef: () => originRef,
+    getPersonalPoints, places,
+    normalizeIds: normalizeWalkIds,
+    isComplete: () => loadedWalkEvents.length > 0 && !walkRoot?.hasAttribute("aria-busy") && (!originRef || Boolean(getOrigin())),
+    restore: (ids, ref) => {
+      const next = places.personalPointId(ref) ? ref : null;
+      if ((next || originRef) && !writeOriginRef(next)) return false;
+      originRef = next; transientOrigin = null; replaceWalkIds(ids); originChanged(); return true;
+    },
+    resolvePoints: async (ids, endpoint) => {
+      const refs = normalizeWalkIds(ids), catalogIds = refs.filter(id => !places.personalPointId(id));
+      let events = [];
+      if (catalogIds.length) {
+        const response = await fetch(`${endpoint}?ids=${encodeURIComponent(catalogIds.join(","))}`, { headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("walk unavailable");
+        const payload = await response.json();
+        if (!Array.isArray(payload.results)) throw new Error("walk unavailable");
+        events = payload.results;
+      }
+      return places.resolveWalkPoints(refs, events, refs.some(id => places.personalPointId(id)) ? getPersonalPoints() : []);
+    },
   };
 
   document.addEventListener("click", (event) => {
     const button = event.target.closest("[data-walk-button]");
     if (!button || button.disabled) return;
     const id = String(button.dataset.walkButton || "");
-    if (!/^\d+$/.test(id)) return;
+    if (!normalizeWalkIds([id]).length) return;
     toggleWalkPoint(id);
   });
 
@@ -256,10 +314,22 @@
       document.querySelectorAll("[data-favorite-button]").forEach((button) => refreshFavoriteButton(button, favorites));
       loadFavoriteCards();
     }
+    if (event.key === places.MAP_POINTS_KEY || event.key === null) document.dispatchEvent(new Event("kidstime:personal-points-changed"));
+    if (event.key === originStorageKey || event.key === null) { originRef = readOriginRef(); transientOrigin = null; originChanged(); }
     if (event.key !== walkStorageKey && event.key !== null) return;
     walkIds = readWalkIds();
     refreshWalkControls();
     document.dispatchEvent(new CustomEvent("kidstime:walk-changed", { detail: { ids: [...walkIds] } }));
+  });
+
+  document.addEventListener("kidstime:personal-points-changed", () => {
+    originChanged();
+    try {
+      const available = new Set(getPersonalPoints().map(point => places.personalPointRef(point.id)));
+      const ids = walkIds.filter(id => !places.personalPointId(id) || available.has(id));
+      if (ids.length !== walkIds.length) { replaceWalkIds(ids); return; }
+    } catch (_) { /* Keep the selection when browser storage cannot be read. */ }
+    if (walkRoot) window.KidsTimeWalk.reload?.();
   });
 
   if (walkRoot) {
@@ -268,21 +338,13 @@
     const routeLink = walkRoot.querySelector("[data-walk-route]");
     const clearButton = walkRoot.querySelector("[data-walk-clear]");
     let loadSequence = 0;
-    // Keep the explicit origin in memory, never in saved routes or localStorage.
-    let origin = null;
-    window.KidsTimeWalk.getOrigin = () => origin ? { ...origin } : null;
-    window.KidsTimeWalk.setOrigin = (point) => {
-      const changed = origin?.lat !== point?.lat || origin?.lng !== point?.lng;
-      origin = point ? { ...point } : null;
-      updateRouteLink(loadedWalkEvents);
-      document.dispatchEvent(new CustomEvent("kidstime:walk-origin-changed", { detail: { coordinatesChanged: changed } }));
-    };
     const directRouteUrl = (event) => (
       `https://yandex.ru/maps/?rtext=~${encodeURIComponent(`${event.lat},${event.lng}`)}&rtt=pd`
     );
 
     const walkRouteUrl = (events) => {
       const points = events.map((event) => encodeURIComponent(`${event.lat},${event.lng}`));
+      const origin = getOrigin();
       const start = origin ? `${origin.lat},${origin.lng}` : "";
       return `https://yandex.ru/maps/?rtext=${encodeURIComponent(start)}~${points.join("~")}&rtt=pd`;
     };
@@ -298,7 +360,7 @@
 
     const createWalkItem = (event, index, events) => {
       const item = document.createElement("article");
-      item.className = "walk-item";
+      item.className = event.kind === "personal" ? "walk-item walk-item--personal" : "walk-item";
       item.dataset.walkEventId = String(event.id);
 
       const media = document.createElement("div");
@@ -322,9 +384,9 @@
 
       const content = document.createElement("div");
       content.className = "walk-item__content";
-      const title = document.createElement("a");
+      const title = document.createElement(event.kind === "personal" ? "span" : "a");
       title.className = "walk-item__title";
-      title.href = event.url;
+      if (event.kind !== "personal") title.href = event.url;
       title.textContent = event.title;
       const venue = document.createElement("strong");
       venue.textContent = event.venue;
@@ -392,14 +454,14 @@
       heart.className = "ui-icon ui-icon--heart";
       heart.setAttribute("aria-hidden", "true");
       favorite.append(heart);
-      media.append(favorite);
+      if (event.kind !== "personal") media.append(favorite);
       item.append(toolbar, media, content);
       bindFavoriteButtons(item);
       return item;
     };
 
     const updateRouteLink = (events) => {
-      const hasPoints = events.length > 0;
+      const hasPoints = events.length > 0 && (!originRef || Boolean(getOrigin()));
       routeLink.classList.toggle("is-disabled", !hasPoints);
       routeLink.setAttribute("aria-disabled", hasPoints ? "false" : "true");
       if (hasPoints) {
@@ -454,19 +516,14 @@
         return;
       }
       try {
-        const ids = encodeURIComponent(walkIds.join(","));
-        const response = await fetch(`${walkRoot.dataset.endpoint}?ids=${ids}`, {
-          headers: { Accept: "application/json" },
-        });
-        if (!response.ok) throw new Error("walk unavailable");
-        const payload = await response.json();
+        const events = await window.KidsTimeWalk.resolvePoints(walkIds, walkRoot.dataset.endpoint);
         if (sequence !== loadSequence) return;
-        const events = Array.isArray(payload.results) ? payload.results : [];
         const validIds = events.map((event) => String(event.id));
         if (validIds.join(",") !== walkIds.join(",")) {
           walkIds = normalizeWalkIds(validIds);
           writeWalkIds();
           refreshWalkControls();
+          showWalkNotice("Недоступные точки убраны из текущего маршрута.");
         }
         renderWalk(events);
       } catch (_error) {
@@ -506,6 +563,7 @@
 
     window.KidsTimeWalk.reload = loadWalk;
     document.addEventListener("kidstime:walk-changed", loadWalk);
+    document.addEventListener("kidstime:walk-origin-changed", () => updateRouteLink(loadedWalkEvents));
     loadWalk();
   }
 

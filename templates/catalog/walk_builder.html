@@ -42,11 +42,12 @@
                     <div class="empty-state walk-empty">
                         <span class="empty-route-art"><img src="{% static 'illustrations/empty-route.png' %}" alt=""></span>
                         <h2>Куда отправимся?</h2>
-                        <p>Добавьте места из карточек событий. Их можно будет расставить в удобном порядке.</p>
+                        <p>Добавьте мероприятия или свои сохранённые точки. Их можно будет расставить в удобном порядке.</p>
                     </div>
                 </template>
                 <a class="walk-add"
                    href="{% url 'catalog:event_list' %}"><span class="ui-icon ui-icon--plus" aria-hidden="true"></span> Добавить место</a>
+                <button class="secondary-button walk-add-personal" type="button" data-walk-points-open aria-controls="walk-personal-points" aria-expanded="false">Выбрать из моих точек</button>
             </section>
             <div class="walk-sidebar">
               <aside class="walk-summary">
@@ -75,6 +76,10 @@
             <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть">{% include "includes/icon.html" with name="close" %}</button>
             <h2 id="walk-origin-dialog-title">Откуда начнём прогулку?</h2>
             <p>Выберите точку на карте или определите своё местоположение.</p>
+            <details class="walk-personal-origins">
+                <summary>Выбрать из моих точек</summary>
+                <div class="walk-personal-choices" data-origin-personal-points></div>
+            </details>
             <p data-random-replace-note hidden>Случайный маршрут заменит точки текущей прогулки.</p>
             <button class="secondary-button walk-origin-dialog__locate" type="button" data-walk-locate>{% include "includes/icon.html" with name="location" %}<span>Моё местоположение</span></button>
             {% if walk_geocoder_enabled %}
@@ -101,6 +106,13 @@
                 <button class="primary-button" type="button" data-origin-confirm disabled>Начать отсюда</button>
                 <button class="secondary-button" type="button" data-origin-clear hidden>Убрать начальную точку</button>
             </div>
+        </dialog>
+        <dialog class="walk-personal-dialog" id="walk-personal-points" data-walk-points-dialog aria-labelledby="walk-personal-title">
+            <button class="map-sheet__close" type="button" data-walk-points-close aria-label="Закрыть выбор моих точек">{% include "includes/icon.html" with name="close" %}</button>
+            <h2 id="walk-personal-title">Мои точки</h2>
+            <p class="map-point-hint">Выберите сохранённое место для маршрута или его начала.</p>
+            <div class="walk-personal-choices" data-walk-personal-points></div>
+            <a class="text-link" href="{% url 'catalog:event_map' %}">Добавить новую точку на карте</a>
         </dialog>
         <dialog class="route-name-dialog" data-route-dialog aria-labelledby="route-dialog-title">
             <button class="panel-close round-button" type="button" data-panel-close aria-label="Закрыть">{% include "includes/icon.html" with name="close" %}</button>
