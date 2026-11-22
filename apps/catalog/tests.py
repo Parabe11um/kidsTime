@@ -56,20 +56,36 @@ class PublicPagesTests(TestCase):
         self.assertContains(response, "event-card--compact")
         self.assertContains(response, Event.objects.first().title)
 
+    def test_home_collections_have_enough_distinct_demo_events(self):
+        response = self.client.get(reverse("core:home"))
+        popular = response.context["popular_events"]
+        recommended = response.context["recommended_events"]
+
+        self.assertEqual(len(popular), 7)
+        self.assertEqual(len({event.pk for event in popular}), 7)
+        self.assertTrue(all(event.is_featured for event in popular))
+        self.assertEqual(len(recommended), 6)
+        self.assertEqual(len({event.pk for event in recommended}), 6)
+        self.assertTrue(all(event.is_recommended for event in recommended))
+
     def test_nearby_collection_and_map_use_the_same_radius(self):
         events = list(Event.objects.order_by("pk")[:3])
         for event, longitude in zip(events, (8.03, 8.01, 8.9), strict=True):
             Venue.objects.filter(pk=event.venue_id).update(location=Point(longitude, 4, srid=4326))
         params = {"lat": "4", "lng": "8"}
         nearby = reverse("catalog:nearby")
+        expected = [
+            *Event.objects.filter(venue_id=events[1].venue_id).order_by("title", "pk"),
+            *Event.objects.filter(venue_id=events[0].venue_id).order_by("title", "pk"),
+        ]
 
         response = self.client.get(nearby, params)
-        self.assertEqual(list(response.context["events"]), [events[1], events[0]])
+        self.assertEqual(list(response.context["events"]), expected)
         self.assertContains(response, "Ваше местоположение")
         map_response = self.client.get(response.context["map_url"])
         self.assertEqual(map_response.context["back_url"], reverse("catalog:nearby", query={"lat": "4.0", "lng": "8.0"}))
         markers = self.client.get(reverse("catalog:map_events_api"), {**params, "collection": "nearby"})
-        self.assertCountEqual([marker["id"] for marker in markers.json()["results"]], [events[0].id, events[1].id])
+        self.assertCountEqual([marker["id"] for marker in markers.json()["results"]], [event.pk for event in expected])
 
         fallback = self.client.get(nearby, {"lat": "nan", "lng": "181"})
         self.assertContains(fallback, "Москва, центр")
@@ -421,8 +437,8 @@ class DemoSeedTests(TestCase):
         call_command("seed_demo", stdout=io.StringIO())
         events = {event.slug: event.pk for event in Event.objects.all()}
         sessions = set(Event.objects.values_list("sessions__pk", flat=True))
-        self.assertEqual(len(events), 8)
-        self.assertEqual(len(sessions), 8)
+        self.assertEqual(len(events), 12)
+        self.assertEqual(len(sessions), 12)
         self.assertNotIn(None, sessions)
 
         call_command("seed_demo", stdout=io.StringIO())
@@ -437,7 +453,7 @@ class DemoSeedTests(TestCase):
         self.assertFalse(Event.objects.exists())
         self.assertFalse(Venue.objects.exists())
         self.assertFalse(Category.objects.exists())
-        self.assertIn("created_events=8", output.getvalue())
+        self.assertIn("created_events=12", output.getvalue())
         self.assertIn("rolled_back=yes", output.getvalue())
 
 
