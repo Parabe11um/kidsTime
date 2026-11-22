@@ -989,6 +989,7 @@ body:has(dialog[open]) { overflow: hidden; }
   .detail-section { padding: 0; margin: 24px 0 0; background: transparent; border-radius: 0; font-size: 14px; line-height: 20px; }
   .detail-mobile-schedule { display: none; }
   .detail-desktop-schedule { display: block; margin-bottom: 8px; }
+  .detail-desktop-schedule > .detail-schedule { margin-top: 0; }
   .detail-schedule { padding: 24px; border-radius: 32px; background: #ffffffb3; }
   .booking-card { padding: 24px; border-radius: 36px; background: #ffffffb3; }
   .booking-card__actions > * { min-height: 46px; }
