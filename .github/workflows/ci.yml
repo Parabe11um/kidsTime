@@ -69,6 +69,8 @@ jobs:
         run: pip install -r requirements.txt
       - name: Install frontend dependencies
         run: npm ci
+      - name: Test personal map point storage
+        run: npm test
       - name: Validate Django project
         run: |
           python manage.py check

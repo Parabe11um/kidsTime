@@ -2238,3 +2238,57 @@ body:has(dialog[open]) { overflow: hidden; }
   .event-card .event-card__location :is(.ui-icon,.metro-dot) { justify-self: center; margin-right: 0; }
   .event-card .place-meta__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* Personal map points use the existing map surface and browser-owned storage. */
+.page-map { padding-bottom: 0; }
+.page-map > #main-content { min-height: 0; padding: 0; border-radius: 0; }
+.page-map .map-shell { height: 100dvh; min-height: 480px; }
+.page-map .events-map { z-index: 0; }
+.map-point-tools { position: absolute; z-index: 25; top: 76px; left: 16px; right: 16px; display: flex; gap: 8px; }
+.map-point-tools > button { min-height: 44px; padding: 10px 12px; font-size: 13px; white-space: nowrap; box-shadow: var(--shadow); }
+.map-point-tools [data-points-count] { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: 50%; background: var(--coral-soft); }
+.map-point-selection,.map-events-status { position: absolute; z-index: 35; top: 132px; left: 16px; right: 16px; padding: 12px 16px; border-radius: 20px; background: white; box-shadow: var(--shadow); font-size: 13px; }
+.map-point-selection > div { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+.map-point-selection .secondary-button { border: 1px solid var(--line); font-size: 13px; }
+.map-events-status { z-index: 20; }
+.map-events-status button { margin-left: 8px; }
+.is-selecting-point .events-map { cursor: crosshair; }
+.is-selecting-point .map-events-status { display: none; }
+.map-point-notice { position: absolute; z-index: 45; bottom: calc(82px + env(safe-area-inset-bottom)); left: 16px; right: 16px; max-width: 480px; width: fit-content; margin: 0 auto; padding: 10px 16px; border-radius: 16px; background: white; box-shadow: var(--shadow); font-size: 13px; overflow-wrap: anywhere; }
+.page-map .map-sheet,.map-personal-panel { bottom: calc(140px + env(safe-area-inset-bottom)); max-height: calc(100dvh - 280px); overflow-y: auto; overscroll-behavior: contain; }
+.map-marker--personal,.map-marker--draft { background: var(--violet); }
+.map-marker--draft { opacity: .65; pointer-events: none; }
+.map-personal-panel { position: absolute; z-index: 30; left: 16px; right: 16px; padding: 24px 20px; border: 1px solid var(--line); border-radius: 24px; background: white; box-shadow: var(--shadow); }
+.map-personal-panel h2,.map-sheet--personal h2 { padding-right: 32px; font-size: 20px; overflow-wrap: anywhere; }
+.map-point-hint { display: block; margin: 8px 0 16px; color: var(--muted); font-size: 12px; line-height: 18px; }
+.map-personal-list { display: grid; gap: 8px; margin: 16px 0; padding: 0; list-style: none; }
+.map-personal-list button { display: grid; gap: 4px; width: 100%; min-height: 52px; padding: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--canvas); text-align: left; overflow-wrap: anywhere; }
+.map-personal-list button:hover { border-color: var(--violet); }
+.map-personal-list span { color: var(--muted); font-size: 12px; }
+.map-sheet--personal .map-point-coordinates-label { margin-top: 8px; font-variant-numeric: tabular-nums; }
+.map-sheet--personal .map-point-note { margin: 12px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.map-sheet--personal [data-personal-address] { overflow-wrap: anywhere; }
+.map-sheet--personal .map-sheet__actions { margin-top: 16px; }
+.map-point-delete { min-height: 44px; margin-top: 8px; padding: 8px 0; border: 0; background: transparent; color: #b74450; font-size: 13px; }
+.map-point-dialog { position: fixed; inset: 0; width: min(480px,calc(100% - 24px)); max-height: calc(100dvh - 32px); margin: auto; padding: 28px 20px 20px; border: 0; border-radius: 24px; background: white; box-shadow: var(--shadow); overflow-y: auto; overscroll-behavior: contain; }
+.map-point-dialog::backdrop { background: #35374e66; }
+.map-point-dialog form { display: grid; gap: 14px; }
+.map-point-dialog h2 { padding-right: 30px; font-size: 22px; }
+.map-point-dialog .map-point-hint { margin: 0; }
+.map-point-dialog label { display: grid; min-width: 0; gap: 6px; font-size: 13px; }
+.map-point-dialog input,.map-point-dialog textarea { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--canvas); font-size: 16px; }
+.map-point-dialog textarea { resize: vertical; min-height: 82px; }
+.map-point-coordinates { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.map-point-pick { border: 1px solid var(--line); }
+.map-point-dialog__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.map-point-error { color: #b74450; font-size: 13px; }
+@media (min-width: 640px) {
+  .page-map .map-shell { height: calc(100dvh - 86px); }
+  .map-point-tools { top: 80px; }
+  .page-map .map-sheet,.map-personal-panel { bottom: 80px; max-height: calc(100dvh - 320px); width: 380px; left: 24px; right: auto; }
+  .map-point-notice { bottom: 20px; }
+  .map-point-selection,.map-events-status { max-width: 520px; left: 24px; right: 24px; }
+}
+@media (min-width: 1024px) {
+  .map-point-tools { width: min(800px,calc(100% - 48px)); left: 50%; right: auto; transform: translateX(-50%); }
+}

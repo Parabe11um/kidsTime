@@ -4,13 +4,14 @@
 {% block body_class %}page-map{% endblock %}
 {% block head %}
     {% if YANDEX_MAPS_API_KEY %}
-        <script src="https://api-maps.yandex.ru/v3/?apikey={{ YANDEX_MAPS_API_KEY|urlencode }}&lang=ru_RU"></script>
+        <script async data-map-api src="https://api-maps.yandex.ru/v3/?apikey={{ YANDEX_MAPS_API_KEY|urlencode }}&lang=ru_RU"></script>
     {% endif %}
 {% endblock %}
 {% block content %}
     <div class="map-shell"
          data-map-root
          data-endpoint="{% url 'catalog:map_events_api' %}?{{ active_filters }}"
+         data-points-module="{% static 'js/map-points.js' %}"
          {% if center %}data-center-lat="{{ center.y|unlocalize }}" data-center-lng="{{ center.x|unlocalize }}"{% endif %}
          data-map-enabled="{% if YANDEX_MAPS_API_KEY %}true{% else %}false{% endif %}">
         <div class="map-toolbar">
@@ -30,10 +31,15 @@
             <a class="map-toolbar__filter"
                href="{% url 'catalog:event_list' %}?{{ active_filters }}">Фильтры</a>
         </div>
-        <div id="events-map" class="events-map" aria-label="Карта мероприятий"></div>
+        {% include "includes/map_points.html" %}
+        <div id="events-map" class="events-map" aria-label="Карта мероприятий и моих точек"></div>
+        <div class="map-events-status" data-map-events-status role="status" hidden>
+            <span>Не удалось загрузить мероприятия. Мои точки доступны.</span>
+            <button type="button" class="text-link" data-map-events-retry>Повторить</button>
+        </div>
         <div class="map-unavailable" data-map-unavailable hidden>
             <strong>Карта временно недоступна</strong>
-            <p>Вы можете выбрать место в списке событий и открыть маршрут к нему.</p>
+            <p>Свои точки можно сохранить по координатам. Мероприятия доступны в списке событий.</p>
             <a href="{% url 'catalog:event_list' %}">Открыть список мероприятий</a>
         </div>
         <aside class="map-sheet" data-map-sheet hidden aria-live="polite">
@@ -65,6 +71,7 @@
                 <a class="map-sheet__details" data-map-sheet-link>Подробнее о мероприятии {% include "includes/icon.html" with name="arrow-right" %}</a>
             </div>
         </aside>
+        <noscript><p class="map-unavailable">Для работы с картой и личными точками включите JavaScript. <a href="{{ back_url }}">К списку событий</a></p></noscript>
     </div>
 {% endblock %}
 {% block scripts %}
