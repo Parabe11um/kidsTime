@@ -2282,6 +2282,20 @@ body:has(dialog[open]) { overflow: hidden; }
 .map-point-pick { border: 1px solid var(--line); }
 .map-point-dialog__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .map-point-error { color: #b74450; font-size: 13px; }
+/* Shared Figma calendar; the browser still owns date selection. */
+.filter-date-control { position: relative; }
+.filter-dates .filter-date-control > label { margin-bottom: 0; }
+.filter-date-trigger { display: none; }
+@media (min-width: 640px) {
+  .filter-date-control:not(:last-child) { margin-bottom: 14px; }
+}
+@media (min-width: 1024px) {
+  .page-catalog .filter-date-control:not(:last-child) { margin-bottom: 16px; }
+  .filter-date-control.has-date-trigger input[type="date"] { padding-right: 48px; }
+  .filter-date-control.has-date-trigger input::-webkit-calendar-picker-indicator { opacity: 0; }
+  .filter-date-trigger { position: absolute; right: 2px; bottom: 0; display: grid; place-items: center; width: 40px; height: 42px; padding: 0; border: 0; border-radius: 0 7px 7px 0; background: #f4f4f4; color: var(--muted); }
+  .filter-date-trigger .ui-icon--calendar,.page-catalog .event-card__facts .ui-icon--calendar { --icon: url("../icons/release5/calendar.svg"); width: 16px; height: 16px; color: var(--muted); mask-size: 11px 12px; -webkit-mask-size: 11px 12px; }
+}
 .walk-add-personal { display: flex; width: min(340px,100%); min-height: 44px; margin: 12px auto 24px; border: 1px solid var(--line); }
 .walk-personal-dialog { position: fixed; inset: 0; width: min(560px,calc(100% - 24px)); max-height: calc(100dvh - 32px); margin: auto; padding: 28px 20px; border: 0; border-radius: 24px; background: white; overflow-y: auto; overscroll-behavior: contain; }
 .walk-personal-dialog h2 { padding-right: 32px; font-size: 22px; }
