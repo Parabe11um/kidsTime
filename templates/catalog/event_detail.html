@@ -110,6 +110,6 @@
     </div>
     {% if venue_events %}<section class="event-section detail-related"><div class="section-heading"><h2>В этом месте</h2></div><div class="event-row">{% for event in venue_events %}{% include "includes/event_card.html" with compact=True %}{% endfor %}</div></section>{% endif %}
     {% if related_events %}<section class="event-section detail-related"><div class="section-heading"><h2>Вам может понравиться</h2><a href="{% url 'catalog:event_list' %}?category={{ event.category.slug }}"
-   aria-label="Другие события этой категории">{% include "includes/icon.html" with name="arrow-up-right" %}</a></div><div class="event-row">{% for event in related_events %}{% include "includes/event_card.html" with compact=True %}{% endfor %}</div></section>{% endif %}
+   aria-label="Другие события этой категории">{% include "includes/icon.html" with name="arrow-right" %}</a></div><div class="event-row">{% for event in related_events %}{% include "includes/event_card.html" with compact=True %}{% endfor %}</div></section>{% endif %}
     </article>
 {% endblock %}

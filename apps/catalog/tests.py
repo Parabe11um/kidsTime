@@ -390,6 +390,18 @@ class PublicPagesTests(TestCase):
         self.assertNotIn(hidden, response.context["related_events"])
         self.assertNotIn(hidden, response.context["venue_events"])
 
+    def test_park_demo_details_have_three_distinct_recommendations(self):
+        parks = Event.objects.visible().filter(category__slug="parks")
+        self.assertEqual(parks.count(), 4)
+        for event in parks:
+            with self.subTest(event=event.slug):
+                response = self.client.get(event.get_absolute_url())
+                related = list(response.context["related_events"])
+                self.assertEqual(len(related), 3)
+                self.assertEqual(len({item.pk for item in related}), 3)
+                self.assertNotIn(event, related)
+                self.assertTrue(all(item.category_id == event.category_id for item in related))
+
     def test_guest_profile_links_existing_collections(self):
         response = self.client.get(reverse("core:profile"))
         self.assertEqual(response.status_code, 200)
@@ -402,6 +414,31 @@ class PublicPagesTests(TestCase):
         response = self.client.get(reverse("favorites:cards"), {"ids": f"{event.pk},²,{event.pk}," + "9" * 100})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.context["events"]), [event])
+
+
+class DemoSeedTests(TestCase):
+    def test_seed_can_be_repeated_without_duplicate_events_or_sessions(self):
+        call_command("seed_demo", stdout=io.StringIO())
+        events = {event.slug: event.pk for event in Event.objects.all()}
+        sessions = set(Event.objects.values_list("sessions__pk", flat=True))
+        self.assertEqual(len(events), 8)
+        self.assertEqual(len(sessions), 8)
+        self.assertNotIn(None, sessions)
+
+        call_command("seed_demo", stdout=io.StringIO())
+
+        self.assertEqual({event.slug: event.pk for event in Event.objects.all()}, events)
+        self.assertEqual(set(Event.objects.values_list("sessions__pk", flat=True)), sessions)
+
+    def test_dry_run_does_not_persist_demo_data(self):
+        output = io.StringIO()
+        call_command("seed_demo", dry_run=True, stdout=output)
+
+        self.assertFalse(Event.objects.exists())
+        self.assertFalse(Venue.objects.exists())
+        self.assertFalse(Category.objects.exists())
+        self.assertIn("created_events=8", output.getvalue())
+        self.assertIn("rolled_back=yes", output.getvalue())
 
 
 class VenueAdminTests(TestCase):
