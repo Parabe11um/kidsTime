@@ -210,6 +210,62 @@ class Command(BaseCommand):
                 "recommended": True,
                 "cover": "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=1200&q=80",
             },
+            {
+                "slug": "family-puppet-adventure",
+                "title": "Кукольное приключение для всей семьи",
+                "category": "theatre",
+                "venue": "garage",
+                "description": "Демонстрационная семейная программа: история о дружбе и знакомство с театральными куклами.",
+                "age": (3, 9),
+                "price": (500, 900),
+                "free": False,
+                "format": ActivityFormat.INDOOR,
+                "featured": True,
+                "recommended": True,
+                "cover": "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=1200&q=80",
+            },
+            {
+                "slug": "young-artists-studio",
+                "title": "Мастерская маленьких художников",
+                "category": "workshops",
+                "venue": "garage",
+                "description": "Демонстрационная мастерская рисунка и коллажа для детей и родителей.",
+                "age": (4, 12),
+                "price": (700, 1000),
+                "free": False,
+                "format": ActivityFormat.INDOOR,
+                "featured": True,
+                "recommended": True,
+                "cover": "https://images.unsplash.com/photo-1542810634-71277d95dcbb?auto=format&fit=crop&w=1200&q=80",
+            },
+            {
+                "slug": "museum-discovery-day",
+                "title": "День научных открытий в музее",
+                "category": "museums",
+                "venue": "darwin-museum",
+                "description": "Демонстрационная программа с опытами, загадками о природе и заданиями для всей семьи.",
+                "age": (6, 14),
+                "price": (400, 800),
+                "free": False,
+                "format": ActivityFormat.INDOOR,
+                "featured": True,
+                "recommended": True,
+                "cover": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1200&q=80",
+            },
+            {
+                "slug": "family-animal-discovery",
+                "title": "Семейное знакомство с животными",
+                "category": "animals",
+                "venue": "moscow-zoo",
+                "description": "Демонстрационная прогулка с наблюдениями за животными и игровыми заданиями.",
+                "age": (4, 12),
+                "price": (600, 1100),
+                "free": False,
+                "format": ActivityFormat.OUTDOOR,
+                "featured": True,
+                "recommended": True,
+                "cover": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?auto=format&fit=crop&w=1200&q=80",
+            },
         )
 
         for index, spec in enumerate(event_specs):
@@ -241,7 +297,7 @@ class Command(BaseCommand):
             )
             counters["events"] += int(created)
             session_day = timezone.localdate() + timedelta(days=(index % 5) + 1)
-            session_start = timezone.make_aware(datetime.combine(session_day, time(hour=10 + index)))
+            session_start = timezone.make_aware(datetime.combine(session_day, time(hour=10 + index % 8)))
             demo_booking_url = f"https://example.com/demo/{spec['slug']}"
             _, session_created = EventSession.objects.update_or_create(
                 event=event,
