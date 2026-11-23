@@ -1,0 +1,6 @@
+{% load static %}
+<nav class="hero-categories hero-categories--{{ variant }}" aria-label="Популярные категории">
+    {% for category in categories %}
+        <a href="{% url 'catalog:event_list' %}?category={{ category.slug }}">{% if category.slug == 'camps' %}<img src="{% static 'icons/release5/category-star.svg' %}" alt="" width="16" height="16">{% endif %}{{ category.name }}</a>
+    {% endfor %}
+</nav>

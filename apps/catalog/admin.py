@@ -56,8 +56,10 @@ class VenueAdminForm(forms.ModelForm):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "sort_order", "is_active")
+    list_display = ("name", "slug", "parent", "sort_order", "is_active")
     list_editable = ("sort_order", "is_active")
+    list_filter = ("parent", "is_active")
+    list_select_related = ("parent",)
     prepopulated_fields = {"slug": ("name",)}
 
 

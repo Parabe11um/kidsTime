@@ -14,7 +14,8 @@ from django.utils import timezone
 from django.utils.formats import date_format
 from django.views.decorators.http import require_safe
 
-from .models import ActivityFormat, Category, Event, EventImage, EventSession
+from .categories import public_categories
+from .models import ActivityFormat, Event, EventImage, EventSession
 from .services.calendar import build_event_calendar
 
 WALK_POINT_LIMIT = 9
@@ -71,7 +72,7 @@ def _apply_filters(queryset, params):
 
     category = params.get("category")
     if category:
-        queryset = queryset.filter(category__slug=category)
+        queryset = queryset.filter(Q(category__slug=category) | Q(category__parent__slug=category))
 
     age = params.get("age")
     age_groups = {"0-3": (0, 3), "4-7": (4, 7), "8-11": (8, 11), "12+": (12, 18)}
@@ -186,7 +187,7 @@ def event_list(request):
             **pagination,
             "result_count": count,
             "result_count_word": count_word,
-            "categories": Category.objects.filter(is_active=True).order_by("sort_order", "name"),
+            "categories": public_categories(),
             "formats": ActivityFormat.choices,
             "filters": request.GET,
             "has_filters": has_filters,
