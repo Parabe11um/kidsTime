@@ -2347,6 +2347,8 @@ body:has(dialog[open]) { overflow: hidden; }
 .filter-times.has-time-slider .time-range input::-moz-range-thumb { width: 44px; height: 39px; border: 0; border-radius: 0; clip-path: none; background: url("../icons/release5/filter-time-thumb.svg") center/44px 39px no-repeat; }
 .filter-times.has-time-slider .time-selection { position: absolute; bottom: 4px; left: 24px; right: 24px; margin: 0; font-size: 12px; line-height: 16px; text-align: center; }
 @media (min-width: 1024px) {
+  .desktop-nav > .header-route { width: 24px; }
+  .desktop-nav .header-route .nav-count { top: .5px; right: auto; left: 17px; min-width: 15px; height: 15px; padding: 0; border-radius: 0; background: url("../icons/release5/header-route-count.svg") center/15px 15px no-repeat; color: #6d77dd; font-size: 12px; font-weight: 500; line-height: 16px; }
   .desktop-nav > .header-notifications { width: 24px; min-width: 24px; }
   .header-notifications__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .header-notifications::before { content: ""; width: 14px; height: 17.9892px; transform: scaleX(-1); background: url("../icons/ui/notification.svg") center/contain no-repeat; }
