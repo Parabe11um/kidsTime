@@ -841,9 +841,6 @@ body:has(dialog[open]) { overflow: hidden; }
 .panel-close { position: absolute; top: 12px; right: 14px; width: 32px; height: 32px; background: transparent; }
 .panel-close .ui-icon { width: 16px; height: 16px; }
 .header-avatar { width: 48px; height: 48px; flex-shrink: 0; display: grid; place-items: center; border: 3px solid #fff9; border-radius: 50%; background: linear-gradient(145deg,#e7eafc,#bce8dc,#ffcfb2); color: var(--ink); font-size: 21px; font-weight: 600; }
-.drawer-identity { display: grid; justify-items: center; gap: 10px; margin: 0 0 30px; text-align: center; overflow-wrap: anywhere; }
-.drawer-identity .header-avatar { width: 64px; height: 64px; }
-.drawer-identity h2 { font-size: 16px; line-height: 24px; }
 .drawer-auth { display: grid; gap: 10px; margin-bottom: 24px; }
 .profile-collections { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
 .profile-collections > a { display: grid; gap: 10px; padding: 20px; border-radius: 26px; background: #ffffffb3; border: 1px solid #fff; }
@@ -2152,6 +2149,24 @@ body:has(dialog[open]) { overflow: hidden; }
 .settings-panel .account-form { gap: 8px; }
 .settings-panel .account-form > .primary-button { margin-top: 12px; }
 .notifications-panel .notifications-empty { margin-top: 40px; padding: 24px; border-radius: 20px; background: #ffffffb3; text-align: center; }
+.notifications-panel__divider { display: none; }
+/* Figma 576:8033: desktop notifications use the compact white popup. */
+@media (min-width: 1024px) {
+  .notifications-panel {
+    inset: 80px max(24px,calc((100vw - 1000px)/2 + 48px)) auto auto;
+    width: 344px; max-width: calc(100vw - 48px); height: auto; max-height: calc(100dvh - 104px);
+    padding: 24px; border: 0; border-radius: 16px 8px 16px 32px; background: white;
+    backdrop-filter: blur(12px); box-shadow: 0 0 0 5px #ffffff80,0 4px 6px #4c516c1a; overflow-y: auto;
+  }
+  .notifications-panel::backdrop { background: transparent; }
+  .notifications-panel > .account-panel-back { display: none; }
+  .notifications-panel > .panel-close { top: 24px; right: 24px; width: 40px; height: 40px; }
+  .notifications-panel > .panel-close .ui-icon { width: 24px; height: 24px; transform: scaleY(-1); --icon: url("../icons/release5/notification-close.svg"); }
+  .notifications-panel > h2 { display: flex; align-items: center; min-height: 40px; margin: 0; padding: 0 48px 0 0; text-align: left; font-size: 14px; line-height: 20px; }
+  /* The supplied 264×8 separator occupies a 307×8 slot in this popup. */
+  .notifications-panel__divider { display: block; max-width: none; margin-top: 8px; transform: scaleX(1.1628787879); transform-origin: left center; }
+  .notifications-panel .notifications-empty { min-height: 32px; margin: 8px 0 0; padding: 0; border-radius: 0; background: transparent; color: var(--ink); text-align: left; font-size: 12px; font-weight: 500; line-height: 16px; }
+}
 .saved-walks-title--mobile,.favorites-empty__browse { display: none; }
 
 @media (max-width: 639px) {
