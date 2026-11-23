@@ -47,6 +47,10 @@ class ImportedEventStatus(models.TextChoices):
 class Category(models.Model):
     name = models.CharField("Название", max_length=120)
     slug = models.SlugField("Адрес", max_length=140, unique=True)
+    parent = models.ForeignKey(
+        "self", verbose_name="Основная категория", on_delete=models.PROTECT,
+        related_name="children", null=True, blank=True,
+    )
     accent_color = models.CharField("Цвет", max_length=7, default="#FF766E")
     sort_order = models.PositiveSmallIntegerField("Порядок", default=100)
     is_active = models.BooleanField("Активна", default=True)
@@ -58,6 +62,14 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        super().clean()
+        if self.parent_id:
+            if self.parent_id == self.pk or self.parent.parent_id:
+                raise ValidationError({"parent": "Выберите основную категорию без родителя."})
+            if self.pk and self.children.exists():
+                raise ValidationError({"parent": "Категория с подразделами должна оставаться основной."})
 
 
 class Organizer(models.Model):

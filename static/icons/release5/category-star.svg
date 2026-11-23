@@ -1,0 +1,16 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="StarSmall">
+<path id="Star 6" d="M7.04894 2.92705C7.3483 2.00574 8.6517 2.00574 8.95106 2.92705L9.5716 4.83688C9.70547 5.2489 10.0894 5.52786 10.5227 5.52786H12.5308C13.4995 5.52786 13.9023 6.76748 13.1186 7.33688L11.494 8.51722C11.1435 8.77187 10.9968 9.22323 11.1307 9.63525L11.7512 11.5451C12.0506 12.4664 10.9961 13.2325 10.2124 12.6631L8.58778 11.4828C8.2373 11.2281 7.7627 11.2281 7.41221 11.4828L5.78761 12.6631C5.0039 13.2325 3.94942 12.4664 4.24878 11.5451L4.86932 9.63526C5.00319 9.22323 4.85653 8.77186 4.50604 8.51722L2.88144 7.33688C2.09773 6.76748 2.50051 5.52786 3.46923 5.52786H5.47735C5.91057 5.52786 6.29453 5.2489 6.4284 4.83688L7.04894 2.92705Z" fill="url(#paint0_linear_0_50)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_50" x1="1.89474" y1="2.68346" x2="23.9995" y2="1.76683" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FFBAB8"/>
+<stop offset="0.173077" stop-color="#FBD4A8"/>
+<stop offset="0.302885" stop-color="#E6E4A0"/>
+<stop offset="0.399038" stop-color="#AADFA7"/>
+<stop offset="0.533654" stop-color="#9CEAF3"/>
+<stop offset="0.716346" stop-color="#BDC6FF"/>
+<stop offset="1" stop-color="#EFACFD"/>
+</linearGradient>
+</defs>
+</svg>

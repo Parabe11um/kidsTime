@@ -46,7 +46,18 @@
             <div class="filter-time-fields"><label><span>От</span><input type="time" name="time_from" value="{{ filters.time_from }}"></label><label><span>До</span><input type="time" name="time_until" value="{{ filters.time_until }}"></label></div>
         </section>
         <section class="filter-section filter-category">
-            <div class="filter-subsection"><h3>Категория</h3><label><span class="sr-only">Категория</span><select name="category"><option value="">Любая</option>{% for category in categories %}<option value="{{ category.slug }}" {% if filters.category == category.slug %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select></label></div>
+            <div class="filter-subsection">
+                <h3>Категория</h3>
+                <label><span class="sr-only">Категория</span><select name="category">
+                    <option value="">Любая</option>
+                    {% for category in categories %}
+                        {% if category.subcategories %}<optgroup label="{{ category.name }}">{% endif %}
+                        <option value="{{ category.slug }}" {% if filters.category == category.slug %}selected{% endif %}>{% if category.subcategories %}Все: {% endif %}{{ category.name }}</option>
+                        {% for child in category.subcategories %}<option value="{{ child.slug }}" {% if filters.category == child.slug %}selected{% endif %}>{{ child.name }}</option>{% endfor %}
+                        {% if category.subcategories %}</optgroup>{% endif %}
+                    {% endfor %}
+                </select></label>
+            </div>
             <div class="filter-subsection">
                 <label data-format-select><span>Где проходит</span><select name="format"><option value="">Неважно</option>{% for value, label in formats %}<option value="{{ value }}" {% if filters.format == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
                 <fieldset class="filter-format-choices" data-format-choices hidden>

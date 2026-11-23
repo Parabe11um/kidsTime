@@ -6,10 +6,10 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
+from apps.catalog.categories import seed_categories
 from apps.catalog.models import (
     ActivityFormat,
     AvailabilityStatus,
-    Category,
     Event,
     EventSession,
     Organizer,
@@ -40,23 +40,7 @@ class Command(BaseCommand):
         )
 
         counters = {"categories": 0, "venues": 0, "events": 0, "sessions": 0}
-        categories = {}
-        for sort_order, (slug, name, color) in enumerate(
-            (
-                ("parks", "Парки", "#72C89A"),
-                ("theatre", "Театры", "#FF766E"),
-                ("museums", "Музеи", "#8A7BEF"),
-                ("workshops", "Мастер-классы", "#F2B84B"),
-                ("animals", "Животные", "#4E97D1"),
-            ),
-            start=1,
-        ):
-            category, created = Category.objects.update_or_create(
-                slug=slug,
-                defaults={"name": name, "accent_color": color, "sort_order": sort_order * 10},
-            )
-            categories[slug] = category
-            counters["categories"] += int(created)
+        categories, counters["categories"] = seed_categories()
 
         organizer, _ = Organizer.objects.update_or_create(
             name="Демо-редакция KidsTime",

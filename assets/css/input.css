@@ -104,9 +104,10 @@ h3 { font-size: 16px; font-weight: 700; }
 .weather-card__icon { position: absolute; left: 12px; top: 14px; width: 40px; height: 43px; filter: drop-shadow(0 3px 7px #6361da30); }
 .weather-card__temperature { position: absolute; right: 12px; bottom: 7px; font-size: 36px; font-weight: 400; line-height: 1.1; letter-spacing: -2px; }
 .weather-card__label { position: absolute; top: 8px; right: 10px; font-size: 9px; color: #fff; }
-.hero-categories { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 10px 18px; }
-.hero-categories a { background: #fff; padding: 12px 11px; border: 1px solid transparent; border-radius: 999px; font-size: 12px; white-space: normal; text-align: center; transition: color .18s; }
-.hero-categories a:last-child { border-color: transparent; padding: 12px 11px; }
+.hero-categories { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 24px 8px 16px; }
+.hero-categories a { display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 100%; min-height: 44px; background: #fff; padding: 11px; border: 1px solid transparent; border-radius: 32px; font-size: 14px; line-height: 20px; white-space: normal; text-align: center; transition: color .18s; }
+.hero-categories img { flex: none; width: 16px; height: 16px; }
+.hero-categories--wide { display: none; }
 
 /* Collections and editorial cards */
 .home-content { position: relative; min-width: 0; padding: 32px 16px; display: grid; gap: 32px; overflow: hidden; background: #fff; border-radius: 32px 56px 44px 56px; }
@@ -494,7 +495,7 @@ h3 { font-size: 16px; font-weight: 700; }
 @media (min-width: 600px) {
   .home-shell { max-width: 680px; margin: 0 auto; }
   .home-dashboard { grid-template-columns: 150px 280px; justify-content: center; }
-  .hero-categories { justify-content: center; }
+  .hero-categories { justify-content: flex-start; }
   .event-row { grid-auto-columns: 46%; }
   .event-grid:not(.event-grid--results) { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .filters-panel { left: auto; width: 430px; }
@@ -608,9 +609,8 @@ h3 { font-size: 16px; font-weight: 700; }
   .hero-calendar h2 { margin-bottom: 8px; font-size: 12px; }
   .date-strip { grid-auto-columns: calc((100% - 100px)/21); }
   .date-pill { min-height: 48px; border-radius: 12px; font-size: 12px; }
-  .hero-categories { padding: 20px 0; justify-content: center; gap: 10px; }
-  .hero-categories a { font-size: 12px; padding: 10px 16px; }
-  .hero-categories a:last-child { padding: 9px 15px; }
+  .hero-categories { padding: 24px 0 0; justify-content: flex-start; }
+  .hero-categories a { font-weight: 500; }
   .home-collections { background: transparent; }
   .home-content { width: min(1000px,calc(100% - 64px)); margin-inline: auto; background: transparent; padding: 0; border-radius: 0; gap: 58px; overflow: visible; }
   .home-content .section-heading h2 { font-size: 28px; letter-spacing: -.5px; }
@@ -1380,7 +1380,7 @@ body:has(dialog[open]) { overflow: hidden; }
   .date-strip { grid-auto-columns: calc((100% - 65px)/14); }
   .date-pill { min-height: 48px; border-radius: 14px; font-size: 12px; }
   .hero-categories { padding: 24px 0 0; gap: 8px; }
-  .hero-categories a,.hero-categories a:last-child { min-height: 44px; padding: 11px 12px; font-size: 14px; }
+  .hero-categories a { font-weight: 400; }
   .home-collections { background: transparent; border-radius: 0; }
   .home-content { display: grid; width: calc(100% - 96px); margin: 0 auto; padding: 0; gap: 56px; overflow: visible; border-radius: 0; background: transparent; }
   .section-heading { margin-bottom: 32px; }
@@ -2199,6 +2199,8 @@ body:has(dialog[open]) { overflow: hidden; }
 }
 @media (min-width: 640px) {
   .home-nearby__links .home-nearby__location { display: inline-flex; align-items: center; gap: 3px; color: var(--violet); font-size: 12px; }
+  .hero-categories--mobile { display: none; }
+  .hero-categories--wide { display: flex; }
   .home-nearby__location .ui-icon { width: 14px; height: 14px; }
   .home-nearby__empty,.random-route-card small { display: none; }
   .home-feature--nearby { grid-template-columns: 132px minmax(0,1fr); }
@@ -2238,10 +2240,12 @@ body:has(dialog[open]) { overflow: hidden; }
   .walk-storage-note { margin-top: 24px; }
 }
 @media (min-width: 1024px) {
-  .home-feature--nearby { gap: 32px; }
-  .home-feature--nearby .home-feature__widgets { align-content: center; gap: 20px; }
-  .home-feature--nearby .random-route-card { order: 1; }
-  .home-feature--nearby .feature-card { height: 326px; }
+  .home-feature--nearby { gap: 27px; }
+  .home-feature--nearby .home-feature__widgets { align-self: stretch; align-content: space-between; gap: 27px; }
+  .home-feature--nearby .weather-card { min-height: 123px; border-radius: 16px 24px 32px 24px; }
+  .home-feature--nearby .weather-card::before { border-radius: inherit; }
+  .home-feature--nearby .random-route-card { order: 1; border-radius: 32px 24px 32px 32px; }
+  .home-feature--nearby .feature-card { height: 285px; border-radius: 24px 32px 16px 56px; }
   .home-collections .event-card { background: white; padding: 4px; }
   .home-collections .event-card__body { padding-inline: 12px; }
   .home-popular__grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); align-items: stretch; gap: 26px 24px; }

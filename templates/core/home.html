@@ -71,7 +71,8 @@
                 {% include "includes/weather_card.html" %}
                 {% include "includes/random_route_card.html" %}
             </div>
-            <nav class="hero-categories" aria-label="Популярные категории">{% for category in categories %}<a href="{% url 'catalog:event_list' %}?category={{ category.slug }}">{{ category.name }}</a>{% endfor %}</nav>
+            {% include "includes/category_tags.html" with categories=mobile_categories variant="mobile" %}
+            {% include "includes/category_tags.html" with categories=categories variant="wide" %}
         </section>
         <div class="home-collections"><div class="home-content">
             <section class="event-section home-nearby" aria-labelledby="nearby-title">

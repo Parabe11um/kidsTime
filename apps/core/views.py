@@ -11,7 +11,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.models import Account
-from apps.catalog.models import Category
+from apps.catalog.categories import mobile_home_categories, public_categories
 from apps.catalog.views import MOSCOW_CENTER, _base_events, nearby_events
 from .forms import ProfileAvatarForm, ProfileSettingsForm
 
@@ -45,9 +45,11 @@ def home(request):
             }
         )
 
+    categories = list(public_categories())
     context = {
         "days": days,
-        "categories": Category.objects.filter(is_active=True).order_by("sort_order", "name"),
+        "categories": categories,
+        "mobile_categories": mobile_home_categories(categories),
         "spotlight_events": events[:5],
         "nearby_events": nearby_events(_base_events(), MOSCOW_CENTER)[:6],
         "recommended_events": [event for event in events if event.is_recommended][:6] or events[:6],
