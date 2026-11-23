@@ -1,6 +1,7 @@
 {% extends "accounts/layout.html" %}
 {% block body_class %}page-account page-account--register{% endblock %}
 {% block account_shell_class %}account-shell--auth{% endblock %}
+{% block account_decoration %}{% include "accounts/auth_decoration.html" %}{% endblock %}
 {% block title %}Регистрация — КидсТайм{% endblock %}
 {% block heading %}Регистрация{% endblock %}
 {% block account_content %}

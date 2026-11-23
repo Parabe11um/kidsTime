@@ -3,6 +3,7 @@
 {% block body_class %}page-account{% endblock %}
 {% block content %}
 <section class="account-shell {% block account_shell_class %}{% endblock %}">
+    {% block account_decoration %}{% endblock %}
     {% include "accounts/art.html" %}
     <div class="account-panel">
         <header class="account-heading">
