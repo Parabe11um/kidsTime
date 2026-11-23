@@ -40,9 +40,9 @@
         </fieldset>
         <section class="filter-section filter-times" data-time-filter>
             <h3>Время начала</h3>
-            <div class="time-scale" aria-hidden="true"><span>8.00</span><span>12.00</span><span>18.00</span><span>22.00</span></div>
-            <div class="time-range"><input type="range" min="480" max="1320" step="30" value="480" data-time-min aria-label="Время начала, от"><input type="range" min="480" max="1320" step="30" value="1320" data-time-max aria-label="Время начала, до"></div>
-            <p class="time-selection" data-time-selection hidden></p>
+            <div class="time-scale" aria-hidden="true"><span data-time-value="480">8.00</span><span data-time-value="720">12.00</span><span data-time-value="1080">18.00</span><span data-time-value="1320">22.00</span></div>
+            <div class="time-range"><span class="time-range__glow" aria-hidden="true"></span><span class="time-range__ruler" aria-hidden="true"></span><input type="range" min="0" max="100" step="any" value="0" data-time-min aria-label="Время начала, от"><input type="range" min="0" max="100" step="any" value="100" data-time-max aria-label="Время начала, до"></div>
+            <p class="time-selection" data-time-selection role="status" hidden></p>
             <div class="filter-time-fields"><label><span>От</span><input type="time" name="time_from" value="{{ filters.time_from }}"></label><label><span>До</span><input type="time" name="time_until" value="{{ filters.time_until }}"></label></div>
         </section>
         <section class="filter-section filter-category">

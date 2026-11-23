@@ -2311,6 +2311,34 @@ body:has(dialog[open]) { overflow: hidden; }
 .map-point-pick { border: 1px solid var(--line); }
 .map-point-dialog__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .map-point-error { color: #b74450; font-size: 13px; }
+/* Figma 494:7830: the two thumbs and the ruler share the same end points. */
+.filter-times.has-time-slider { position: relative; --time-gradient: linear-gradient(88.6729deg,#ffbab8 12.024%,#fbd4a8 25.259%,#e6e4a0 35.186%,#aadfa7 42.539%,#9ceaf3 52.833%,#bdc6ff 66.804%,#efacfd 88.496%); }
+.filter-times.has-time-slider .time-scale { position: relative; display: block; height: 16px; margin: 0 22px; color: var(--ink); font-weight: 700; }
+.filter-times.has-time-slider .time-scale > span { position: absolute; top: 0; transform: translateX(-50%); color: var(--ink); white-space: nowrap; }
+.filter-times.has-time-slider .time-scale > .is-active { color: var(--coral); }
+.filter-times.has-time-slider .time-range { min-height: 82px; margin: 4px 0 0; touch-action: pan-y; }
+.filter-times.has-time-slider .time-range::before { display: none; }
+.time-range__ruler,.time-range__glow { position: absolute; top: 18.5px; right: 22px; left: 22px; height: 23px; pointer-events: none; }
+.time-range__ruler { background: #a9aec2; mask: url("../illustrations/filter-time-ruler.svg") center/100% 100% no-repeat; -webkit-mask: url("../illustrations/filter-time-ruler.svg") center/100% 100% no-repeat; }
+.time-range__ruler::before,.time-range__glow::before { content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--time-start,0%) - 1.5px); width: calc(var(--time-end,100%) - var(--time-start,0%) + 3px); background: var(--time-gradient); }
+.time-range__glow::before { border-radius: 24px; opacity: .2; filter: blur(8px); }
+.filter-times.has-time-slider .time-range input[type="range"] { inset: 48px 0 auto; height: 39px; min-height: 39px; border: 0; }
+.filter-times.has-time-slider .time-range input[data-time-min] { z-index: var(--time-lower-layer,1); }
+.filter-times.has-time-slider .time-range input[data-time-max] { z-index: 2; }
+.filter-times.has-time-slider .time-range input[type="range"]:focus-visible { z-index: 4; }
+.filter-times.has-time-slider .time-range input::-webkit-slider-runnable-track { height: 39px; border: 0; background: transparent; }
+.filter-times.has-time-slider .time-range input::-moz-range-track { height: 39px; border: 0; background: transparent; }
+.filter-times.has-time-slider .time-range input::-webkit-slider-thumb { appearance: none; width: 44px; height: 39px; margin: 0; border: 0; border-radius: 0; clip-path: none; background: url("../icons/release5/filter-time-thumb.svg") center/44px 39px no-repeat; }
+.filter-times.has-time-slider .time-range input::-moz-range-thumb { width: 44px; height: 39px; border: 0; border-radius: 0; clip-path: none; background: url("../icons/release5/filter-time-thumb.svg") center/44px 39px no-repeat; }
+.filter-times.has-time-slider .time-selection { position: absolute; bottom: 4px; left: 24px; right: 24px; margin: 0; font-size: 12px; line-height: 16px; text-align: center; }
+@media (min-width: 1024px) {
+  .desktop-nav > .header-notifications { width: 24px; min-width: 24px; }
+  .header-notifications__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .header-notifications::before { content: ""; width: 14px; height: 17.9892px; transform: scaleX(-1); background: url("../icons/ui/notification.svg") center/contain no-repeat; }
+  .page-catalog .filter-times.has-time-slider { min-height: 171px; padding: 48px 24px 20px; }
+  .page-catalog .filter-category select { appearance: none; padding-right: 40px; background-image: url("../icons/release5/category-chevron.svg"); background-repeat: no-repeat; background-position: right 8px center; background-size: 24px 24px; }
+}
+
 /* Shared Figma calendar; the browser still owns date selection. */
 .filter-date-control { position: relative; }
 .filter-dates .filter-date-control > label { margin-bottom: 0; }

@@ -129,19 +129,83 @@
     const minutes = (value, fallback) => /^\d{2}:\d{2}$/.test(value) ? Number(value.slice(0,2)) * 60 + Number(value.slice(3)) : fallback;
     const clock = (value) => `${String(Math.floor(value / 60)).padStart(2,"0")}:${String(value % 60).padStart(2,"0")}`;
     const selection = filter.querySelector("[data-time-selection]");
+    if (!lower || !upper || !from || !until) return;
+    const marks = [480, 720, 1080, 1320];
+    // The Figma ruler places its four clock landmarks at equal distances.
+    const position = (value) => {
+      const segment = value <= marks[1] ? 0 : value <= marks[2] ? 1 : 2;
+      return (segment + (value - marks[segment]) / (marks[segment + 1] - marks[segment])) * 100 / 3;
+    };
+    const timeAt = (value) => {
+      const scaled = Math.max(0, Math.min(100, value)) * 3 / 100;
+      const segment = Math.min(2, Math.floor(scaled));
+      return Math.round((marks[segment] + (scaled - segment) * (marks[segment + 1] - marks[segment])) / 30) * 30;
+    };
     const describe = () => {
-      lower.setAttribute("aria-valuetext", clock(Number(lower.value)));
-      upper.setAttribute("aria-valuetext", clock(Number(upper.value)));
-      if (selection) { selection.hidden = !from.value && !until.value; selection.textContent = `${from.value || "08:00"} — ${until.value || "22:00"}`; }
+      const start = minutes(from.value, 480), end = minutes(until.value, 1320);
+      lower.setAttribute("aria-valuetext", clock(start)); upper.setAttribute("aria-valuetext", clock(end));
+      lower.title = clock(start); upper.title = clock(end);
+      filter.style.setProperty("--time-start", `${position(start)}%`);
+      filter.style.setProperty("--time-end", `${position(end)}%`);
+      filter.querySelectorAll("[data-time-value]").forEach((label) => {
+        const value = Number(label.dataset.timeValue);
+        label.style.left = `${position(value)}%`;
+        label.classList.toggle("is-active", value >= start && value <= end);
+      });
+      filter.style.setProperty("--time-lower-layer", start === end && end === 1320 ? "3" : "1");
+      if (selection) { selection.hidden = !filter.classList.contains("has-time-slider") || (!from.value && !until.value); selection.textContent = `${clock(start)} — ${clock(end)}`; }
     };
     const sync = () => {
       const start = minutes(from.value, 480), end = minutes(until.value, 1320);
       const fitsSlider = (value) => value >= 480 && value <= 1320 && value % 30 === 0;
       filter.classList.toggle("has-time-slider", start <= end && fitsSlider(start) && fitsSlider(end));
-      lower.value = start; upper.value = end; describe();
+      if (filter.classList.contains("has-time-slider")) { lower.value = position(start); upper.value = position(end); }
+      describe();
     };
-    lower.addEventListener("input", () => { lower.value = Math.min(Number(lower.value), Number(upper.value)); from.value = clock(Number(lower.value)); until.value = clock(Number(upper.value)); describe(); });
-    upper.addEventListener("input", () => { upper.value = Math.max(Number(upper.value), Number(lower.value)); from.value = clock(Number(lower.value)); until.value = clock(Number(upper.value)); describe(); });
+    const setTime = (input, value) => {
+      const start = minutes(from.value, 480), end = minutes(until.value, 1320);
+      from.value = clock(input === lower ? Math.max(480, Math.min(value, end)) : start);
+      until.value = clock(input === upper ? Math.min(1320, Math.max(value, start)) : end);
+      sync();
+    };
+    [lower, upper].forEach((input) => {
+      input.addEventListener("input", () => setTime(input, timeAt(Number(input.value))));
+      input.addEventListener("keydown", (event) => {
+        const current = minutes(input === lower ? from.value : until.value, input === lower ? 480 : 1320);
+        const values = {ArrowLeft: current - 30, ArrowDown: current - 30, ArrowRight: current + 30, ArrowUp: current + 30,
+          PageDown: current - 60, PageUp: current + 60, Home: 480, End: 1320};
+        if (Object.hasOwn(values, event.key)) { event.preventDefault(); setTime(input, values[event.key]); }
+      });
+    });
+    const track = filter.querySelector(".time-range");
+    track?.addEventListener("pointerdown", (event) => {
+      if (!event.isPrimary || event.button !== 0) return;
+      event.preventDefault();
+      const box = track.getBoundingClientRect();
+      const point = (x) => Math.max(0, Math.min(100, (x - box.left - 22) / (box.width - 44) * 100));
+      const start = Number(lower.value), end = Number(upper.value), pressed = point(event.clientX);
+      let input = start === end && Math.abs(pressed - start) < 1 ? null
+        : Math.abs(pressed - start) < Math.abs(pressed - end) ? lower : upper;
+      (input || lower).focus({preventScroll: true});
+      const drag = (move) => {
+        if (!input) {
+          if (Math.abs(move.clientX - event.clientX) < 1) return;
+          input = move.clientX < event.clientX ? lower : upper;
+        }
+        input.focus({preventScroll: true});
+        setTime(input, timeAt(point(move.clientX)));
+      };
+      const controller = new AbortController();
+      const finish = () => {
+        controller.abort();
+        if (track.hasPointerCapture(event.pointerId)) track.releasePointerCapture(event.pointerId);
+      };
+      track.setPointerCapture(event.pointerId);
+      track.addEventListener("pointermove", drag, {signal: controller.signal});
+      track.addEventListener("pointerup", finish, {signal: controller.signal});
+      track.addEventListener("pointercancel", finish, {signal: controller.signal});
+      if (input) drag(event);
+    });
     from.addEventListener("change", sync); until.addEventListener("change", sync); sync();
   });
 
