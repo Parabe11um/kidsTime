@@ -1574,19 +1574,42 @@ body:has(dialog[open]) { overflow: hidden; }
 }
 
 /* Sign-in and registration: the supplied desktop split-panel backgrounds. */
+.account-auth-decoration { display: none; }
+/* Figma 918:27079: scale the 744x1133 artboard uniformly, keeping its leaf transforms. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .page-account .account-shell--auth { isolation: isolate; background: url("../illustrations/auth-tablet-bottom.svg") center bottom -157px/594px auto no-repeat,var(--canvas); }
+  .account-shell--auth .account-auth-decoration { display: block; position: absolute; z-index: -1; top: 0; left: 0; width: 100%; aspect-ratio: 744/1133; pointer-events: none; }
+  .account-auth-decoration::before { content: ""; position: absolute; left: -76.9492%; top: -90.0098%; width: 231.793%; aspect-ratio: 1724.54/1486.28; background: url("../illustrations/auth-tablet-glow.svg") center/contain no-repeat; }
+  .account-auth-leaf { position: absolute; display: flex; align-items: center; justify-content: center; }
+  .account-auth-leaf::before { content: ""; display: block; flex: none; width: var(--leaf-width); height: var(--leaf-height); transform: var(--leaf-transform); background: var(--leaf) center/contain no-repeat; }
+  .account-auth-leaf--44 { inset: -17.42% -1.91% 88.9% 15.47%; --leaf-width: 99.73534%; --leaf-height: 77.98083%; --leaf-transform: rotate(-173.63deg) skewX(5.09deg); --leaf: url("../illustrations/auth-leaf-44.svg"); }
+  .account-auth-leaf--48 { inset: -28.74% -2.84% 91.3% 12.71%; --leaf-width: 95.01337%; --leaf-height: 56.22296%; --leaf-transform: rotate(-162.23deg) scaleX(-1) skewX(-2.25deg); --leaf: url("../illustrations/auth-leaf-48.svg"); }
+  .account-auth-leaf--46 { inset: -17.7% -5.68% 78% 14.43%; --leaf-width: 90.17476%; --leaf-height: 55.87739%; --leaf-transform: rotate(158.61deg) skewX(4.28deg); --leaf: url("../illustrations/auth-leaf-46.svg"); }
+  .account-auth-leaf--51 { inset: -16.99% -2.56% 65.28% 15.93%; --leaf-width: 96.89573%; --leaf-height: 42.13067%; --leaf-transform: rotate(138.73deg) skewX(3.92deg); --leaf: url("../illustrations/auth-leaf-51.svg"); }
+  .account-auth-leaf--49 { inset: -17.72% -6.84% 60.38% 35.68%; --leaf-width: 115.22134%; --leaf-height: 38.80983%; --leaf-transform: rotate(120.55deg) skewX(1deg); --leaf: url("../illustrations/auth-leaf-49.png"); }
+  .account-auth-leaf--52 { inset: -17.17% -6.97% 57.24% 52.14%; --leaf-width: 150.76304%; --leaf-height: 36.82565%; --leaf-transform: rotate(106.47deg) skewX(-4.43deg); --leaf: url("../illustrations/auth-leaf-52.svg"); }
+  .account-auth-leaf--53 { inset: -10.42% -26.37% 59.96% 72.91%; --leaf-width: 138.38429%; --leaf-height: 36.04905%; --leaf-transform: rotate(68.66deg) skewX(-4.7deg); --leaf: url("../illustrations/auth-leaf-53.svg"); }
+  .account-auth-leaf--49::before { opacity: .7; }
+  .account-auth-leaf--53::before { background-size: 111.92% 130.2%; }
+  .account-shell--auth .account-art { padding-bottom: 0; background: transparent; }
+  .account-shell--auth .account-art::before,.account-shell--auth .account-art::after { display: none; }
+  .page-account--register .account-shell--auth .account-art { height: clamp(260px,41.3945svh,469px); }
+  .page-account--login .account-shell--auth .account-art { height: clamp(320px,49.5146svh,561px); }
+  .account-shell--auth .account-wordmark .brand-mark { width: 255px; }
+  .page-account .account-shell--auth .account-panel { margin-top: 56px; }
+}
 .account-shell--auth .account-recovery-group { display: grid; gap: 8px; }
 .account-shell--auth .account-recover { margin: 0 4px; font-size: 12px; line-height: 18px; }
 .account-shell--auth .account-registration-notes { display: grid; gap: 8px; }
 .account-shell--auth .account-registration-notes .account-help { margin: 0; font-size: 12px; line-height: 18px; }
 @media (min-width: 1024px) {
-  .page-account .account-shell--auth { display: grid; grid-template-columns: minmax(0,748fr) minmax(0,654fr); min-height: 100svh; border-radius: 20px; background: url("../illustrations/auth-art-top.webp") right top/calc(46.6476% + 64px) min(680px,62.62svh) no-repeat,var(--canvas); }
-  .page-account--register .account-shell--auth { background-image: url("../illustrations/auth-register-art-top.webp"); }
+  .page-account .account-shell--auth { display: grid; grid-template-columns: minmax(0,741fr) minmax(0,661fr); min-height: 100svh; border-radius: 20px; background: url("../illustrations/auth-desktop-leaves.png") right top/calc(47.1469% + 524px) auto no-repeat,var(--canvas); }
   .account-shell--auth .account-panel { isolation: isolate; overflow: hidden; padding: 48px 32px 64px 36px; border: 0; border-right: 8px solid transparent; border-radius: 0 64px 64px 0; background: linear-gradient(var(--canvas),var(--canvas)) padding-box,linear-gradient(180deg,#ffbec3,#ffffff80 60%,#fff) border-box; }
   .page-account--register .account-shell--auth .account-panel { padding-top: 104px; }
   .account-shell--auth .account-panel::before,.account-shell--auth .account-panel::after { content: ""; position: absolute; z-index: -1; left: 0; right: 0; border-radius: 0; pointer-events: none; background-repeat: no-repeat; }
-  .account-shell--auth .account-panel::before { top: 0; height: 258px; background-image: url("../illustrations/auth-login-top.webp"); background-position: left top; background-size: 100% 100%; mask-image: linear-gradient(#000 85%,transparent); }
+  .account-shell--auth .account-panel::before { top: 0; height: 258px; background-image: url("../illustrations/auth-login-top.webp"); background-position: left top; background-size: 100% auto; mask-image: linear-gradient(#000 85%,transparent); }
   .page-account--register .account-panel::before { background-image: url("../illustrations/auth-register-top.webp"); }
-  .account-shell--auth .account-panel::after { bottom: 0; height: 150px; background-image: url("../illustrations/auth-panel-bottom.webp"); background-position: left bottom; background-size: 100% 100%; }
+  .account-shell--auth .account-panel::after { bottom: 0; height: 150px; background-image: url("../illustrations/auth-panel-bottom.webp"); background-position: left bottom; background-size: 100% auto; }
   .account-shell--auth .account-heading { margin-bottom: 24px; }
   .account-shell--auth .account-heading h1 { font-size: 24px; font-weight: 600; line-height: 32px; }
   .account-shell--auth .account-form { gap: 16px; }
