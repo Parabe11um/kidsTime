@@ -104,6 +104,7 @@ h3 { font-size: 16px; font-weight: 700; }
 .weather-card__icon { position: absolute; left: 12px; top: 14px; width: 40px; height: 43px; filter: drop-shadow(0 3px 7px #6361da30); }
 .weather-card__temperature { position: absolute; right: 12px; bottom: 7px; font-size: 36px; font-weight: 400; line-height: 1.1; letter-spacing: -2px; }
 .weather-card__label { position: absolute; top: 8px; right: 10px; font-size: 9px; color: #fff; }
+.weather-card__art { display: none; }
 .hero-categories { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 24px 8px 16px; }
 .hero-categories a { display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 100%; min-height: 44px; background: #fff; padding: 11px; border: 1px solid transparent; border-radius: 32px; font-size: 14px; line-height: 20px; white-space: normal; text-align: center; transition: color .18s; }
 .hero-categories img { flex: none; width: 16px; height: 16px; }
@@ -2083,6 +2084,7 @@ body:has(dialog[open]) { overflow: hidden; }
 .random-route-card small { color: var(--muted); font-size: 12px; line-height: 18px; }
 .random-route-card__pin { position: absolute; top: 12px; right: 14px; width: 19px; height: 24px; }
 .random-route-card__trail { position: absolute; top: 17px; right: 28px; width: 78px; }
+.random-route-card__desktop-trail { display: none; }
 .random-route-card:is(:hover,:focus-visible) { color: #806ad2; border-color: #a9aec2; }
 .home-nearby__links { display: grid; justify-items: end; gap: 4px; }
 .home-nearby__links .home-nearby__location { display: none; }
@@ -2240,11 +2242,38 @@ body:has(dialog[open]) { overflow: hidden; }
   .walk-storage-note { margin-top: 24px; }
 }
 @media (min-width: 1024px) {
+  /* Release 5: calendar 1049:20428, weather 1049:20472, white route widget 1049:21488. */
+  /* Transparent glow assets preserve the progressive blur of layers 1049:20473, 1049:21468 and 1049:21493. */
+  .page-home .hero-calendar { padding: 10px 38px 10px 32px; border-radius: 32px 56px 32px 24px; box-shadow: none; }
+  .page-home .hero-calendar::before { inset: 0 6px 0 0; border-radius: 24px 32px 56px 48px; }
+  .page-home .hero-calendar h2 { font-size: 14px; font-weight: 700; line-height: 20px; margin-bottom: 8px; }
+  .page-home .date-strip { grid-auto-columns: calc(100% / 21); gap: 0; }
+  .page-home .date-pill { min-height: 48px; border-radius: 16px; font-size: 12px; font-weight: 500; line-height: 16px; }
+  .page-home .date-pill strong { font-weight: inherit; }
+  .page-home .date-pill.is-weekend { color: #ff9380; font-weight: 700; }
+  .page-home .date-pill.is-active { border-color: transparent; color: #806ad2; font-weight: 700; }
+  .page-home .date-pill:is(:hover,:focus-visible) { border-color: #ff9380; }
   .home-feature--nearby { gap: 27px; }
   .home-feature--nearby .home-feature__widgets { align-self: stretch; align-content: space-between; gap: 27px; }
-  .home-feature--nearby .weather-card { min-height: 123px; border-radius: 16px 24px 32px 24px; }
-  .home-feature--nearby .weather-card::before { border-radius: inherit; }
-  .home-feature--nearby .random-route-card { order: 1; border-radius: 32px 24px 32px 32px; }
+  .home-feature--nearby .weather-card { height: 123px; min-height: 123px; border-radius: 16px 24px 32px 24px; background: transparent; box-shadow: none; }
+  .home-feature--nearby .weather-card::before { inset: 0 auto auto 0; width: 132px; height: 124px; border: 0; border-radius: inherit; background: linear-gradient(139.072deg,#c3c8ff .804%,#8892f9 96.262%); }
+  .home-feature--nearby .weather-card::after { content: ""; position: absolute; z-index: -2; left: -16px; top: -16px; width: 164px; height: 155px; background: url("../illustrations/widget-weather-glow.png") no-repeat; pointer-events: none; }
+  .home-feature--nearby .weather-card__icon,.home-feature--nearby .weather-card__label { display: none; }
+  .home-feature--nearby .weather-card__art { display: block; position: absolute; inset: 0; pointer-events: none; }
+  .home-feature--nearby .weather-card__art img { position: absolute; max-width: none; }
+  /* The source icon instance scales its 37 × 85.592 component to 40.509 × 49.621. Keep the exported SVG's intrinsic dimensions. */
+  .home-feature--nearby .weather-card__rain { left: 11.307px; top: 15.103px; transform-origin: 0 0; transform: scale(1.094834,.579736); }
+  .home-feature--nearby .weather-card__fold { left: 103px; top: 83px; }
+  .home-feature--nearby .weather-card__temperature { left: 55px; top: 81px; right: auto; bottom: auto; width: 67px; height: 18px; font-size: 40px; font-weight: 300; line-height: 18px; letter-spacing: -.08px; text-align: center; }
+  .home-feature--nearby .random-route-card { order: 1; height: 135px; min-height: 135px; padding: 68px 0 23px 21px; border: 0; border-radius: 32px 24px 24px 24px; overflow: visible; background: transparent; color: var(--ink); transition: color .18s; }
+  .home-feature--nearby .random-route-card::after { content: ""; position: absolute; z-index: -1; inset: 0 auto auto 0; width: 133px; height: 135px; border: solid #a9aec2; border-width: 0 1px 1px 0; border-radius: inherit; background: #fffffffc; pointer-events: none; }
+  .home-feature--nearby .random-route-card::before { inset: -19px auto auto -16px; width: 167px; height: 69px; border-radius: 0; background: url("../illustrations/widget-route-glow.png") no-repeat; filter: none; pointer-events: none; }
+  .home-feature--nearby .random-route-card:is(:hover,:focus-visible,:active) { color: #806ad2; }
+  .home-feature--nearby .random-route-card:is(:hover,:focus-visible,:active)::before { background-image: url("../illustrations/widget-route-glow-hover.png"); }
+  .home-feature--nearby .random-route-card__pin { left: 93px; top: 17px; right: auto; }
+  .home-feature--nearby .random-route-card__trail { display: none; }
+  .home-feature--nearby .random-route-card__desktop-trail { display: block; position: absolute; left: 21.393px; top: 35.976px; width: 76.454px; height: 25.577px; transform: rotate(-7.65deg); pointer-events: none; }
+  .home-feature--nearby .random-route-card__desktop-trail img { position: absolute; left: -.5px; top: -.493px; max-width: none; }
   .home-feature--nearby .feature-card { height: 285px; border-radius: 24px 32px 16px 56px; }
   .home-collections .event-card { background: white; padding: 4px; }
   .home-collections .event-card__body { padding-inline: 12px; }

@@ -64,7 +64,7 @@
                 <div class="date-strip" aria-label="Ближайшие даты">
                     {% for day in days %}<a class="date-pill{% if day.is_today %} is-active{% endif %}{% if day.is_weekend %} is-weekend{% endif %}"
    href="{% url 'catalog:event_list' %}?date={{ day.date }}"
-   aria-label="{{ day.day }} {{ day.month }}"><span>{{ day.weekday }}</span><strong>{{ day.day }}</strong></a>{% endfor %}
+   aria-label="{{ day.day }} {{ day.month }}"{% if day.is_today %} aria-current="date"{% endif %}><span>{{ day.weekday }}</span><strong>{{ day.day }}</strong></a>{% endfor %}
                 </div>
             </section>
             <div class="home-dashboard">
