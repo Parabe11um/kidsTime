@@ -128,7 +128,6 @@
     const until = filter.querySelector("[name=time_until]");
     const minutes = (value, fallback) => /^\d{2}:\d{2}$/.test(value) ? Number(value.slice(0,2)) * 60 + Number(value.slice(3)) : fallback;
     const clock = (value) => `${String(Math.floor(value / 60)).padStart(2,"0")}:${String(value % 60).padStart(2,"0")}`;
-    const selection = filter.querySelector("[data-time-selection]");
     if (!lower || !upper || !from || !until) return;
     const marks = [480, 720, 1080, 1320];
     // The Figma ruler places its four clock landmarks at equal distances.
@@ -153,7 +152,6 @@
         label.classList.toggle("is-active", value >= start && value <= end);
       });
       filter.style.setProperty("--time-lower-layer", start === end && end === 1320 ? "3" : "1");
-      if (selection) { selection.hidden = !filter.classList.contains("has-time-slider") || (!from.value && !until.value); selection.textContent = `${clock(start)} — ${clock(end)}`; }
     };
     const sync = () => {
       const start = minutes(from.value, 480), end = minutes(until.value, 1320);
