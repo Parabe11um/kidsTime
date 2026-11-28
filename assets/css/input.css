@@ -69,7 +69,7 @@ h3 { font-size: 16px; font-weight: 700; }
 .ui-icon--arrow-up-right { --icon: url("../icons/ui/arrow-up-right.svg"); }
 .ui-icon--close { --icon: url("../icons/ui/close.svg"); }
 .ui-icon--share { --icon: url("../icons/ui/share.svg"); }
-.ui-icon--location { --icon: url("../icons/ui/location.svg"); }
+.ui-icon--location { --icon: url("../icons/release5/nearby-location.svg"); }
 .ui-icon { vertical-align: middle; }
 .text-link .ui-icon { width: 16px; height: 16px; }
 .carousel-arrow,.filters-close,.walk-item__move,.map-search button,.map-sheet__close { display: inline-grid; place-items: center; padding: 0; }
@@ -2099,7 +2099,7 @@ body:has(dialog[open]) { overflow: hidden; }
 .event-collection__heading p { margin-top: 8px; color: var(--muted); }
 .event-collection__actions { display: grid; gap: 8px; }
 .event-collection__locate { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; min-height: 32px; border: 0; padding: 0; background: none; }
-.event-collection__locate .ui-icon { width: 16px; height: 16px; color: var(--muted); }
+.event-collection__locate .ui-icon { width: 16px; height: 16px; color: #a9aec2; }
 .event-collection__status { max-width: 178px; color: var(--muted); font-size: 12px; text-align: right; }
 .event-collection__status:empty { display: none; }
 .event-collection__grid { display: grid; gap: 22px; align-items: start; }
