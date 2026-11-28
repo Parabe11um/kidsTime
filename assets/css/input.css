@@ -2082,7 +2082,7 @@ body:has(dialog[open]) { overflow: hidden; }
   background: #ff93804d; filter: blur(4px); pointer-events: none;
 }
 .random-route-card::after { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: linear-gradient(#fbba81,#ff7070 50%); pointer-events: none; }
-.random-route-card strong { position: relative; font-size: clamp(15px,4.15vw,18px); font-weight: 700; line-height: 24px; }
+.random-route-card strong { position: relative; width: min-content; max-width: 100%; font-size: clamp(15px,4.15vw,18px); font-weight: 700; line-height: 24px; }
 .random-route-card small { font-size: 12px; line-height: 18px; }
 .random-route-card__pin { position: absolute; top: 15px; right: 15px; width: 30px; height: 36px; pointer-events: none; }
 .random-route-card__pin--hover { opacity: 0; }
