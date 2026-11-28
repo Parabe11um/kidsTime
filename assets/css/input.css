@@ -976,8 +976,9 @@ body:has(dialog[open]) { overflow: hidden; }
   .search-empty { min-height: 440px; padding-top: 40px; text-align: center; }
   .detail-shell { width: min(1000px,calc(100% - 64px)); margin: 24px auto 0; }
   .breadcrumbs { font-size: 14px; gap: 10px; margin-bottom: 32px; }
-  .detail-hero { border-radius: 24px 24px 32px 52px; box-shadow: -6px 5px 0 #e4e5e9; }
-  .detail-gallery__track { aspect-ratio: 2.7; }
+  /* Figma 1074:30555–30556: the gray surface and clipped photo share their bounds. */
+  .detail-hero { padding: 0; border-radius: 10px 32px 16px 32px; background: #e4e5e9; box-shadow: none; }
+  .detail-gallery__track { aspect-ratio: 1000/371; border-radius: 32px 32px 56px 100px; }
   .detail-gallery__bar { display: flex; align-items: start; justify-content: space-between; gap: 24px; margin-top: 24px; }
   .detail-gallery__bar:not(:has(.gallery-thumbnails)) { margin-top: 0; }
   .gallery-thumbnails { gap: 8px; margin-top: 0; min-width: 0; }
@@ -2203,7 +2204,7 @@ body:has(dialog[open]) { overflow: hidden; }
   .home-nearby__links .home-nearby__location { display: inline-flex; align-items: center; gap: 3px; color: var(--violet); font-size: 12px; }
   .hero-categories--mobile { display: none; }
   .hero-categories--wide { display: flex; }
-  .home-nearby__location .ui-icon { width: 14px; height: 14px; }
+  .home-nearby__location img { flex: none; }
   .home-nearby__empty,.random-route-card small { display: none; }
   .home-feature--nearby { grid-template-columns: 132px minmax(0,1fr); }
   .random-route-card { min-height: 135px; padding: 58px 20px 23px; border-color: #e4e5e9; border-radius: 32px 24px 24px 24px; box-shadow: none; }

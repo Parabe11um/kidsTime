@@ -80,7 +80,7 @@
                     <div><h2 id="nearby-title">Рядом с вами</h2><p class="desktop-only">Интересные места и постоянные площадки поблизости</p></div>
                     <div class="home-nearby__links">
                         <a href="{% url 'catalog:nearby' %}" aria-label="Все места рядом с вами">{% include "includes/icon.html" with name="arrow-right" %}</a>
-                        <a class="home-nearby__location" href="{% url 'catalog:nearby' %}">{% include "includes/icon.html" with name="location" %} Москва, центр</a>
+                        <a class="home-nearby__location" href="{% url 'catalog:nearby' %}"><img src="{% static 'icons/release5/nearby-location.svg' %}" alt="" width="16" height="16"> Москва, центр</a>
                     </div>
                 </div>
                 <div class="home-feature home-feature--nearby">
