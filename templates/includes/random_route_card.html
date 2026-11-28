@@ -1,11 +1,8 @@
 {% load static %}
 <a class="random-route-card" href="{% url 'catalog:walk_builder' %}?random=1">
-    <picture class="random-route-card__trail" aria-hidden="true">
-        <source media="(max-width: 639px)" srcset="{% static 'icons/release5/random-path-mobile.svg' %}">
-        <img src="{% static 'icons/release5/random-path.svg' %}" alt="" width="79" height="26">
-    </picture>
-    <span class="random-route-card__desktop-trail" aria-hidden="true"><img src="{% static 'icons/release5/widget-route-path.svg' %}" alt=""></span>
-    <img class="random-route-card__pin" src="{% static 'icons/release5/random-pin.svg' %}" alt="" width="23" height="29">
+    <span class="random-route-card__trail" aria-hidden="true"><img src="{% static 'icons/release5/random-route-path.svg' %}" alt=""></span>
+    <img class="random-route-card__pin" src="{% static 'icons/release5/random-route-pin.svg' %}" alt="" width="30" height="36">
+    <img class="random-route-card__pin random-route-card__pin--hover" src="{% static 'icons/release5/random-route-pin-hover.svg' %}" alt="" width="30" height="36">
     <strong>Случайный маршрут</strong>
     <small>по ближайшим точкам</small>
 </a>
